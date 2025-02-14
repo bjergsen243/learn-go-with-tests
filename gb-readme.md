@@ -6,7 +6,7 @@
 
 [Minh hoạ bởi Denise](https://twitter.com/deniseyu21)
 
-## Hỗ trợ tôi
+## Hỗ trợ tác giả
 
 Tác giả rất tự hào khi cung cấp những tài nguyên này miễn phí, nếu bạn muốn hỗ trợ
 
@@ -78,9 +78,10 @@ Từ kinh nghiệm học tập trong nhóm và phương pháp cá nhân của ri
 ## Phản hồi
 
 * Thêm issues hoặc tạo PRs [tại đây (bản gốc)](https://github.com/quii/learn-go-with-tests) hoặc [tweet tác giả @quii](https://twitter.com/quii)
-[MIT license](https://github.com/quii/learn-go-with-tests/blob/main/LICENSE.md)
 
 ## Dịch giả
 
 * Dịch giả [Soren](https://github.com/bjergsen243)
 * Đóng góp về bản dịch của tôi [tại đây](https://github.com/bjergsen243/learn-go-with-tests)
+
+[MIT license](https://github.com/quii/learn-go-with-tests/blob/main/LICENSE.md)

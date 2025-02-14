@@ -2,7 +2,7 @@
 
 * [Learn Go with Tests](gb-readme.md)
 
-## Go fundamentals
+## Go
 
 * [Install Go](install-go.md)
 * [Hello, World](hello-world.md)
@@ -26,14 +26,14 @@
 * [Generics](generics.md)
 * [Revisiting arrays and slices with generics](revisiting-arrays-and-slices-with-generics.md)
 
-## Testing fundamentals
+## Kiểm thử
 
 * [Introduction to acceptance tests](intro-to-acceptance-tests.md)
 * [Scaling acceptance tests](scaling-acceptance-tests.md)
 * [Working without mocks](working-without-mocks.md)
 * [Refactoring Checklist](refactoring-checklist.md)
 
-## Build an application
+## Xây dựng ứng dụng
 
 * [Intro](app-intro.md)
 * [HTTP server](http-server.md)
@@ -43,14 +43,14 @@
 * [Time](time.md)
 * [WebSockets](websockets.md)
 
-## Questions and answers
+## Q&A
 
 * [OS Exec](os-exec.md)
 * [Error types](error-types.md)
 * [Context-aware Reader](context-aware-reader.md)
 * [Revisiting HTTP Handlers](http-handlers-revisited.md)
 
-## Meta
+## Tổng quan
 
 * [Why unit tests and how to make them work for you](why.md)
 * [Anti-patterns](anti-patterns.md)
