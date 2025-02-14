@@ -4,7 +4,7 @@
 
 ## Go
 
-* [Install Go](install-go.md)
+* [Cài đặt Go](install-go.md)
 * [Hello, World](hello-world.md)
 * [Integers](integers.md)
 * [Iteration](iteration.md)
