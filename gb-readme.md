@@ -1,4 +1,4 @@
-# Learn Go with Tests
+# Học Go qua Tests
 
 <div style="text-align: center">
   <img src="red-green-blue-gophers-smaller.png" />
@@ -6,16 +6,16 @@
 
 [Minh hoạ bởi Denise](https://twitter.com/deniseyu21)
 
-## Hỗ trợ tác giả
+## Ủng hộ tác giả
 
-Tác giả rất tự hào khi cung cấp những tài nguyên này miễn phí, nếu bạn muốn hỗ trợ
+Tác giả rất tự hào khi cung cấp những tài nguyên này miễn phí, nếu bạn muốn đóng góp thêm
 
 - [Tweet tác giả @quii](https://twitter.com/quii)
 - <a rel="me" href="https://mastodon.cloud/@quii">Mastodon</a>
 - [Buy me a coffee](https://www.buymeacoffee.com/quii)
 - [Tài trợ trên GitHub](https://github.com/sponsors/quii)
 
-## Phát triển theo hướng thử nghiệm (Test-driven development) với Go
+## Phát triển theo hướng kiểm thử (Test-driven development) với Go
 
 * Khám phá ngôn ngữ Go thông qua viết test.
 * **Nắm vững nền tảng TDD**. Go là một ngôn ngữ lý tưởng để học TDD vì nó dễ học và có hệ thống kiểm thử tích hợp sẵn.
@@ -28,9 +28,9 @@ Các bản dịch:
 
 ## Kinh nghiệm
 
-Tác giả đã giới thiệu Go cho các nhóm phát triển phần mềm và thử nhiều phương pháp giảng dạy khác nhau để giúp họ thành thạo trong việc xây dựng hệ thống chất lượng cao bằng Go.
+Tác giả đã giới thiệu Go cho các nhóm phát triển phần mềm cũng như thử nhiều phương pháp giảng dạy khác nhau để giúp họ thành thạo trong việc xây dựng hệ thống chất lượng cao bằng Go.
 
-### Những phương pháp không hiệu quả
+### Những cách không hiệu quả
 
 #### Đọc _sách_
 
@@ -40,7 +40,7 @@ Tuy nhiên cách làm này đòi hỏi sự cam kết cao. Cuốn sách này gi�
 
 Lúc này tác giả nhận ra rằng, trong khi một số ít người thực sự đọc chương X và làm bài tập, thì nhiều người khác lại không theo kịp.
 
-#### Giải quyết các vấn đề
+#### Các vấn đề
 
 Các bài luyện tập lập trình [kata](https://en.wikipedia.org/wiki/Kata#Outside_martial_arts) rất thú vị, nhưng chúng thường có hạn chế khi học một ngôn ngữ lập trình. Bạn khó có thể sử dụng goroutines để giải một bài tập kiểu này.
 
@@ -56,7 +56,7 @@ Khi đã xây dựng được nền tảng chắc, từ đó có thể bắt đ�
 
 ### Phương pháp phù hợp với tác giả
 
-Khi học một ngôn ngữ lập trình mới, tác giả thường bắt đầu bằng cách thử nghiệm trong một môi trường REPL. Nhưng cuối cùng, tác giả thấy rằng vẫn cần một cách tiếp cận có cấu trúc hơn.
+Khi học một ngôn ngữ lập trình mới, tác giả thường bắt đầu bằng cách thử nghiệm trong một [môi trường REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop). Nhưng sau cùng, tác giả thấy rằng vẫn cần một cách tiếp cận có cấu trúc hơn.
 
 Các bài kiểm thử giúp tác giả xác minh tính đúng đắn của mã nguồn và còn đóng vai trò như tài liệu về những tính năng đã học.
 
@@ -65,7 +65,7 @@ Từ kinh nghiệm học tập trong nhóm và phương pháp cá nhân của ri
 ## Đối tượng phù hợp
 
 * Những ai muốn học Go
-* Những người đã biết một chút về Go nhưng muốn tìm hiểu sâu hơn về kiểm thử
+* Những người muốn hiểu sâu hơn về Go cũng như kiểm thử
 
 ## Bạn cần gì?
 

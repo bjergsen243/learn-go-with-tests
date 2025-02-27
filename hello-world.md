@@ -1,11 +1,11 @@
 # Hello, World
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/hello-world)**
+**[Tất cả code của mục được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/hello-world)**
 
-It is traditional for your first program in a new language to be [Hello, World](https://en.m.wikipedia.org/wiki/%22Hello,_World!%22_program).
+Thông thường, chương trình đầu tiên mà bạn viết khi học một ngôn ngữ mới sẽ là [Hello, World](https://en.m.wikipedia.org/wiki/%22Hello,_World!%22_program).
 
-- Create a folder wherever you like
-- Put a new file in it called `hello.go` and put the following code inside it
+-   Tạo một thư mục bất kỳ.
+-   Thêm một tệp mới có tên `hello.go` với nội dung như sau:
 
 ```go
 package main
@@ -17,21 +17,26 @@ func main() {
 }
 ```
 
-To run it, type `go run hello.go`.
+Để chạy, gõ vào terminal lệnh sau `go run hello.go`.
 
-## How it works
+## Cách nó hoạt động
 
-When you write a program in Go, you will have a `main` package defined with a `main` func inside it. Packages are ways of grouping up related Go code together.
+Khi viết một chương trình Go, bạn cần khai báo package `main` cùng với một hàm (func) `main` bên trong nó. Go tổ chức mã nguồn thành các package để nhóm các chức năng liên quan lại với nhau.
 
-The `func` keyword defines a function with a name and a body.
+Từ khoá `func` dùng để định nghĩa một hàm với tên và phần thân của nó. Trong Go, chương trình bắt đầu chạy từ hàm `main()`.
 
-With `import "fmt"` we are importing a package which contains the `Println` function that we use to print.
+Với lệnh `import "fmt"` sẽ dùng để nhập gói `fmt`, trong đó chứa hàm `Println` có tác dụng in nội dung ra màn hình console.
 
-## How to test
+## Cách test (test)
 
-How do you test this? It is good to separate your "domain" code from the outside world \(side-effects\). The `fmt.Println` is a side effect \(printing to stdout\), and the string we send in is our domain.
+Làm thế nào để test chương trình này?
 
-So let's separate these concerns so it's easier to test
+Một nguyên tắc quan trọng là cần tách biệt phần code xử lý logic khỏi các hiệu ứng phụ (side-effects)
+
+-   `fmt.Println` là một hiệu ứng phụ vì nó in ra màn hình.
+-   Chuỗi truyền vào ("Hello, World!") là phần logic chính cần test.
+
+Để dễ test hơn, chúng ta có thể viết một hàm riêng để xử lý phần logic, sau đó gọi hàm này trong `main()`.
 
 ```go
 package main
@@ -47,9 +52,9 @@ func main() {
 }
 ```
 
-We have created a new function with `func`, but this time, we've added another keyword, `string,` to the definition. This means this function returns a `string`.
+Chúng ta đã tạo một hàm mới bằng từ khoá `func`, nhưng lần này có thêm từ khoá `string` khi định nghĩa. Điều này có nghĩa là hàm sẽ trả về một giá trị `string`.
 
-Now create a new file called `hello_test.go` where we are going to write a test for our `Hello` function
+Bây giờ, hãy tạo một tệp mới có tên `hello_test.go` để viết test cho hàm `Hello`
 
 ```go
 package main
@@ -68,14 +73,16 @@ func TestHello(t *testing.T) {
 
 ## Go modules?
 
-The next step is to run the tests. Enter `go test` in your terminal. If the tests pass, then you are probably using an earlier version of Go. However, if you are using Go 1.16 or later, the tests will likely not run. Instead, you will see an error message like this in the terminal:
+Bước tiếp theo là chạy test. Hãy nhập lệnh `go test` trong terminal.
+
+Nếu test chạy thành công, có thể bạn đang sử dụng phiên bản Go cũ hơn. Tuy nhiên, nếu bạn đang dùng Go 1.16 trở lên, có khả năng test sẽ không chạy mà thay vào đó, bạn sẽ thấy lỗi như sau:
 
 ```shell
 $ go test
 go: cannot find main module; see 'go help modules'
 ```
 
-What's the problem? In a word, [modules](https://blog.golang.org/go116-module-changes). Luckily, the problem is easy to fix. Enter `go mod init example.com/hello` in your terminal. That will create a new file with the following contents:
+Vấn đề ở đây do `modules` chưa được khởi tạo. Nhập lệnh sau vào terminal `go mod init example.com/hello`. Lúc này một tệp mới sẽ được tạo với nội dung như sau:
 
 ```
 module example.com/hello
@@ -83,49 +90,58 @@ module example.com/hello
 go 1.16
 ```
 
-This file tells the `go` tools essential information about your code. If you planned to distribute your application, you would include where the code was available for download as well as information about dependencies.  The name of the module, example\.com\/hello, usually refers to a URL where the module can be found and downloaded. For compatibility with tools we'll start using soon, make sure your module's name has a dot somewhere in it, like the dot in .com of example\.com/hello. For now, your module file is minimal, and you can leave it that way. To read more about modules, [you can check out the reference in the Golang documentation](https://golang.org/doc/modules/gomod-ref). We can get back to testing and learning Go now since the tests should run, even on Go 1.16.
+Tệp này cung cấp cho `go` tools các thông tin quan trọng về mã nguồn của bạn. Nếu bạn dự định phân phối ứng dụng, tệp này sẽ chứa thông tin về nơi tải mã nguồn cũng như các thư viện phụ thuộc.
 
-In future chapters, you will need to run `go mod init SOMENAME` in each new folder before running commands like `go test` or `go build`.
+Tên module, example.com/hello, thường đại diện cho một URL nơi module có thể được tìm thấy và tải xuống. Để đảm bảo khả năng tương thích với các công cụ mà chúng ta sẽ sử dụng sau này, hãy đảm bảo rằng tên module có chứa dấu chấm (.), chẳng hạn như .com trong example.com/hello
 
-## Back to Testing
+Hiện tại, module file này chỉ cần ở mức tối thiểu và bạn có thể để nguyên như vậy. Nếu muốn tìm hiểu thêm về modules, bạn có thể [tham khảo tài liệu của Golang](https://golang.org/doc/modules/gomod-ref).
 
-Run `go test` in your terminal. It should've passed! Just to check, try deliberately breaking the test by changing the `want` string.
+Bây giờ, bạn có thể tiếp tục chạy test và học Go, ngay cả khi đang sử dụng Go 1.16 trở lên.
 
-Notice how you have not had to pick between multiple testing frameworks and then figure out how to install them. Everything you need is built into the language, and the syntax is the same as the rest of the code you will write.
+Lưu ý cho các chương sau
+
+-   Khi làm việc trong các thư mục mới, bạn cần chạy lệnh `go mod init SOMENAME` trước khi thực hiện các lệnh như `go test` hoặc `go build`.
+
+## Tiếp tục test
+
+Chạy lệnh `go test` trong terminal. Lúc này nó sẽ chạy thành công. Để kiểm tra, hãy thử thay đổi giá trị của biến `want`.
+
+Bạn có thể thấy rằng không cần phải lựa chọn giữa nhiều framework test khác nhau hay tìm cách cài đặt chúng. Mọi thứ cần thiết đều được tích hợp sẵn trong ngôn ngữ Go, và cú pháp test cũng giống với phần còn lại của mã bạn viết.
 
 ### Writing tests
 
-Writing a test is just like writing a function, with a few rules
+Viết một test trong Go cũng giống như viết một hàm bình thường, nhưng cần tuân theo một số quy tắc sau:
 
-* It needs to be in a file with a name like `xxx_test.go`
-* The test function must start with the word `Test`
-* The test function takes one argument only `t *testing.T`
-* To use the `*testing.T` type, you need to `import "testing"`, like we did with `fmt` in the other file
+-   Tệp chứa test phải có tên theo định dạng `xxx_test.go`
+-   Hàm test phải bắt đầu bằng từ `Test`
+-   Hàm test chỉ nhận một tham số duy nhất là `t *testing.T`
+-   Để sử dụng `*testing.T`, bạn chỉ cần `import "testing"`, tương tự như cách bạn đã import `fmt`.
 
-For now, it's enough to know that your `t` of type `*testing.T` is your "hook" into the testing framework so you can do things like `t.Fail()` when you want to fail.
+Hiện tại, bạn chỉ cần hiểu rằng biến `t` có kiểu `*testing.T` chính là "cầu nối" giúp bạn tương tác với framework test. Chẳng hạn, có thể gọi `t.Fail()` để làm cho test thất bại.
 
-We've covered some new topics:
+Chúng ta vừa đề cập đến một số khái niệm mới:
 
 #### `if`
-If statements in Go are very much like other programming languages.
+
+Câu lệnh `if` trong Go hoạt động tương tự như đa số ngôn ngữ lập trình khác.
 
 #### Declaring variables
 
-We're declaring some variables with the syntax `varName := value`, which lets us reuse some values in our test for readability.
+Chúng ta có thể khai báo biến bằng cú pháp `varName := value`. Cách này giúp tái sử dụng giá trị trong test, làm cho mã dễ đọc hơn.
 
 #### `t.Errorf`
 
-We are calling the `Errorf` _method_ on our `t`, which will print out a message and fail the test. The `f` stands for format, which allows us to build a string with values inserted into the placeholder values `%q`. When you make the test fail, it should be clear how it works.
+Chúng ta gọi _phương thức_ `Errorf` trên `t`, phương thức này sẽ in ra một thông báo lỗi và làm cho test thất bại. Chữ `f` trong Errorf là viết tắt của format, cho phép chúng ta chèn giá trị vào chuỗi theo định dạng với các ký tự giữ chỗ như `%q`.
 
-You can read more about the placeholder strings in the [fmt documentation](https://pkg.go.dev/fmt#hdr-Printing). For tests, `%q` is very useful as it wraps your values in double quotes.
+Khi test thất bại, thông báo lỗi sẽ giúp bạn hiểu rõ nguyên nhân. Bạn có thể đọc thêm về các ký tự giữ chỗ trong [tài liệu fmt](https://pkg.go.dev/fmt#hdr-Printing). Trong test, `%q` rất hữu ích vì nó tự động bọc giá trị trong dấu nháy kép.
 
-We will later explore the difference between methods and functions.
+Chúng ta sẽ tìm hiểu sự khác biệt giữa _hàm_ (function) và _phương thức_ (method) trong các phần sau.
 
-### Go's documentation
+### Tài liệu của Go
 
-Another quality-of-life feature of Go is the documentation.  We just saw the documentation for the fmt package at the official package viewing website, and Go also provides ways for quickly getting at the documentation offline.
+Một điểm hữu ích khác của Go là hệ thống tài liệu. Chúng ta vừa xem tài liệu của package fmt trên trang web chính thức, nhưng Go cũng cung cấp cách để truy cập tài liệu nhanh chóng ngay cả khi không có internet.
 
-Go has a built-in tool, doc, which lets you examine any package installed on your system, or the module you're currently working on. To view that same documentation for the Printing verbs:
+Go có một công cụ tích hợp sẵn gọi là `doc`, cho phép bạn xem tài liệu của bất kỳ package nào đã cài đặt trên hệ thống hoặc trong module mà bạn đang làm việc. Để xem lại tài liệu về các ký tự định dạng (Printing verbs), bạn có thể sử dụng lệnh sau:
 
 ```
 $ go doc fmt
@@ -148,20 +164,21 @@ General:
 ...
 ```
 
-Go's second tool for viewing documentation is the pkgsite command, which powers Go's official package viewing website.  You can install pkgsite with `go install golang.org/x/pkgsite/cmd/pkgsite@latest`, then run it with `pkgsite -open .`.  Go's install command will download the source files from that repository and build them into an executable binary.  For a default installation of Go, that executable will be in `$HOME/go/bin` for Linux and macOS, and `%USERPROFILE%\go\bin` for Windows.  If you have not already added those paths to your $PATH var, you might want to do so to make running go-installed commands easier.
+Công cụ thứ hai của Go để xem tài liệu là lệnh pkgsite, đây cũng là công cụ vận hành trang web tài liệu chính thức của Go. Bạn có thể cài đặt pkgsite bằng lệnh `go install golang.org/x/pkgsite/cmd/pkgsite@latest`, sau đó chạy với `pkgsite -open .`. Lệnh go install sẽ tải mã nguồn từ kho lưu trữ, sau đó biên dịch thành một tệp thực thi. Theo mặc định, tệp này sẽ nằm trong: `$HOME/go/bin` cho Linux, macOS, và `%USERPROFILE%\go\bin` cho Windows. Nếu bạn chưa thêm các đường dẫn này vào biến môi trường $PATH, bạn nên làm vậy để có thể chạy các lệnh Go một cách thuận tiện hơn.
 
-The vast majority of the standard library has excellent documentation with examples. Navigating to [http://localhost:8080/testing](http://localhost:8080/testing) would be worthwhile to see what's available to you.
-
+Hầu hết thư viện tiêu chuẩn của Go đều có tài liệu rất chi tiết kèm theo ví dụ. Bạn có thể mở [http://localhost:8080/testing](http://localhost:8080/testing) để khám phá thêm các tài nguyên hữu ích.
 
 ### Hello, YOU
 
-Now that we have a test, we can iterate on our software safely.
+Bây giờ chúng ta đã có 1 chương trình test, từ đây có thể tiếp tục cải tiến phần mềm một cách an toàn.
 
-In the last example, we wrote the test _after_ the code had been written so that you could get an example of how to write a test and declare a function. From this point on, we will be _writing tests first_.
+Ở ví dụ trước, chúng ta viết test _sau_ khi đã viết mã để bạn có thể hiểu cách viết một test và khai báo một hàm. Từ thời điểm này, chúng ta sẽ _viết test trước_.
 
-Our next requirement is to let us specify the recipient of the greeting.
+Yêu cầu tiếp theo là cho phép chỉ định người nhận lời chào.
 
-Let's start by capturing these requirements in a test. This is basic test-driven development and allows us to make sure our test is _actually_ testing what we want. When you retrospectively write tests, there is the risk that your test may continue to pass even if the code doesn't work as intended.
+Hãy bắt đầu bằng cách viết một test để xác định các yêu cầu này. Đây là nguyên tắc cơ bản của phát triển phần mềm theo hướng test (TDD), giúp đảm bảo test thực sự kiểm tra đúng những gì chúng ta mong muốn.
+
+Khi bạn viết test một cách hồi tố (tức là sau khi đã viết mã), có nguy cơ test vẫn chạy đúng ngay cả khi mã không hoạt động như mong đợi.
 
 ```go
 package main
@@ -178,7 +195,7 @@ func TestHello(t *testing.T) {
 }
 ```
 
-Now run `go test`, you should have a compilation error
+Bây giờ hãy chạy lệnh `go test`, bạn sẽ thấy một lỗi biên dịch
 
 ```text
 ./hello_test.go:6:18: too many arguments in call to Hello
@@ -186,11 +203,11 @@ Now run `go test`, you should have a compilation error
     want ()
 ```
 
-When using a statically typed language like Go it is important to _listen to the compiler_. The compiler understands how your code should snap together and work so you don't have to.
+Khi làm việc với một ngôn ngữ có kiểu dữ liệu tĩnh như Go, điều quan trọng là _chú ý đến trình biên dịch_ (compiler). Trình biên dịch hiểu cách các phần của mã nên kết hợp với nhau để hoạt động, vì vậy bạn không cần phải tự kiểm tra mọi thứ
 
-In this case the compiler is telling you what you need to do to continue. We have to change our function `Hello` to accept an argument.
+Trong trường hợp này, trình biên dịch đang cho bạn biết cần làm gì tiếp theo. Chúng ta phải thay đổi hàm `Hello` để nhận một tham số.
 
-Edit the `Hello` function to accept an argument of type string
+Hãy chỉnh sửa hàm `Hello` để chấp nhận một đối số kiểu string.
 
 ```go
 func Hello(name string) string {
@@ -198,7 +215,7 @@ func Hello(name string) string {
 }
 ```
 
-If you try and run your tests again your `hello.go` will fail to compile because you're not passing an argument. Send in "world" to make it compile.
+Nếu bạn chạy lại test, chương trình `hello.go` sẽ không thể biên dịch vì bạn chưa truyền đối số. Hãy truyền vào chuỗi "world" để chương trình có thể biên dịch được.
 
 ```go
 func main() {
@@ -206,15 +223,15 @@ func main() {
 }
 ```
 
-Now when you run your tests, you should see something like
+Bây giờ khi chạy bài test, bạn sẽ thấy một thông báo lỗi.
 
 ```text
 hello_test.go:10: got 'Hello, world' want 'Hello, Chris''
 ```
 
-We finally have a compiling program but it is not meeting our requirements according to the test.
+Cuối cùng, chương trình đã có thể biên dịch, nhưng nó chưa đáp ứng được yêu cầu test.
 
-Let's make the test pass by using the name argument and concatenate it with `Hello,`
+Hãy chỉnh sửa hàm Hello để sử dụng đối số name và nối chuỗi với `Hello,`.
 
 ```go
 func Hello(name string) string {
@@ -222,27 +239,25 @@ func Hello(name string) string {
 }
 ```
 
-When you run the tests, they should now pass. Normally, as part of the TDD cycle, we should now _refactor_.
+Sau khi chạy test, chúng sẽ thành công (pass). Thông thường, trong chu trình TDD, bước tiếp theo là _tinh chỉnh mã nguồn_ (refactor).
 
-### A note on source control
+### Lưu ý về kiểm soát phiên bản (source control)
 
-At this point, if you are using source control \(which you should!\) I would
-`commit` the code as it is. We have working software backed by a test.
+Tại thời điểm này, nếu bạn đang sử dụng hệ thống kiểm soát phiên bản \(và bạn nên làm vậy!\), tôi khuyên bạn nên thực hiện `commit` mã nguồn hiện tại. Chúng ta đã có một chương trình hoạt động được và có test đi kèm.
 
-I _wouldn't_ push to main though, because I plan to refactor next. It is nice
-to commit at this point in case you somehow get into a mess with refactoring - you can always go back to the working version.
+Tuy nhiên, tôi _không_ khuyên bạn nên đẩy (push) lên nhánh main ngay, vì chúng ta sẽ thực hiện bước tinh chỉnh mã nguồn (refactor) tiếp theo. Việc commit ngay lúc này giúp bạn có một điểm khôi phục an toàn. Nếu chẳng may gặp lỗi trong quá trình refactor, bạn luôn có thể quay lại phiên bản đang hoạt động.
 
-There's not a lot to refactor here, but we can introduce another language feature, _constants_.
+Dù không có quá nhiều thứ cần tối ưu hóa ở đây, nhưng chúng ta có thể giới thiệu một tính năng mới của Go: _hằng số_ (constants).
 
-### Constants
+### Hằng số (Constants)
 
-Constants are defined like so
+Hằng số được định nghĩa như sau
 
 ```go
 const englishHelloPrefix = "Hello, "
 ```
 
-We can now refactor our code
+Bây giờ chúng ta sẽ refactor code
 
 ```go
 const englishHelloPrefix = "Hello, "
@@ -252,15 +267,15 @@ func Hello(name string) string {
 }
 ```
 
-After refactoring, re-run your tests to make sure you haven't broken anything.
+Sau khi refactor, chạy lại các tests để đảm bảo chúng vẫn hoạt động như cũ.
 
-It's worth thinking about creating constants to capture the meaning of values and sometimes to aid performance.
+Bạn nên cân nhắc sử dụng hằng số (constants) để làm rõ ý nghĩa của các giá trị trong mã nguồn và đôi khi giúp cải thiện hiệu suất.
 
 ## Hello, world... again
 
-The next requirement is when our function is called with an empty string it defaults to printing "Hello, World", rather than "Hello, ".
+Yêu cầu tiếp theo là khi hàm của chúng ta được gọi với một chuỗi rỗng, nó sẽ mặc định in ra "Hello, World" thay vì "Hello, ".
 
-Start by writing a new failing test
+Hãy bắt đầu bằng cách viết một bài test (test) mới và để nó thất bại trước.
 
 ```go
 func TestHello(t *testing.T) {
@@ -283,11 +298,11 @@ func TestHello(t *testing.T) {
 }
 ```
 
-Here, we are introducing another tool in our testing arsenal: subtests. Sometimes, it is useful to group tests around a "thing" and then have subtests describing different scenarios.
+Ở đây, chúng ta đang giới thiệu một công cụ khác trong bộ test: subtests. Đôi khi, việc nhóm các bài test theo một chủ đề chung và sau đó chia nhỏ thành các tình huống cụ thể sẽ rất hữu ích.
 
-A benefit of this approach is you can set up shared code that can be used in the other tests.
+Lợi ích của cách tiếp cận này là bạn có thể thiết lập một phần mã chung để sử dụng trong các bài test khác.
 
-While we have a failing test, let's fix the code, using an `if`.
+Bây giờ, khi bài test của chúng ta đang thất bại, hãy sửa mã bằng cách sử dụng câu lệnh `if`.
 
 ```go
 const englishHelloPrefix = "Hello, "
@@ -300,13 +315,13 @@ func Hello(name string) string {
 }
 ```
 
-If we run our tests we should see it satisfies the new requirement and we haven't accidentally broken the other functionality.
+Khi chạy lại các bài test, chúng ta sẽ thấy rằng mã đã đáp ứng yêu cầu mới mà không vô tình làm hỏng các chức năng khác.
 
-It is important that your tests _are clear specifications_ of what the code needs to do. But there is repeated code when we check if the message is what we expect.
+Điều quan trọng là các bài test cần _phải rõ ràng_ để thể hiện chính xác những gì mã của bạn cần làm. Tuy nhiên, chúng ta đang có một số đoạn mã lặp lại khi kiểm tra xem thông điệp có đúng như mong đợi hay không.
 
-Refactoring is not _just_ for the production code!
+Refactoring (tái cấu trúc mã) _không chỉ_ áp dụng cho production code!
 
-Now that the tests are passing, we can and should refactor our tests.
+Bây giờ, khi tất cả bài test đã chạy thành công, chúng ta có thể (và nên) tái cấu trúc mã test để làm cho nó gọn gàng hơn.
 
 ```go
 func TestHello(t *testing.T) {
@@ -332,47 +347,48 @@ func assertCorrectMessage(t testing.TB, got, want string) {
 }
 ```
 
-What have we done here?
+Chúng ta đã làm gì ở đây?
 
-We've refactored our assertion into a new function. This reduces duplication and improves the readability of our tests. We need to pass in `t *testing.T` so that we can tell the test code to fail when we need to.
+Chúng ta đã tái cấu trúc phần kiểm tra kết quả thành một hàm riêng. Điều này giúp giảm sự trùng lặp và cải thiện khả năng đọc của mã test.
 
-For helper functions, it's a good idea to accept a `testing.TB` which is an interface that `*testing.T` and `*testing.B` both satisfy, so you can call helper functions from a test, or a benchmark (don't worry if words like "interface" mean nothing to you right now, it will be covered later).
+Một số điểm cần lưu ý:
 
-`t.Helper()` is needed to tell the test suite that this method is a helper. By doing this, when it fails, the line number reported will be in our _function call_ rather than inside our test helper. This will help other developers track down problems more easily. If you still don't understand, comment it out, make a test fail and observe the test output. Comments in Go are a great way to add additional information to your code, or in this case, a quick way to tell the compiler to ignore a line. You can comment out the `t.Helper()` code by adding two forward slashes `//` at the beginning of the line. You should see that line turn grey or change to another color than the rest of your code to indicate it's now commented out.
+-   Chúng ta truyền `t *testing.T` vào hàm kiểm tra để có thể gọi t.Fail() khi cần thiết.
+-   Đối với các hàm hỗ trợ test, nên dùng `testing.TB` thay vì `*testing.T`. `testing.TB` là một interface chung cho cả `*testing.T` (test) và `*testing.B` (benchmark), giúp bạn có thể sử dụng cùng một hàm hỗ trợ trong cả test và đo hiệu suất.
+-   `t.Helper()` giúp báo cho bộ test rằng đây là một hàm hỗ trợ. Nhờ đó, nếu bài test thất bại, Go sẽ báo lỗi ở dòng gọi hàm thay vì bên trong hàm hỗ trợ, giúp dễ dàng tìm ra lỗi hơn.
+-   Nếu bạn chưa hiểu, hãy thử comment (`//`) dòng `t.Helper()`, sau đó thay đổi để làm bài test thất bại để so sánh kết quả.
 
-When you have more than one argument of the same type \(in our case two strings\) rather than having `(got string, want string)` you can shorten it to `(got, want string)`.
+Khi có nhiều tham số cùng kiểu dữ liệu (ví dụ: hai chuỗi string), bạn có thể viết gọn thay vì `func testHelper(got string, want string)`, có thể dùng `func testHelper(got, want string)`.
 
-### Back to source control
+### Quay lại với source control
 
-Now that we are happy with the code, I would amend the previous commit so that we only check in the lovely version of our code with its test.
+Bây giờ, khi chúng ta đã hài lòng với mã nguồn, nên sửa đổi (amend) commit trước đó thay vì tạo một commit mới. Điều này giúp giữ lịch sử sạch sẽ, chỉ lưu lại phiên bản tốt nhất của mã nguồn kèm theo bài test hoàn chỉnh.
 
-### Discipline
+### Sự kỷ luật
 
-Let's go over the cycle again
+Hãy cùng xem lại quy trình phát triển theo hướng test (TDD):
 
-* Write a test
-* Make the compiler pass
-* Run the test, see that it fails and check the error message is meaningful
-* Write enough code to make the test pass
-* Refactor
+-   Viết một bài test (test)
+-   Làm cho trình biên dịch không báo lỗi
+-   Chạy test, xác nhận rằng nó thất bại và kiểm tra xem thông báo lỗi có dễ hiểu không
+-   Viết đủ mã nguồn để làm bài test vượt qua
+-   Refactor
 
-On the face of it this may seem tedious but sticking to the feedback loop is important.
+Bề ngoài, quy trình này có vẻ tốn công, nhưng tuân thủ chu trình phản hồi (feedback loop) này rất quan trọng.
 
-Not only does it ensure that you have _relevant tests_, it helps ensure _you design good software_ by refactoring with the safety of tests.
+-   Đảm bảo bài test có ý nghĩa, không chỉ kiểm tra đúng chức năng mà còn giúp thiết kế phần mềm tốt hơn.
+-   Nhìn thấy bài test thất bại là bước quan trọng, vì nó giúp xác định rõ lỗi, tránh tình trạng test kém chất lượng với thông báo mơ hồ.
+-   test nhanh chóng, kết hợp với công cụ hỗ trợ giúp bạn duy trì trạng thái flow khi viết mã.
 
-Seeing the test fail is an important check because it also lets you see what the error message looks like. As a developer it can be very hard to work with a codebase when failing tests do not give a clear idea as to what the problem is.
+Ngược lại, không viết test đồng nghĩa với việc bạn phải kiểm tra thủ công bằng cách chạy phần mềm liên tục, làm gián đoạn luồng công việc và không tiết kiệm thời gian về lâu dài.
 
-By ensuring your tests are _fast_ and setting up your tools so that running tests is simple you can get in to a state of flow when writing your code.
+## Tiếp tục nào! Thêm yêu cầu mới
 
-By not writing tests, you are committing to manually checking your code by running your software, which breaks your state of flow. You won't be saving yourself any time, especially in the long run.
+Chà, chúng ta có thêm yêu cầu mới đây. Bây giờ, chúng ta cần hỗ trợ một tham số thứ hai, chỉ định ngôn ngữ của lời chào. Nếu ngôn ngữ được truyền vào không được nhận diện, hãy mặc định sử dụng tiếng Anh.
 
-## Keep going! More requirements
+Chúng ta nên tự tin rằng có thể dễ dàng áp dụng TDD để phát triển tính năng này!
 
-Goodness me, we have more requirements. We now need to support a second parameter, specifying the language of the greeting. If a language is passed in that we do not recognise, just default to English.
-
-We should be confident that we can easily use TDD to flesh out this functionality!
-
-Write a test for a user passing in Spanish. Add it to the existing suite.
+Hãy viết một bài test cho trường hợp người dùng truyền vào tiếng Tây Ban Nha và thêm nó vào bộ test hiện có.
 
 ```go
 	t.Run("in Spanish", func(t *testing.T) {
@@ -382,7 +398,7 @@ Write a test for a user passing in Spanish. Add it to the existing suite.
 	})
 ```
 
-Remember not to cheat! _Test first_. When you try to run the test, the compiler _should_ complain because you are calling `Hello` with two arguments rather than one.
+Nhớ đừng gian lận! _Viết test trước_. Khi bạn cố gắng chạy test, trình biên dịch _sẽ báo lỗi_ vì bạn đang gọi hàm `Hello` với hai đối số thay vì một.
 
 ```text
 ./hello_test.go:27:19: too many arguments in call to Hello
@@ -390,7 +406,7 @@ Remember not to cheat! _Test first_. When you try to run the test, the compiler 
     want (string)
 ```
 
-Fix the compilation problems by adding another string argument to `Hello`
+Sửa lỗi biên dịch bằng cách thêm một đối số kiểu string nữa vào hàm `Hello`.
 
 ```go
 func Hello(name string, language string) string {
@@ -401,7 +417,7 @@ func Hello(name string, language string) string {
 }
 ```
 
-When you try and run the test again it will complain about not passing through enough arguments to `Hello` in your other tests and in `hello.go`
+Khi bạn chạy lại bài kiểm tra, nó sẽ báo lỗi vì các bài kiểm tra khác và trong `hello.go` chưa truyền đủ đối số cho hàm `Hello`.
 
 ```text
 ./hello.go:15:19: not enough arguments in call to Hello
@@ -409,13 +425,13 @@ When you try and run the test again it will complain about not passing through e
     want (string, string)
 ```
 
-Fix them by passing through empty strings. Now all your tests should compile _and_ pass, apart from our new scenario
+Hãy sửa lỗi bằng cách truyền vào chuỗi rỗng (`""`). Bây giờ, tất cả các bài kiểm tra của bạn sẽ biên dịch thành công và chạy đúng, ngoại trừ kịch bản mới mà chúng ta vừa thêm vào.
 
 ```text
 hello_test.go:29: got 'Hello, Elodie' want 'Hola, Elodie'
 ```
 
-We can use `if` here to check the language is equal to "Spanish" and if so change the message
+Chúng ta có thể sử dụng câu lệnh `if` để kiểm tra xem ngôn ngữ có phải là “Spanish” hay không, và nếu đúng, thì thay đổi thông điệp phù hợp.
 
 ```go
 func Hello(name string, language string) string {
@@ -430,9 +446,9 @@ func Hello(name string, language string) string {
 }
 ```
 
-The tests should now pass.
+Các bài test của bạn bây giờ sẽ vượt qua.
 
-Now it is time to _refactor_. You should see some problems in the code, "magic" strings, some of which are repeated. Try and refactor it yourself, with every change make sure you re-run the tests to make sure your refactoring isn't breaking anything.
+Đây là lúc để _refactor_. Bạn có thể nhận thấy một số vấn đề trong mã, chẳng hạn như các chuỗi "ma thuật" (magic strings) xuất hiện lặp lại. Hãy thử cải tiến nó bằng cách thay thế các giá trị cố định này bằng hằng số hoặc một cấu trúc dễ quản lý hơn.
 
 ```go
 	const spanish = "Spanish"
@@ -451,13 +467,13 @@ Now it is time to _refactor_. You should see some problems in the code, "magic" 
 	}
 ```
 
-### French
+### Tiếng Pháp
 
-* Write a test asserting that if you pass in `"French"` you get `"Bonjour, "`
-* See it fail, check the error message is easy to read
-* Do the smallest reasonable change in the code
+-   Viết một bài test xác nhận rằng nếu bạn truyền vào `"French"`, bạn sẽ nhận được `"Bonjour, "`.
+-   Chạy bài test và kiểm tra xem nó thất bại với thông báo lỗi dễ đọc.
+-   Thực hiện thay đổi nhỏ nhất có thể trong mã để làm cho bài test vượt qua.
 
-You may have written something that looks roughly like this
+Bạn có thể đã viết một đoạn mã trông tương tự như thế này.
 
 ```go
 func Hello(name string, language string) string {
@@ -477,7 +493,9 @@ func Hello(name string, language string) string {
 
 ## `switch`
 
-When you have lots of `if` statements checking a particular value it is common to use a `switch` statement instead. We can use `switch` to refactor the code to make it easier to read and more extensible if we wish to add more language support later
+Khi bạn có nhiều câu lệnh `if` để kiểm tra một giá trị cụ thể, việc sử dụng `switch` sẽ giúp mã của bạn dễ đọc hơn và dễ mở rộng nếu sau này bạn muốn hỗ trợ thêm nhiều ngôn ngữ.
+
+Chúng ta có thể refactor mã bằng cách sử dụng switch để làm cho nó gọn gàng và dễ bảo trì hơn.
 
 ```go
 func Hello(name string, language string) string {
@@ -498,11 +516,11 @@ func Hello(name string, language string) string {
 }
 ```
 
-Write a test to now include a greeting in the language of your choice and you should see how simple it is to extend our _amazing_ function.
+Viết một bài test mới để thêm một lời chào bằng ngôn ngữ bạn chọn. Bạn sẽ thấy việc mở rộng hàm của chúng ta trở nên đơn giản như thế nào!
 
-### one...last...refactor?
+### Refactor...lần...cuối?
 
-You could argue that maybe our function is getting a little big. The simplest refactor for this would be to extract out some functionality into another function.
+Bạn có thể thấy rằng hàm của chúng ta đang trở nên hơi dài. Một cách đơn giản để tối ưu lại là tách một số chức năng ra thành một hàm khác.
 
 ```go
 
@@ -536,36 +554,37 @@ func greetingPrefix(language string) (prefix string) {
 }
 ```
 
-A few new concepts:
+Một số khái niệm mới:
 
-* In our function signature we have made a _named return value_ `(prefix string)`.
-* This will create a variable called `prefix` in your function.
-  * It will be assigned the "zero" value. This depends on the type, for example `int`s are 0 and for `string`s it is `""`.
-    * You can return whatever it's set to by just calling `return` rather than `return prefix`.
-  * This will display in the Go Doc for your function so it can make the intent of your code clearer.
-* `default` in the switch case will be branched to if none of the other `case` statements match.
-* The function name starts with a lowercase letter. In Go, public functions start with a capital letter, and private ones start with a lowercase letter. We don't want the internals of our algorithm exposed to the world, so we made this function private.
-* Also, we can group constants in a block instead of declaring them on their own line. For readability, it's a good idea to use a line between sets of related constants.
+-   Trong phần khai báo hàm, chúng ta đã sử dụng _giá trị trả về có tên_ `(prefix string)`.
+-   Điều này tạo ra một biến có tên là `prefix` ngay trong hàm `prefix`.
+    -   Biến này sẽ được gán giá trị mặc định của kiểu dữ liệu tương ứng (ví dụ: `int` mặc định là 0, còn `string` mặc định là `""`).
+        -   Bạn có thể trả về giá trị của `prefix` bằng cách chỉ gọi `return` mà không cần viết `return prefix`
+    -   Khi xem tài liệu Go Doc, giá trị trả về có tên giúp làm rõ ý nghĩa của hàm hơn.
+-   `default` trong switch case sẽ được thực thi nếu không có trường hợp `case` nào phù hợp.
+-   Tên hàm bắt đầu bằng chữ cái viết thường. Trong Go:
+    -   Các hàm public (có thể được gọi từ bên ngoài) bắt đầu bằng chữ cái viết hoa
+    -   Các hàm private (chỉ có thể sử dụng trong cùng một package) bắt đầu bằng chữ cái viết thường.
+    -   Vì đây là một phần bên trong thuật toán, không cần lộ ra ngoài, nên chúng ta đặt tên hàm ở dạng private.
+-   Có thể nhóm các hằng số (const) lại với nhau trong một khối thay vì khai báo từng dòng riêng lẻ. Để giúp mã nguồn dễ đọc hơn, nên có một dòng trống giữa các nhóm hằng số có liên quan.
 
-## Wrapping up
+## Tổng kết
 
-Who knew you could get so much out of `Hello, world`?
+Ai mà ngờ được rằng một chương trình đơn giản như `Hello, world`lại có thể giúp ta học được nhiều thứ đến vậy!
 
-By now you should have some understanding of:
+### Một số cú pháp của Go mà bạn đã tìm hiểu
 
-### Some of Go's syntax around
+-   Viết tests
+-   Khai báo hàm, sử dụng tham số và kiểu trả về
+-   `if`, `const` và `switch`
+-   Khai báo biến và hằng số
 
-* Writing tests
-* Declaring functions, with arguments and return types
-* `if`, `const` and `switch`
-* Declaring variables and constants
+### Quy trình TDD và tầm _quan trọng_ của từng bước
 
-### The TDD process and _why_ the steps are important
+-   Viết một bài test thất bại và quan sát lỗi, đảm bảo rằng bài test thực sự phản ánh đúng yêu cầu của bài toán. Điều này cũng giúp ta thấy được mô tả lỗi có dễ hiểu hay không.
+-   Viết ít code nhất có thể để bài test pass, từ đó đảm bảo rằng phần mềm của ta hoạt động đúng.
+-   Sau đó mới refactor, giúp cải thiện chất lượng mã nguồn mà vẫn được bảo vệ bởi các bài test.
 
-* _Write a failing test and see it fail_ so we know we have written a _relevant_ test for our requirements and seen that it produces an _easy to understand description of the failure_
-* Writing the smallest amount of code to make it pass so we know we have working software
-* _Then_ refactor, backed with the safety of our tests to ensure we have well-crafted code that is easy to work with
+Chúng ta đã đi từ một hàm đơn giản `Hello()` đến `Hello("name")`, rồi phát triển thành `Hello("name", "French")` với những bước nhỏ, dễ hiểu.
 
-In our case, we've gone from `Hello()` to `Hello("name")` and then to `Hello("name", "French")` in small, easy-to-understand steps.
-
-Of course, this is trivial compared to "real-world" software, but the principles still stand. TDD is a skill that needs practice to develop, but by breaking problems down into smaller components that you can test, you will have a much easier time writing software.
+Tất nhiên, đây chỉ là một bài tập đơn giản so với phần mềm thực tế, nhưng các nguyên tắc của TDD vẫn luôn có giá trị. Việc luyện tập TDD thường xuyên giúp bạn rèn luyện khả năng chia nhỏ bài toán thành các phần có thể test, giúp việc viết phần mềm dễ dàng hơn rất nhiều.

@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Learn Go with Tests](gb-readme.md)
+* [Học Go qua Tests](gb-readme.md)
 
 ## Go
 
@@ -33,7 +33,7 @@
 * [Working without mocks](working-without-mocks.md)
 * [Refactoring Checklist](refactoring-checklist.md)
 
-## Xây dựng ứng dụng
+## Phát triển ứng dụng
 
 * [Intro](app-intro.md)
 * [HTTP server](http-server.md)
@@ -43,7 +43,7 @@
 * [Time](time.md)
 * [WebSockets](websockets.md)
 
-## Q&A
+## Hỏi đáp Q&A
 
 * [OS Exec](os-exec.md)
 * [Error types](error-types.md)
