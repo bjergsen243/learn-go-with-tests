@@ -1,12 +1,14 @@
-# Integers
+# Số nguyên (Integers)
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/integers)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/integers)**
 
-Integers work as you would expect. Let's write an `Add` function to try things out. Create a test file called `adder_test.go` and write this code.
+Số nguyên trong Go hoạt động đúng như bạn mong đợi. Bây giờ, hãy thử viết một hàm `Add` để kiểm tra cách chúng hoạt động.
 
-**Note:** Go source files can only have one `package` per directory. Make sure that your files are organised into their own packages. [Here is a good explanation on this.](https://dave.cheney.net/2014/12/01/five-suggestions-for-setting-up-a-go-project)
+Trước tiên, tạo một tệp kiểm thử có tên `adder_test.go` và thêm đoạn mã sau.
 
-Your project directory might look something like this:
+**Lưu ý:** Mọi tệp Go trong cùng một thư mục phải thuộc cùng một `package`, vì vậy hãy đảm bảo tổ chức mã nguồn một cách hợp lý. Nếu bạn chưa rõ về cách sắp xếp, [bài viết này](https://dave.cheney.net/2014/12/01/five-suggestions-for-setting-up-a-go-project) sẽ giúp bạn hiểu rõ hơn.
+
+Khi đó, cấu trúc thư mục của bạn có thể trông như thế này:
 
 ```
 learnGoWithTests
@@ -22,7 +24,7 @@ learnGoWithTests
     |- README.md
 ```
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 package integers
@@ -39,21 +41,24 @@ func TestAdder(t *testing.T) {
 }
 ```
 
-You will notice that we're using `%d` as our format strings rather than `%q`. That's because we want it to print an integer rather than a string.
+Bạn sẽ thấy rằng chúng ta đang sử dụng `%d `thay vì `%q` trong chuỗi định dạng. Lý do là `%d` dùng để hiển thị số nguyên, trong khi `%q` dành cho chuỗi.
 
-Also note that we are no longer using the main package, instead we've defined a package named `integers`, as the name suggests this will group functions for working with integers such as `Add`.
+Ngoài ra, lần này chúng ta không còn sử dụng package `main` nữa, mà thay vào đó đã định nghĩa một package có tên là `integers`. Đúng như tên gọi, package này sẽ chứa các hàm làm việc với số nguyên, chẳng hạn như `Add`.
 
-## Try and run the test
+## Chạy thử test
 
-Run the test `go test`
+Chạy lệnh `go test`
 
-Inspect the compilation error
+Quan sát lỗi biên dịch
 
 `./adder_test.go:6:9: undefined: Add`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+Lỗi này nghĩa là hàm `Add` chưa được định nghĩa
 
-Write enough code to satisfy the compiler _and that's all_ - remember we want to check that our tests fail for the correct reason.
+## Viết đủ code và thử lại
+
+Chỉ viết đủ code để trình biên dịch không báo lỗi – _không hơn không kém_.
+Điều này giúp đảm bảo rằng bài kiểm thử sẽ thất bại với lý do chính xác mà chúng ta mong đợi.
 
 ```go
 package integers
@@ -63,17 +68,21 @@ func Add(x, y int) int {
 }
 ```
 
-Remember, when you have more than one argument of the same type \(in our case two integers\) rather than having `(x int, y int)` you can shorten it to `(x, y int)`.
+Nhớ rằng, khi có nhiều tham số cùng kiểu dữ liệu (trong trường hợp này là hai số nguyên), thay vì viết `(x int, y int)`, bạn có thể rút gọn thành `(x, y int)`.
 
-Now run the tests, and we should be happy that the test is correctly reporting what is wrong.
+Bây giờ hãy chạy lại test, chúng ta sẽ thấy kết quả báo lỗi chính xác:
 
 `adder_test.go:10: expected '4' but got '0'`
 
-If you have noticed we learnt about _named return value_ in the [last](hello-world.md#one...last...refactor?) section but aren't using the same here. It should generally be used when the meaning of the result isn't clear from context, in our case it's pretty much clear that `Add` function will add the parameters. You can refer [this](https://go.dev/wiki/CodeReviewComments#named-result-parameters) wiki for more details.
+(Lỗi này có nghĩa là chúng ta mong đợi kết quả là 4, nhưng lại nhận được 0.)
 
-## Write enough code to make it pass
+Ngoài ra, trong [phần trước](hello-world.md#one...last...refactor?), chúng ta đã học về _giá trị trả về có tên_ (named return value), nhưng ở đây lại không sử dụng nó. Thông thường, named return value nên được dùng khi ý nghĩa của giá trị trả về không rõ ràng trong ngữ cảnh. Nhưng trong trường hợp này, hàm `Add` đã rất rõ ràng là để cộng hai số, nên không cần thiết phải dùng named return value.
 
-In the strictest sense of TDD we should now write the _minimal amount of code to make the test pass_. A pedantic programmer may do this
+Bạn có thể tham khảo thêm về vấn đề này trong [wiki chính thức của Go](https://go.dev/wiki/CodeReviewComments#named-result-parameters).
+
+## Viết đủ code để test thành công
+
+Theo đúng quy trình TDD, bây giờ chúng ta chỉ nên viết lượng mã _tối thiểu cần thiết_ để test _chạy thành công_. Một lập trình viên cẩn thận (pragmatic developer) có thể viết như sau:
 
 ```go
 func Add(x, y int) int {
@@ -81,13 +90,13 @@ func Add(x, y int) int {
 }
 ```
 
-Ah hah! Foiled again, TDD is a sham right?
+Bạn có thể nghĩ rằng TDD thật vô nghĩa khi chúng ta chỉ viết đúng đủ để bài kiểm thử vượt qua mà không thực sự giải quyết vấn đề.
 
-We could write another test, with some different numbers to force that test to fail but that feels like [a game of cat and mouse](https://en.m.wikipedia.org/wiki/Cat_and_mouse).
+Chúng ta có thể viết thêm một test với những số khác để buộc nó thất bại, nhưng điều đó giống như một [trò đuổi bắt vô tận](https://en.m.wikipedia.org/wiki/Cat_and_mouse).
 
-Once we're more familiar with Go's syntax I will introduce a technique called _"Property Based Testing"_, which would stop annoying developers and help you find bugs.
+Sau này, khi bạn đã quen với cú pháp của Go, chúng ta sẽ tìm hiểu về _“Kiểm thử dựa trên tính chất”_ (Property-Based Testing), một kỹ thuật giúp phát hiện lỗi mà không cần chơi trò mèo vờn chuột với các bài kiểm thử.
 
-For now, let's fix it properly
+Còn bây giờ, hãy sửa lỗi đúng cách!
 
 ```go
 func Add(x, y int) int {
@@ -95,17 +104,17 @@ func Add(x, y int) int {
 }
 ```
 
-If you re-run the tests they should pass.
+Nếu bạn chạy lại test, nó nên thành công.
 
 ## Refactor
 
-There's not a lot in the _actual_ code we can really improve on here.
+Không có nhiều điều cần cải thiện trong đoạn code ở đây.
 
-We explored earlier how by naming the return argument it appears in the documentation but also in most developer's text editors.
+Trước đó, chúng ta đã thấy rằng khi đặt tên cho giá trị trả về, nó sẽ xuất hiện trong tài liệu và hầu hết các trình soạn thảo của lập trình viên.
 
-This is great because it aids the usability of code you are writing. It is preferable that a user can understand the usage of your code by just looking at the type signature and documentation.
+Điều này rất hữu ích vì nó giúp mã dễ sử dụng hơn. Tốt nhất là người dùng có thể hiểu cách sử dụng hàm chỉ bằng cách nhìn vào kiểu dữ liệu trả về và tài liệu đi kèm.
 
-You can add documentation to functions with comments, and these will appear in Go Doc just like when you look at the standard library's documentation.
+Bạn có thể thêm tài liệu cho hàm bằng cách viết chú thích phía trên nó. Những chú thích này sẽ xuất hiện trong Go Doc, giống như khi bạn xem tài liệu của thư viện tiêu chuẩn.
 
 ```go
 // Add takes two integers and returns the sum of them.
@@ -114,15 +123,17 @@ func Add(x, y int) int {
 }
 ```
 
-### Testable Examples
+### Test Ví Dụ (Testable Examples)
 
-If you really want to go the extra mile you can make [Testable Examples](https://blog.golang.org/examples). You will find many examples in the standard library documentation.
+Nếu muốn làm tốt hơn nữa, bạn có thể tạo các [Test Ví Dụ](https://blog.golang.org/examples). Bạn sẽ thấy nhiều ví dụ như vậy trong tài liệu của thư viện chuẩn.
 
-Often code examples that can be found outside the codebase, such as a readme file, become out of date and incorrect compared to the actual code because they don't get checked.
+Thường thì các code ví dụ nằm bên ngoài mã thực tế, chẳng hạn trong file README, dễ bị lỗi thời và không còn chính xác vì chúng không được kiểm tra thường xuyên.
 
-Example functions are compiled whenever tests are executed. Because such examples are validated by the Go compiler, you can be confident your documentation's examples always reflect current code behavior.
+Các hàm ví dụ trong Go được biên dịch mỗi khi chạy bài kiểm thử. Vì vậy, bạn có thể chắc chắn rằng ví dụ trong tài liệu luôn phản ánh đúng hành vi hiện tại của mã nguồn
 
-Example functions begin with `Example` (much like test functions begin with `Test`), and reside in a package's `_test.go` files. Add the following `ExampleAdd` function to the `adder_test.go` file.
+Các hàm ví dụ phải bắt đầu bằng từ khóa `Example` (giống như hàm kiểm thử bắt đầu bằng `Test`) và được đặt trong các file `_test.go` của package.
+
+Hãy thêm hàm `ExampleAdd` vào file `adder_test.go`.
 
 ```go
 func ExampleAdd() {
@@ -132,11 +143,11 @@ func ExampleAdd() {
 }
 ```
 
-(If your editor doesn't automatically import packages for you, the compilation step will fail because you will be missing `import "fmt"` in `adder_test.go`. It is strongly recommended you research how to have these kind of errors fixed for you automatically in whatever editor you are using.)
+(Nếu trình soạn thảo của bạn không tự động nhập các gói cần thiết, bước biên dịch sẽ thất bại vì thiếu `import "fmt"` trong `adder_test.go`. Bạn nên tìm hiểu cách cấu hình trình soạn thảo để tự động xử lý các lỗi kiểu này.)
 
-Adding this code will cause the example to appear in your documentation, making your code even more accessible. If ever your code changes so that the example is no longer valid, your build will fail.
+Thêm đoạn code này sẽ giúp ví dụ xuất hiện trong tài liệu, làm cho code của bạn dễ tiếp cận hơn. Nếu sau này mã thay đổi khiến ví dụ không còn hợp lệ, quá trình biên dịch sẽ thất bại, giúp bạn phát hiện lỗi sớm.
 
-Running the package's test suite, we can see the example `ExampleAdd` function is executed with no further arrangement from us:
+Khi chạy bộ kiểm thử của gói, bạn sẽ thấy hàm `ExampleAdd` được thực thi mà không cần bổ sung bất kỳ thiết lập nào.
 
 ```bash
 $ go test -v
@@ -146,19 +157,21 @@ $ go test -v
 --- PASS: ExampleAdd (0.00s)
 ```
 
-Notice the special format of the comment, `// Output: 6`. While the example will always be compiled, adding this comment means the example will also be executed. Go ahead and temporarily remove the comment `// Output: 6`, then run `go test`, and you will see `ExampleAdd` is no longer executed.
+Lưu ý định dạng đặc biệt của chú thích `// Output: 6`. Khi có chú thích này, ví dụ không chỉ được biên dịch mà còn được thực thi trong quá trình kiểm thử. Hãy thử xóa dòng `// Output: 6`, sau đó chạy `go test`, bạn sẽ thấy `ExampleAdd` không còn được chạy nữa.
 
-Examples without output comments are useful for demonstrating code that cannot run as unit tests, such as that which accesses the network, while guaranteeing the example at least compiles.
+Các ví dụ không có chú thích đầu ra vẫn hữu ích để minh họa cách sử dụng mã, đặc biệt đối với các trường hợp không thể kiểm thử đơn vị, chẳng hạn như truy cập mạng. Tuy nhiên, chúng vẫn đảm bảo mã có thể biên dịch được.
 
-To view example documentation, let's take a quick look at `pkgsite`. Navigate to your project's directory, then run `pkgsite -open .`, which should open a web browser for you, pointing to `http://localhost:8080`. Inside here you'll see a list of all of Go's Standard Library packages, plus Third Party packages you have installed, under which you should see your example documentation for `github.com/quii/learn-go-with-tests`. Follow that link, and then look under `Integers`, then under `func Add`, then expand `Example` and you should see the example you added for `sum := Add(1, 5)`.
+Để xem tài liệu ví dụ, bạn có thể sử dụng {pkgsite}. Điều hướng đến thư mục dự án, sau đó chạy `pkgsite -open .`. Trình duyệt sẽ mở trang `http://localhost:8080`, nơi bạn có thể xem danh sách tất cả các gói trong thư viện chuẩn của Go cũng như các gói bên thứ ba mà bạn đã cài đặt.
 
-If you publish your code with examples to a public URL, you can share the documentation of your code at [pkg.go.dev](https://pkg.go.dev/). For example, [here](https://pkg.go.dev/github.com/quii/learn-go-with-tests/integers/v2) is the finalised API for this chapter. This web interface allows you to search for documentation of standard library packages and third-party packages.
+Tại đây, bạn sẽ tìm thấy tài liệu cho gói của mình. Điều hướng đến `github.com/quii/learn-go-with-tests`, vào phần `Integers`, chọn `func Add`, rồi mở rộng mục `Example`. Bạn sẽ thấy ví dụ mà bạn đã thêm cho `sum := Add(1, 5)`.
 
-## Wrapping up
+Nếu bạn công khai mã nguồn cùng các ví dụ, tài liệu của bạn cũng sẽ xuất hiện trên [pkg.go.dev](https://pkg.go.dev/). Ví dụ, [đây](https://pkg.go.dev/github.com/quii/learn-go-with-tests/integers/v2) là API cuối cùng của chương này. Trang web này giúp bạn tìm kiếm tài liệu của các gói trong thư viện chuẩn và các gói bên thứ ba dễ dàng hơn.
 
-What we have covered:
+## Tổng kết
 
-*   More practice of the TDD workflow
-*   Integers, addition
-*   Writing better documentation so users of our code can understand its usage quickly
-*   Examples of how to use our code, which are checked as part of our tests
+Những gì chúng ta đã học được:
+
+*   Thực hành thêm về quy trình TDD
+*   Làm việc với số nguyên và phép cộng
+*   Viết tài liệu rõ ràng hơn để người dùng có thể nhanh chóng hiểu cách sử dụng mã của chúng ta
+*   Cách viết ví dụ minh họa cho mã, đồng thời đảm bảo chúng luôn được kiểm tra cùng với bộ kiểm thử

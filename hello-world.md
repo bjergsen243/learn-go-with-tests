@@ -1,6 +1,6 @@
 # Hello, World
 
-**[Tất cả code của mục được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/hello-world)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/hello-world)**
 
 Thông thường, chương trình đầu tiên mà bạn viết khi học một ngôn ngữ mới sẽ là [Hello, World](https://en.m.wikipedia.org/wiki/%22Hello,_World!%22_program).
 
