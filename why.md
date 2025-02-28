@@ -282,7 +282,7 @@ You'll come to expect this feedback loop to not take very long and feel uneasy i
 
 You'll always be driving small & useful functionality comfortably backed by the feedback from your tests.
 
-## Wrapping up 
+## Tổng kết 
 
 - The strength of software is that we can change it. _Most_ software will require change over time in unpredictable ways; but don't try and over-engineer because it's too hard to predict the future.
 - Instead we need to make it so we can keep our software malleable. In order to change software we have to refactor it as it evolves or it will turn into a mess

@@ -55,7 +55,7 @@ Quan sát lỗi biên dịch
 
 Lỗi này nghĩa là hàm `Add` chưa được định nghĩa
 
-## Viết đủ code và thử lại
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Chỉ viết đủ code để trình biên dịch không báo lỗi – _không hơn không kém_.
 Điều này giúp đảm bảo rằng bài kiểm thử sẽ thất bại với lý do chính xác mà chúng ta mong đợi.
@@ -80,7 +80,7 @@ Ngoài ra, trong [phần trước](hello-world.md#one...last...refactor?), chún
 
 Bạn có thể tham khảo thêm về vấn đề này trong [wiki chính thức của Go](https://go.dev/wiki/CodeReviewComments#named-result-parameters).
 
-## Viết đủ code để test thành công
+## Viết đủ code để test chạy thành công
 
 Theo đúng quy trình TDD, bây giờ chúng ta chỉ nên viết lượng mã _tối thiểu cần thiết_ để test _chạy thành công_. Một lập trình viên cẩn thận (pragmatic developer) có thể viết như sau:
 
@@ -123,7 +123,7 @@ func Add(x, y int) int {
 }
 ```
 
-### Test Ví Dụ (Testable Examples)
+### Các Test Ví Dụ (Testable Examples)
 
 Nếu muốn làm tốt hơn nữa, bạn có thể tạo các [Test Ví Dụ](https://blog.golang.org/examples). Bạn sẽ thấy nhiều ví dụ như vậy trong tài liệu của thư viện chuẩn.
 

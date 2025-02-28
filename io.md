@@ -1,6 +1,6 @@
 # IO and sorting
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/io)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/io)**
 
 [In the previous chapter](json.md) we continued iterating on our application by adding a new endpoint `/league`. Along the way we learned about how to deal with JSON, embedding types and routing.
 
@@ -181,7 +181,7 @@ We're using `strings.NewReader` which will return us a `Reader`, which is what o
 ./file_system_store_test.go:15:12: undefined: FileSystemPlayerStore
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Let's define `FileSystemPlayerStore` in a new file
 
@@ -219,7 +219,7 @@ One more try...
         file_system_store_test.go:24: got [] want [{Cleo 10} {Chris 33}]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We've read JSON from a reader before
 
@@ -356,7 +356,7 @@ t.Run("get player score", func(t *testing.T) {
 ./file_system_store_test.go:38:15: store.GetPlayerScore undefined (type FileSystemPlayerStore has no field or method GetPlayerScore)
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We need to add the method to our new type to get the test to compile.
 
@@ -375,7 +375,7 @@ Now it compiles and the test fails
         file_system_store_test.go:43: got 0 want 33
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We can iterate over the league to find the player and return their score
 
@@ -554,7 +554,7 @@ t.Run("store wins for existing players", func(t *testing.T) {
 
 `./file_system_store_test.go:67:8: store.RecordWin undefined (type FileSystemPlayerStore has no field or method RecordWin)`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Add the new method
 
@@ -573,7 +573,7 @@ func (f *FileSystemPlayerStore) RecordWin(name string) {
 
 Our implementation is empty so the old score is getting returned.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 //file_system_store.go
@@ -683,7 +683,7 @@ t.Run("store wins for new players", func(t *testing.T) {
         file_system_store_test.go:86: got 0 want 1
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We just need to handle the scenario where `Find` returns `nil` because it couldn't find the player.
 
@@ -902,7 +902,7 @@ func TestTape_Write(t *testing.T) {
 
 As we thought! It writes the data we want, but leaves the rest of the original data remaining.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 `os.File` has a truncate function that will let us effectively empty the file. We should be able to just call this to get what we want.
 
@@ -1113,7 +1113,7 @@ t.Run("works with an empty file", func(t *testing.T) {
         file_system_store_test.go:108: didn't expect an error but got one, problem loading player store from file /var/folders/nj/r_ccbj5d7flds0sf63yy4vb80000gn/T/db019548018, problem parsing league, EOF
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Change our constructor to the following
 
@@ -1244,7 +1244,7 @@ The order of the JSON coming in is in the wrong order and our `want` will check 
         file_system_store_test.go:51: got [{Cleo 10} {Chris 33}] want [{Chris 33} {Cleo 10}]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (f *FileSystemPlayerStore) GetLeague() League {
@@ -1261,7 +1261,7 @@ func (f *FileSystemPlayerStore) GetLeague() League {
 
 Easy!
 
-## Wrapping up
+## Tổng kết
 
 ### What we've covered
 

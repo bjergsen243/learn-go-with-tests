@@ -1,6 +1,6 @@
 # Maps
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/maps)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/maps)**
 
 In [arrays & slices](arrays-and-slices.md), you saw how to store values in order. Now, we will look at a way to store items by a `key` and look them up quickly.
 
@@ -57,7 +57,7 @@ Your test should now fail with a *clear error message*
 
 `dictionary_test.go:12: got '' want 'this is just a test' given, 'test'`.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Search(dictionary map[string]string, word string) string {
@@ -158,7 +158,7 @@ The way to handle this scenario in Go is to return a second argument which is an
 Notice that as we've seen in the [pointers and error section](./pointers-and-errors.md) here in order to assert the error message
 we first check that the error is not `nil` and then use `.Error()` method to get the string which we can then pass to the assertion.
 
-## Try and run the test
+## Thử chạy test
 
 This does not compile
 
@@ -178,7 +178,7 @@ Your test should now fail with a much clearer error message.
 
 `dictionary_test.go:22: expected to get an error.`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (d Dictionary) Search(word string) (string, error) {
@@ -269,7 +269,7 @@ Your test should now fail
 dictionary_test.go:31: should find added word: could not find the word you were looking for
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (d Dictionary) Add(word, definition string) {
@@ -402,7 +402,7 @@ dictionary_test.go:43: got error '%!q(<nil>)' want 'cannot add word because it a
 dictionary_test.go:44: got 'new test' want 'this is just a test'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (d Dictionary) Add(word, definition string) error {
@@ -461,7 +461,7 @@ func TestUpdate(t *testing.T) {
 
 `Update` is very closely related to `Add` and will be our next implementation.
 
-## Try and run the test
+## Thử chạy test
 
 ```
 ./dictionary_test.go:53:2: dictionary.Update undefined (type Dictionary has no field or method Update)
@@ -481,7 +481,7 @@ With that in place, we are able to see that we need to change the definition of 
 dictionary_test.go:55: got 'this is just a test' want 'new definition'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We already saw how to do this when we fixed the issue with `Add`. So let's implement something really similar to `Add`.
 
@@ -521,7 +521,7 @@ t.Run("new word", func(t *testing.T) {
 
 We added yet another error type for when the word does not exist. We also modified `Update` to return an `error` value.
 
-## Try and run the test
+## Thử chạy test
 
 ```
 ./dictionary_test.go:53:16: dictionary.Update(word, newDefinition) used as value
@@ -531,7 +531,7 @@ We added yet another error type for when the word does not exist. We also modifi
 
 We get 3 errors this time, but we know how to deal with these.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 const (
@@ -554,7 +554,7 @@ With these changes, we now get a very clear error:
 dictionary_test.go:66: got error '%!q(<nil>)' want 'cannot update word because it does not exist'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (d Dictionary) Update(word, definition string) error {
@@ -575,7 +575,7 @@ func (d Dictionary) Update(word, definition string) error {
 
 This function looks almost identical to `Add` except we switched when we update the `dictionary` and when we return an error.
 
-### Note on declaring a new error for Update
+### Chú ý on declaring a new error for Update
 
 We could reuse `ErrNotFound` and not add a new error. However, it is often better to have a precise error for when an update fails.
 
@@ -609,7 +609,7 @@ By running `go test` we get:
 ./dictionary_test.go:74:6: dictionary.Delete undefined (type Dictionary has no field or method Delete)
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func (d Dictionary) Delete(word string) {
@@ -623,7 +623,7 @@ After we add this, the test tells us we are not deleting the word.
 dictionary_test.go:78: got error '%!q(<nil>)' want 'could not find the word you were looking for'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (d Dictionary) Delete(word string) {
@@ -671,7 +671,7 @@ The compiler will fail because we are not returning a value for `Delete`.
 ./dictionary_test.go:90:10: dictionary.Delete(word) (no value) used as value
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (d Dictionary) Delete(word string) error {
@@ -692,7 +692,7 @@ func (d Dictionary) Delete(word string) error {
 
 We are again using a switch statement to match on the error when we attempt to delete a word that doesn't exist. 
 
-## Wrapping up
+## Tổng kết
 
 In this section, we covered a lot. We made a full CRUD (Create, Read, Update and Delete) API for our dictionary. Throughout the process we learned how to:
 

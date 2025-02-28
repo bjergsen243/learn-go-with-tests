@@ -111,7 +111,7 @@ If you've read the previous chapters of this book you should be well-practiced a
 
 It's really important that you exercise your tests failing, you'll thank yourself when you accidentally make a test fail 6 months later that you put in the effort *now* to check it fails with a clear message.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 This is the minimal code to get the test running
 
@@ -131,7 +131,7 @@ func Render(w io.Writer, p Post) error {
 
 The test should complain that an empty string doesn't equal what we want.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Render(w io.Writer, p Post) error {
@@ -180,7 +180,7 @@ Nonetheless, let's put up with the pain *for now*.
 
 It should fail, complaining it doesn't have the string we expect, as we're not rendering the description and tags. 
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Try and do this yourself rather than copying the code. What you should find is that making this test pass _is a bit annoying_! When I tried, my first attempt got this error
 
@@ -665,7 +665,7 @@ We'll leave this as an exercise for you, the reader. You should be able to find 
 
 ### On testing 3rd-party libraries
 
-**Note**. Be careful not to worry too much about explicitly testing how a 3rd party library behaves in unit tests. 
+**Chú ý**. Be careful not to worry too much about explicitly testing how a 3rd party library behaves in unit tests. 
 
 Writing tests against code you don't control is wasteful and adds maintenance overhead. Sometimes you may wish to use [dependency injection](./dependency-injection.md) to control a dependency and mock its behaviour for a test.
 
@@ -710,7 +710,7 @@ If we had stuck with a test-after, approval tests approach here we would not be 
 ./renderer_test.go:41:13: undefined: blogrenderer.RenderIndex
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func (r *PostRenderer) RenderIndex(w io.Writer, posts []Post) error {
@@ -727,7 +727,7 @@ The above should get the following test failure
 --- FAIL: TestRender (0.00s)
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Even though this _feels_ like it should be easy, it is a bit awkward. I did it in multiple steps
 
@@ -997,7 +997,7 @@ So I created an **unexported** view model (`postViewModel`), because I still vie
 
 I construct one when rendering so I can parse the `Body` into `HTMLBody` and then I use that field in the template to render the HTML.
 
-## Wrapping up
+## Tổng kết
 
 If you combine your learnings of the [reading files](reading-files.md) chapter and this one, you can comfortably make a well-tested, simple, static site generator and spin up a blog of your own. Find some CSS tutorials and you can make it look nice too. 
 

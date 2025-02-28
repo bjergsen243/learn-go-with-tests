@@ -1,6 +1,6 @@
 # Select
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/select)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/select)**
 
 You have been asked to make a function called `WebsiteRacer` which takes two URLs and "races" them by hitting them with an HTTP GET and returning the URL which returned first. If none of them return within 10 seconds then it should return an `error`.
 
@@ -35,7 +35,7 @@ We know this isn't perfect and has problems, but it's a start. It's important no
 
 `./racer_test.go:14:9: undefined: Racer`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func Racer(a, b string) (winner string) {
@@ -45,7 +45,7 @@ func Racer(a, b string) (winner string) {
 
 `racer_test.go:25: got '', want 'http://www.quii.dev'`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Racer(a, b string) (winner string) {
@@ -300,7 +300,7 @@ Note that we've also handled the error return in our original test, we're using	
 
 `./racer_test.go:37:10: assignment mismatch: 2 variables but Racer returns 1 value`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func Racer(a, b string) (winner string, error error) {
@@ -325,7 +325,7 @@ If you run it now after 11 seconds it will fail.
         racer_test.go:40: expected an error but didn't get one
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Racer(a, b string) (winner string, error error) {
@@ -434,7 +434,7 @@ func TestRacer(t *testing.T) {
 
 I added one final check on the first test to verify we don't get an `error`.
 
-## Wrapping up
+## Tổng kết
 
 ### `select`
 

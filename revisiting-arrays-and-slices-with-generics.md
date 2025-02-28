@@ -190,7 +190,7 @@ func TestBadBank(t *testing.T) {
 ./bad_bank_test.go:18:14: undefined: BalanceFor
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We don't have our types or functions yet, add them to make the test run.
 
@@ -216,7 +216,7 @@ When you run the test you should see the following:
 --- FAIL: TestBadBank (0.00s)
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Let's write the code as if we didn't have a `Reduce` function first.
 
@@ -417,7 +417,7 @@ t.Run("Find the best programmer", func(t *testing.T) {
 
 As you can see, this code is flawless.
 
-## Wrapping up
+## Tổng kết
 
 When done tastefully, higher-order functions like these will make your code simpler to read and maintain, but remember the rule of thumb:
 

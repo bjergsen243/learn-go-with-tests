@@ -1,6 +1,6 @@
 # Reflection
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/reflection)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/reflection)**
 
 [From Twitter](https://twitter.com/peterbourgon/status/1011403901419937792?s=09)
 
@@ -69,7 +69,7 @@ func TestWalk(t *testing.T) {
 ./reflection_test.go:21:2: undefined: walk
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We need to define `walk`
 
@@ -79,7 +79,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-Try and run the test again
+Thử chạy test again
 
 ```
 === RUN   TestWalk
@@ -88,7 +88,7 @@ Try and run the test again
 FAIL
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We can call the spy with any string to make this pass.
 
@@ -119,7 +119,7 @@ if got[0] != expected {
 FAIL
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -205,7 +205,7 @@ Add the following scenario to the `cases`.
         reflection_test.go:40: got [Chris], want [Chris London]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -249,7 +249,7 @@ Add the following case
         reflection_test.go:46: got [Chris <int Value>], want [Chris]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We need to check that the type of the field is a `string`.
 
@@ -337,7 +337,7 @@ Now we can add this to our cases which reads a lot clearer than before
 
 The problem is we're only iterating on the fields on the first level of the type's hierarchy.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -405,7 +405,7 @@ panic: reflect: call of reflect.Value.NumField on ptr Value [recovered]
     panic: reflect: call of reflect.Value.NumField on ptr Value
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -489,11 +489,11 @@ panic: reflect: call of reflect.Value.NumField on slice Value [recovered]
     panic: reflect: call of reflect.Value.NumField on slice Value
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 This is similar to the pointer scenario before, we are trying to call `NumField` on our `reflect.Value` but it doesn't have one as it's not a struct.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -613,7 +613,7 @@ Add to the cases
         reflection_test.go:78: got [], want [London Reykjavík]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Arrays can be handled the same way as slices, so just add it to the case with a comma
 
@@ -664,7 +664,7 @@ The next type we want to handle is `map`.
         reflection_test.go:86: got [], want [Moo Baa]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Again if you think a little abstractly you can see that `map` is very similar to `struct`, it's just the keys are unknown at compile time.
 
@@ -812,7 +812,7 @@ t.Run("with channels", func(t *testing.T) {
         reflection_test.go:115: got [], want [Berlin Katowice]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We can iterate through all values sent through channel until it was closed with Recv()
 
@@ -881,7 +881,7 @@ t.Run("with function", func(t *testing.T) {
         reflection_test.go:132: got [], want [Berlin Katowice]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Non zero-argument functions do not seem to make a lot of sense in this scenario. But we should allow for arbitrary return values.
 
@@ -921,7 +921,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-## Wrapping up
+## Tổng kết
 
 - Introduced some concepts from the `reflect` package.
 - Used recursion to traverse arbitrary data structures.

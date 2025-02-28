@@ -1,6 +1,6 @@
 # HTTP Server
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/http-server)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/http-server)**
 
 You have been asked to create a web server where users can track how many games players have won.
 
@@ -91,7 +91,7 @@ In order to test our server, we will need a `Request` to send in and we'll want 
 
 `./server_test.go:13:2: undefined: PlayerServer`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 The compiler is here to help, just listen to it.
 
@@ -127,7 +127,7 @@ The code now compiles and the test fails
         server_test.go:20: got '', want '20'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 From the DI chapter, we touched on HTTP servers with a `Greet` function. We learned that net/http's `ResponseWriter` also implements io `Writer` so we can use `fmt.Fprint` to send strings as HTTP responses.
 
@@ -223,7 +223,7 @@ Remember we are just trying to take as small as steps as reasonably possible, so
         server_test.go:34: got '20', want '10'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 //server.go
@@ -529,7 +529,7 @@ t.Run("returns 404 on missing players", func(t *testing.T) {
         server_test.go:56: got status 200 want 404
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 //server.go
@@ -667,7 +667,7 @@ For a start let's just check we get the correct status code if we hit the partic
         server_test.go:70: did not get correct status, got 404, want 202
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Remember we are deliberately committing sins, so an `if` statement based on the request's method will do the trick.
 
@@ -788,7 +788,7 @@ func newPostWinRequest(name string) *http.Request {
 ./server_test.go:65:20: too few values in struct initializer
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We need to update our code where we create a `StubPlayerStore` as we've added a new field
 
@@ -806,7 +806,7 @@ store := StubPlayerStore{
         server_test.go:80: got 0 calls to RecordWin want 1
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 As we're only asserting the number of calls rather than the specific values it makes our initial iteration a little smaller.
 
@@ -892,7 +892,7 @@ Now that we know there is one element in our `winCalls` slice we can safely refe
         server_test.go:86: did not store correct winner got 'Bob' want 'Pepper'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 //server.go
@@ -996,7 +996,7 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
     server_integration_test.go:24: response body is wrong, got '123' want '3'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 I am going to take some liberties here and write more code than you may be comfortable with without writing a test.
 
@@ -1072,7 +1072,7 @@ fatal error: concurrent map read and map write
 
 By adding mutexes, we enforce concurrency safety especially for the counter in our `RecordWin` function. Read more about mutexes in the sync chapter.
 
-## Wrapping up
+## Tổng kết
 
 ### `http.Handler`
 

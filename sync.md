@@ -1,6 +1,6 @@
 # Sync
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/sync)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/sync)**
 
 We want to make a counter which is safe to use concurrently.
 
@@ -33,7 +33,7 @@ func TestCounter(t *testing.T) {
 ./sync_test.go:9:14: undefined: Counter
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Let's define `Counter`.
 
@@ -71,7 +71,7 @@ It should now run and fail
     	sync_test.go:27: got 0, want 3
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 This should be trivial for Go experts like us. We need to keep some state for the counter in our datatype and then increment it on every `Inc` call
 
@@ -158,7 +158,7 @@ FAIL
 
 The test will _probably_ fail with a different number, but nonetheless it demonstrates it does not work when multiple goroutines are trying to mutate the value of the counter at the same time.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 A simple solution is to add a lock to our `Counter`, ensuring only one goroutine can increment the counter at a time. Go's [`Mutex`](https://golang.org/pkg/sync/#Mutex) provides such a lock:
 
@@ -245,7 +245,7 @@ func NewCounter() *Counter {
 
 Use this function in your tests when initialising `Counter`.
 
-## Wrapping up
+## Tổng kết
 
 We've covered a few things from the [sync package](https://golang.org/pkg/sync/)
 

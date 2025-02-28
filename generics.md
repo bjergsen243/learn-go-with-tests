@@ -1,6 +1,6 @@
 # Generics
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/generics)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/generics)**
 
 This chapter will give you an introduction to generics, dispel reservations you may have about them, and give you an idea how to simplify some of your code in the future. After reading this you'll know how to write:
 
@@ -596,7 +596,7 @@ Using a generic data type we have:
 - Made `Pop` return `T` so that if we create a `Stack[int]` we in practice get back `int` from `Pop`; we can now use `+` without the need for type assertion gymnastics.
 - Prevented misuse at compile time. You cannot `Push` oranges to an apple stack.
 
-## Wrapping up
+## Tổng kết
 
 This chapter should have given you a taste of generics syntax, and some ideas as to why generics might be helpful. We've written our own `Assert` functions which we can safely re-use to experiment with other ideas around generics, and we've implemented a simple data structure to store any type of data we wish, in a type-safe manner.
 

@@ -1,6 +1,6 @@
 # JSON, routing & embedding
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/json)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/json)**
 
 [In the previous chapter](http-server.md) we created a web server to store how many games players have won.
 
@@ -136,7 +136,7 @@ player := strings.TrimPrefix(r.URL.Path, "/players/")
 
 In the previous chapter, we mentioned this was a fairly naive way of doing our routing. Our test informs us correctly that we need a concept how to deal with different request paths.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Go has a built-in routing mechanism called [`ServeMux`](https://golang.org/pkg/net/http/#ServeMux) (request multiplexer) which lets you attach `http.Handler`s to particular request paths.
 
@@ -394,7 +394,7 @@ Parsing JSON can fail so `Decode` can return an `error`. There's no point contin
 
 Our endpoint currently does not return a body so it cannot be parsed into JSON.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 //server.go
@@ -500,7 +500,7 @@ func TestLeague(t *testing.T) {
 ./server_test.go:70:3: too few values in struct initializer
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 You'll need to update the other tests as we have a new field in `StubPlayerStore`; set it to nil for the other tests.
 
@@ -512,7 +512,7 @@ Try running the tests again and you should get
         server_test.go:124: got [{Chris 20}] want [{Cleo 32} {Chris 20} {Tiest 14}]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We know the data is in our `StubPlayerStore` and we've abstracted that away into an interface `PlayerStore`. We need to update this so anyone passing us in a `PlayerStore` can provide us with the data for leagues.
 
@@ -662,7 +662,7 @@ if response.Result().Header.Get("content-type") != "application/json" {
         server_test.go:124: response did not have content-type of application/json, got map[Content-Type:[text/plain; charset=utf-8]]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Update `leagueHandler`
 
@@ -758,7 +758,7 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
         server_integration_test.go:35: got [] want [{Pepper 3}]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 `InMemoryPlayerStore` is returning `nil` when you call `GetLeague()` so we'll need to fix that.
 
@@ -777,7 +777,7 @@ All we need to do is iterate over the map and convert each key/value to a `Playe
 
 The test should now pass.
 
-## Wrapping up
+## Tổng kết
 
 We've continued to safely iterate on our program using TDD, making it support new endpoints in a maintainable way with a router and it can now return JSON for our consumers. In the next chapter, we will cover persisting the data and sorting our league.
 

@@ -1,6 +1,6 @@
 # Arrays and slices
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/arrays)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/arrays)**
 
 Arrays allow you to store multiple elements of the same type in a variable in
 a particular order.
@@ -57,7 +57,7 @@ Once the above error is fixed, if you run `go test` the compiler will fail with 
 `./sum_test.go:10:15: undefined: Sum` error. Now we can proceed with writing the actual method
 to be tested.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 In `sum.go`
 
@@ -73,7 +73,7 @@ Your test should now fail with _a clear error message_
 
 `sum_test.go:13: got 0 want 15 given, [1 2 3 4 5]`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Sum(numbers [5]int) int {
@@ -157,13 +157,13 @@ func TestSum(t *testing.T) {
 }
 ```
 
-## Try and run the test
+## Thử chạy test
 
 This does not compile
 
 `./sum_test.go:22:13: cannot use numbers (type []int) as type [5]int in argument to Sum`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 The problem here is we can either
 
@@ -186,7 +186,7 @@ func Sum(numbers []int) int {
 
 If you try to run the tests they will still not compile, you will have to change the first test to pass in a slice rather than an array.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 It turns out that fixing the compiler problems were all we need to do here and the tests pass!
 
@@ -278,11 +278,11 @@ func TestSumAll(t *testing.T) {
 }
 ```
 
-## Try and run the test
+## Thử chạy test
 
 `./sum_test.go:23:9: undefined: SumAll`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We need to define `SumAll` according to what our test wants.
 
@@ -344,7 +344,7 @@ Change the test back again and run it. You should have test output like the foll
 
 `sum_test.go:30: got [] want [3 9]`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 What we need to do is iterate over the varargs, calculate the sum using our
 existing `Sum` function, then add it to the slice we will return
@@ -411,17 +411,17 @@ func TestSumAllTails(t *testing.T) {
 }
 ```
 
-## Try and run the test
+## Thử chạy test
 
 `./sum_test.go:26:9: undefined: SumAllTails`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Rename the function to `SumAllTails` and re-run the test
 
 `sum_test.go:30: got [3 9] want [2 9]`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func SumAllTails(numbersToSum ...[]int) []int {
@@ -475,7 +475,7 @@ func TestSumAllTails(t *testing.T) {
 }
 ```
 
-## Try and run the test
+## Thử chạy test
 
 ```text
 panic: runtime error: slice bounds out of range [recovered]
@@ -487,7 +487,7 @@ Oh no! It's important to note that while the test _has compiled_, it _has a runt
 Compile time errors are our friend because they help us write software that works,  
 runtime errors are our enemies because they affect our users.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func SumAllTails(numbersToSum ...[]int) []int {
@@ -549,7 +549,7 @@ $ go test
 ./sum_test.go:52:21: cannot use "dave" (type string) as type []int in argument to checkSums
 ```
 
-## Wrapping up
+## Tổng kết
 
 We have covered
 

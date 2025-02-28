@@ -1,6 +1,6 @@
 # Reading files
 
-- **[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/reading-files)**
+- **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/reading-files)**
 - [Here is a video of me working through the problem and taking questions from the Twitch stream](https://www.youtube.com/watch?v=nXts4dEJnkU)
 
 In this chapter we're going to learn how to read some files, get some data out of them, and do something useful.
@@ -183,7 +183,7 @@ The test should now correctly fail
     blogposts_test.go:48: got 0 posts, wanted 2 posts
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We _could_ ["slime"](https://deniseyu.github.io/leveling-up-tdd/) this to make it pass:
 
@@ -322,7 +322,7 @@ func TestNewBlogPosts(t *testing.T) {
 ./blogpost_test.go:58:26: unknown field 'Title' in struct literal of type blogposts.Post
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Add the new field to our `Post` type so that the test will run
 
@@ -340,7 +340,7 @@ Re-run the test, and you should get a clear, failing test
     blogpost_test.go:61: got {Title:}, want {Title:Post 1}
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We'll need to open each file and then extract the title
 
@@ -520,7 +520,7 @@ Description: Description 2`
 ./blogpost_test.go:47:58: unknown field 'Description' in struct literal of type blogposts.Post
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Add the new field to `Post`.
 
@@ -539,7 +539,7 @@ The tests should now compile, and fail.
         Description: Description 1 Description:}, want {Title:Post 1 Description:Description 1}
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 The standard library has a handy library for helping you scan through data, line by line; [`bufio.Scanner`](https://golang.org/pkg/bufio/#Scanner)
 
@@ -739,7 +739,7 @@ World`,
 
 As we'd expect.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Add `Body` to `Post` and the test should fail.
 
@@ -749,7 +749,7 @@ Add `Body` to `Post` and the test should fail.
         World}
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 1. Scan the next line to ignore the `---` separator.
 2. Keep scanning until there's nothing left to scan.
@@ -833,7 +833,7 @@ Crucially though, we have working software, and we have defined our interface. T
 
 Keeping focused on the goal means we made the important decisions, and validated them against the desired behaviour, rather than getting bogged down on matters that won't affect the overall design.
 
-## Wrapping up
+## Tổng kết
 
 `fs.FS`, and the other changes in Go 1.16 give us some elegant ways of reading data from file systems and testing them simply.
 

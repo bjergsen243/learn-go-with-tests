@@ -154,7 +154,7 @@ This change has had some _real positive effects_
 - Our tests now reflect (and document) what a user of our code _could_ do if they decided they wanted to do some more sophisticated error handling than just logging. Just do a type assertion and then you get easy access to the properties of the error.
 - It is still "just" an `error`, so if they choose to they can pass it up the call stack or log it like any other `error`.
 
-## Wrapping up
+## Tổng kết
 
 If you find yourself testing for multiple error conditions don't fall in to the trap of comparing the error messages.
 

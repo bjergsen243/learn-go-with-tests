@@ -1,14 +1,14 @@
-# Iteration
+# Vòng lặp
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/for)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/for)**
 
-To do stuff repeatedly in Go, you'll need `for`. In Go there are no `while`, `do`, `until` keywords, you can only use `for`. Which is a good thing!
+Để thực hiện một hành động lặp lại trong Go, bạn sẽ cần sử dụng `for`. Trong Go không có các từ khóa như `while`, `do`, `until`, bạn chỉ có thể dùng `for` và điều này thực sự hữu ích!
 
-Let's write a test for a function that repeats a character 5 times.
+Hãy viết một bài kiểm thử cho một hàm lặp lại một ký tự 5 lần.
 
-There's nothing new so far, so try and write it yourself for practice.
+Không có gì mới ở đây, vì vậy hãy thử tự viết nó để thực hành.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 package iteration
@@ -25,11 +25,11 @@ func TestRepeat(t *testing.T) {
 }
 ```
 
-## Try and run the test
+## Thử chạy test
 
 `./repeat_test.go:6:14: undefined: Repeat`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 _Keep the discipline!_ You don't need to know anything new right now to make the test fail properly.
 
@@ -47,7 +47,7 @@ Isn't it nice to know you already know enough Go to write tests for some basic p
 
 `repeat_test.go:10: expected 'aaaaa' but got ''`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 The `for` syntax is very unremarkable and follows most C-like languages.
 
@@ -123,18 +123,18 @@ PASS
 
 What `136 ns/op` means is our function takes on average 136 nanoseconds to run \(on my computer\). Which is pretty ok! To test this it ran it 10000000 times.
 
-**Note:** By default benchmarks are run sequentially.
+**Chú ý:** By default benchmarks are run sequentially.
 
-**Note:** Sometimes, Go can optimize your benchmarks in a way that makes them inaccurate, such as eliminating the function being benchmarked. Check your benchmarks to see if the values make sense. If they seem overly optimized, you can follow the strategies in this **[blog post](https://dave.cheney.net/2013/06/30/how-to-write-benchmarks-in-go)**.
+**Chú ý:** Sometimes, Go can optimize your benchmarks in a way that makes them inaccurate, such as eliminating the function being benchmarked. Check your benchmarks to see if the values make sense. If they seem overly optimized, you can follow the strategies in this **[blog post](https://dave.cheney.net/2013/06/30/how-to-write-benchmarks-in-go)**.
 
-## Practice exercises
+## Bài tập thực hành
 
-* Change the test so a caller can specify how many times the character is repeated and then fix the code
-* Write `ExampleRepeat` to document your function
-* Have a look through the [strings](https://golang.org/pkg/strings) package. Find functions you think could be useful and experiment with them by writing tests like we have here. Investing time learning the standard library will really pay off over time.
+-   Chỉnh sửa bài kiểm thử để người dùng có thể chỉ định số lần lặp lại ký tự, sau đó sửa mã để đáp ứng yêu cầu.
+-   Viết `ExampleRepeat` để tài liệu hóa hàm của bạn.
+-   Xem qua gói [strings](https://golang.org/pkg/strings). Tìm các hàm hữu ích và thử nghiệm với chúng bằng cách viết các bài kiểm thử như chúng ta đã làm. Đầu tư thời gian tìm hiểu thư viện tiêu chuẩn sẽ rất có ích về lâu dài.
 
-## Wrapping up
+## Tổng kết
 
-* More TDD practice
-* Learned `for`
-* Learned how to write benchmarks
+-   Thực hành TDD nhiều hơn
+-   Học cách sử dụng vòng lặp `for`
+-   Học cách viết benchmark để đo hiệu suất

@@ -127,7 +127,7 @@ t.Run("behaves like a normal reader", func(t *testing.T) {
 ```
 ./cancel_readers_test.go:12:10: undefined: NewCancellableReader
 ```
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We'll need to define this function and it should return an `io.Reader`
 
@@ -149,7 +149,7 @@ panic: runtime error: invalid memory address or nil pointer dereference [recover
 
 As expected
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 For now, we'll just return the `io.Reader` we pass in
 
@@ -207,7 +207,7 @@ We can more or less copy the first test but now we're:
 	want (io.Reader)
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 The compiler is telling us what to do; update our signature to accept a context
 
@@ -230,7 +230,7 @@ You should now see a very clear failing test output
         cancel_readers_test.go:52: expected 0 bytes to be read after cancellation but 3 were read
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 At this point, it's copy and paste from the original post by Mat and David but we'll still take it slowly and iteratively.
 
@@ -290,7 +290,7 @@ func (r readerCtx) Read(p []byte) (n int, err error) {
 
 All tests should now pass. You'll notice how we return the error from the `context.Context`. This allows callers of the code to inspect the various reasons cancellation has occurred and this is covered more in the original post.
 
-## Wrapping up
+## Tổng kết
 
 - Small interfaces are good and are easily composed
 - When you're trying to augment one thing (e.g `io.Reader`) with another you usually want to reach for the [delegation pattern](https://en.wikipedia.org/wiki/Delegation_pattern)

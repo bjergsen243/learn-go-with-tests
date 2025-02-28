@@ -1,6 +1,6 @@
 # Mathematics
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/math)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/math)**
 
 For all the power of modern computers to perform huge sums at
 lightning speed, the average developer rarely uses any mathematics
@@ -165,7 +165,7 @@ This drives out the expected failures around the missing functions and types:
 
 So a `Point` where the tip of the second hand should go, and a function to get it.
 
-### Write the minimal amount of code for the test to run and check the failing test output
+### Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Let's implement those types to get the code to compile
 
@@ -197,7 +197,7 @@ exit status 1
 FAIL	learn-go-with-tests/math/clockface	0.006s
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 When we get the expected failure, we can fill in the return value of `SecondHand`:
 
@@ -361,7 +361,7 @@ us with a value for π.
 ./clockface_test.go:12:9: undefined: secondsInRadians
 ```
 
-### Write the minimal amount of code for the test to run and check the failing test output
+### Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func secondsInRadians(t time.Time) float64 {
@@ -373,7 +373,7 @@ func secondsInRadians(t time.Time) float64 {
 clockface_test.go:15: Wanted 3.141592653589793 radians, but got 0
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 ```go
 func secondsInRadians(t time.Time) float64 {
@@ -608,7 +608,7 @@ func TestSecondHandPoint(t *testing.T) {
 ./clockface_test.go:40:11: undefined: secondHandPoint
 ```
 
-### Write the minimal amount of code for the test to run and check the failing test output
+### Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func secondHandPoint(t time.Time) Point {
@@ -620,7 +620,7 @@ func secondHandPoint(t time.Time) Point {
 clockface_test.go:42: Wanted {0 -1} Point, but got {0 0}
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 ```go
 func secondHandPoint(t time.Time) Point {
@@ -662,7 +662,7 @@ func TestSecondHandPoint(t *testing.T) {
 clockface_test.go:43: Wanted {-1 0} Point, but got {0 -1}
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 Remember our unit circle picture?
 
@@ -781,7 +781,7 @@ func TestSecondHandAt30Seconds(t *testing.T) {
 clockface_acceptance_test.go:28: Got {150 60}, wanted {150 240}
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 We need to do three things to convert our unit vector into a point on the SVG:
 
@@ -1354,7 +1354,7 @@ func TestMinutesInRadians(t *testing.T) {
 ./clockface_test.go:59:11: undefined: minutesInRadians
 ```
 
-### Write the minimal amount of code for the test to run and check the failing test output
+### Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func minutesInRadians(t time.Time) float64 {
@@ -1405,7 +1405,7 @@ How much is that tiny little bit? Well...
 clockface_test.go:62: Wanted 0.012217304763960306 radians, but got 3.141592653589793
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 In the immortal words of Jennifer Aniston: [Here comes the science bit](https://www.youtube.com/watch?v=29Im23SPNok)
 
@@ -1487,7 +1487,7 @@ func TestMinuteHandPoint(t *testing.T) {
 ./clockface_test.go:79:11: undefined: minuteHandPoint
 ```
 
-### Write the minimal amount of code for the test to run and check the failing test output
+### Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func minuteHandPoint(t time.Time) Point {
@@ -1499,7 +1499,7 @@ func minuteHandPoint(t time.Time) Point {
 clockface_test.go:80: Wanted {0 -1} Point, but got {0 0}
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 ```go
 func minuteHandPoint(t time.Time) Point {
@@ -1541,7 +1541,7 @@ func TestMinuteHandPoint(t *testing.T) {
 clockface_test.go:81: Wanted {-1 0} Point, but got {0 -1}
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 A quick copy and paste of the `secondHandPoint` function with some minor changes
 ought to do it...
@@ -1598,7 +1598,7 @@ ok  	clockface	0.007s
 Now we can uncomment the acceptance test and get to work drawing the minute
 hand.
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 The `minuteHand` function is a copy-and-paste of `secondHand` with some
 minor adjustments, such as declaring a `minuteHandLength`:
@@ -1744,7 +1744,7 @@ func TestHoursInRadians(t *testing.T) {
 ./clockface_test.go:97:11: undefined: hoursInRadians
 ```
 
-### Write the minimal amount of code for the test to run and check the failing test output
+### Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func hoursInRadians(t time.Time) float64 {
@@ -1786,7 +1786,7 @@ func TestHoursInRadians(t *testing.T) {
 clockface_test.go:100: Wanted 0 radians, but got 3.141592653589793
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 ```go
 func hoursInRadians(t time.Time) float64 {
@@ -1824,7 +1824,7 @@ func TestHoursInRadians(t *testing.T) {
 clockface_test.go:101: Wanted 4.71238898038469 radians, but got 10.995574287564276
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 ```go
 func hoursInRadians(t time.Time) float64 {
@@ -1873,7 +1873,7 @@ func TestHoursInRadians(t *testing.T) {
 clockface_test.go:102: Wanted 0.013089969389957472 radians, but got 0
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 Again, a bit of thinking is now required. We need to move the hour hand along
 a little bit for both the minutes and the seconds. Luckily we have an angle
@@ -2001,7 +2001,7 @@ writing them first. They're just appearing in less granular chunks.
 ./clockface_test.go:119:11: undefined: hourHandPoint
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 ```go
 func hourHandPoint(t time.Time) Point {
@@ -2060,7 +2060,7 @@ clockface_acceptance_test.go:113: Expected to find the hour hand line {X1:150 Y1
     in the SVG lines [{X1:150 Y1:150 X2:150 Y2:60} {X1:150 Y1:150 X2:150 Y2:70}]
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 And we can now make our final adjustments to the SVG writing constants and functions:
 
@@ -2128,7 +2128,7 @@ with 4 hours for the hour hand, and 20 seconds for the second hand say - these
 constants could easily become parameters. We're helping to leave that door open
 (even if we never go through it).
 
-## Wrapping up
+## Tổng kết
 
 Do we need to do anything else?
 

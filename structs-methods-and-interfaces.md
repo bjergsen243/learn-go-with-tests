@@ -1,6 +1,6 @@
 # Structs, methods & interfaces
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/structs)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/structs)**
 
 Suppose that we need some geometry code to calculate the perimeter of a rectangle given a height and width. We can write a `Perimeter(width float64, height float64)` function, where `float64` is for floating-point numbers like `123.45`.
 
@@ -25,7 +25,7 @@ Notice the new format string? The `f` is for our `float64` and the `.2` means pr
 
 `./shapes_test.go:6:9: undefined: Perimeter`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func Perimeter(width float64, height float64) float64 {
@@ -35,7 +35,7 @@ func Perimeter(width float64, height float64) float64 {
 
 Results in `shapes_test.go:10: got 0.00 want 40.00`.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Perimeter(width float64, height float64) float64 {
@@ -184,7 +184,7 @@ For example, using a radius of 1.5 in a circle area calculation, `f` would show 
 
 `./shapes_test.go:28:13: undefined: Circle`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We need to define our `Circle` type.
 
@@ -262,7 +262,7 @@ If we try to run the tests, we get
 
 I would like to reiterate how great the compiler is here. It is so important to take the time to slowly read the error messages you get, it will help you in the long run.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Let's add some methods to our types
 
@@ -297,7 +297,7 @@ r Rectangle
 
 If you try to re-run the tests they should now compile and give you some failing output.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Now let's make our rectangle tests pass by fixing our new method
 
@@ -456,7 +456,7 @@ func TestArea(t *testing.T) {
 
 Remember, keep trying to run the test and let the compiler guide you toward a solution.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 `./shapes_test.go:25:4: undefined: Triangle`
 
@@ -488,7 +488,7 @@ Finally the code compiles and we get our error
 
 `shapes_test.go:31: got 0.00 want 36.00`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (t Triangle) Area() float64 {
@@ -584,7 +584,7 @@ func TestArea(t *testing.T) {
 }
 ```
 
-## Wrapping up
+## Tổng kết
 
 This was more TDD practice, iterating over our solutions to basic mathematic problems and learning new language features motivated by our tests.
 

@@ -1,6 +1,6 @@
 # Concurrency
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/concurrency)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/concurrency)**
 
 Here's the setup: a colleague has written a function, `CheckWebsites`, that
 checks the status of a list of URLs.
@@ -120,7 +120,7 @@ a quarter seconds.
 
 Let's try and make this faster.
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 Now we can finally talk about concurrency which, for the purposes of the
 following, means "having more than one thing in progress." This is something
@@ -430,7 +430,7 @@ ok      github.com/gypsydave5/learn-go-with-tests/concurrency/v2        2.377s
 23406615 nanoseconds - 0.023 seconds, about one hundred times as fast as
 original function. A great success.
 
-## Wrapping up
+## Tổng kết
 
 This exercise has been a little lighter on the TDD than usual. In a way we've
 been taking part in one long refactoring of the `CheckWebsites` function; the

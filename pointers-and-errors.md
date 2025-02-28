@@ -1,6 +1,6 @@
 # Pointers & errors
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/pointers)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/pointers)**
 
 We learned about structs in the last section which let us capture a number of values related around a concept.
 
@@ -34,7 +34,7 @@ In the [previous example](./structs-methods-and-interfaces.md) we accessed field
 
 `./wallet_test.go:7:12: undefined: Wallet`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 The compiler doesn't know what a `Wallet` is so let's tell it.
 
@@ -69,7 +69,7 @@ The tests should now compile and run
 
 `wallet_test.go:15: got 0 want 10`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We will need some kind of _balance_ variable in our struct to store the state
 
@@ -302,7 +302,7 @@ func TestWallet(t *testing.T) {
 
 `./wallet_test.go:26:9: wallet.Withdraw undefined (type Wallet has no field or method Withdraw)`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func (w *Wallet) Withdraw(amount Bitcoin) {
@@ -312,7 +312,7 @@ func (w *Wallet) Withdraw(amount Bitcoin) {
 
 `wallet_test.go:33: got 20 BTC want 10 BTC`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (w *Wallet) Withdraw(amount Bitcoin) {
@@ -383,13 +383,13 @@ We then check an error has returned by failing the test if it is `nil`.
 
 Like `null` if you try to access a value that is `nil` it will throw a **runtime panic**. This is bad! You should make sure that you check for nils.
 
-## Try and run the test
+## Thử chạy test
 
 `./wallet_test.go:31:25: wallet.Withdraw(Bitcoin(100)) used as value`
 
 The wording is perhaps a little unclear, but our previous intent with `Withdraw` was just to call it, it will never return a value. To make this compile we will need to change it so it has a return type.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func (w *Wallet) Withdraw(amount Bitcoin) error {
@@ -400,7 +400,7 @@ func (w *Wallet) Withdraw(amount Bitcoin) error {
 
 Again, it is very important to just write enough code to satisfy the compiler. We correct our `Withdraw` method to return `error` and for now we have to return _something_ so let's just return `nil`.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (w *Wallet) Withdraw(amount Bitcoin) error {
@@ -487,7 +487,7 @@ We've introduced `t.Fatal` which will stop the test if it is called. This is bec
 
 `wallet_test.go:61: got err 'oh no' want 'cannot withdraw, insufficient funds'`
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (w *Wallet) Withdraw(amount Bitcoin) error {
@@ -653,7 +653,7 @@ func assertError(t testing.TB, got error, want error) {
 }
 ```
 
-## Wrapping up
+## Tổng kết
 
 ### Pointers
 

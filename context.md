@@ -1,6 +1,6 @@
 # Context
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/context)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/context)**
 
 Software often kicks off long-running, resource-intensive processes (often in goroutines). If the action that caused this gets cancelled or fails for some reason you need to stop these processes in a consistent way through your application.
 
@@ -131,7 +131,7 @@ The test fails as we'd expect.
     	context_test.go:62: store was not told to cancel
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Remember to be disciplined with TDD. Write the _minimal_ amount of code to make our test pass.
 
@@ -379,7 +379,7 @@ t.Run("returns data from store", func(t *testing.T) {
     	context_test.go:22: got "", want "hello, world"
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -450,7 +450,7 @@ t.Run("tells store to cancel work if request is cancelled", func(t *testing.T) {
     	context_test.go:47: a response should not have been written
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -468,7 +468,7 @@ func Server(store Store) http.HandlerFunc {
 
 We can see after this that the server code has become simplified as it's no longer explicitly responsible for cancellation, it simply passes through `context` and relies on the downstream functions to respect any cancellations that may occur.
 
-## Wrapping up
+## Tổng kết
 
 ### What we've covered
 

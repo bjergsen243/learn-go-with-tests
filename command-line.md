@@ -1,6 +1,6 @@
 # Command line and project structure
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/command-line)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/command-line)**
 
 Our product owner now wants to _pivot_ by introducing a second application - a command line application.
 
@@ -165,7 +165,7 @@ func TestCLI(t *testing.T) {
 ./cli_test.go:25:10: undefined: CLI
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 At this point, you should be comfortable enough to create our new `CLI` struct with the respective field for our dependency and add a method.
 
@@ -190,7 +190,7 @@ Remember we're just trying to get the test running so we can check the test fail
 FAIL
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 //CLI.go
@@ -237,7 +237,7 @@ We create an `io.Reader` in our test using the handy `strings.NewReader`, fillin
 
 `./CLI_test.go:12:32: too many values in struct initializer`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We need to add our new dependency into `CLI`.
 
@@ -255,7 +255,7 @@ type CLI struct {
 FAIL
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Remember to do the strictly easiest thing first
 
@@ -347,7 +347,7 @@ func TestCLI(t *testing.T) {
 FAIL
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We'll use a [`bufio.Scanner`](https://golang.org/pkg/bufio/) to read the input from the `io.Reader`.
 
@@ -681,7 +681,7 @@ func main() {
 Notice the symmetry: despite being different user interfaces the setup is almost identical. This feels like good validation of our design so far.
 And notice also that `FileSystemPlayerStoreFromFile` returns a closing function, so we can close the underlying file once we are done using the Store.
 
-## Wrapping up
+## Tổng kết
 
 ### Package structure
 

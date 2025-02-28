@@ -1,6 +1,6 @@
 # Mocking
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/mocking)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/mocking)**
 
 You have been asked to write a program which counts down from 3, printing each number on a new line (with a 1-second pause) and when it reaches zero it will print "Go!" and exit.
 
@@ -59,11 +59,11 @@ We know we want our `Countdown` function to write data somewhere and `io.Writer`
 - In `main` we will send to `os.Stdout` so our users see the countdown printed to the terminal.
 - In test we will send to `bytes.Buffer` so our tests can capture what data is being generated.
 
-## Try and run the test
+## Thử chạy test
 
 `./countdown_test.go:11:2: undefined: Countdown`
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Define `Countdown`
 
@@ -89,7 +89,7 @@ func Countdown(out *bytes.Buffer) {}
 
 Perfect!
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Countdown(out *bytes.Buffer) {
@@ -161,7 +161,7 @@ Go!`
 
 The backtick syntax is another way of creating a `string` but lets you include things like newlines, which is perfect for our test.
 
-## Try and run the test
+## Thử chạy test
 
 ```
 countdown_test.go:21: got '3' want '3
@@ -169,7 +169,7 @@ countdown_test.go:21: got '3' want '3
         1
         Go!'
 ```
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func Countdown(out io.Writer) {
@@ -279,7 +279,7 @@ Go!`
 }
 ```
 
-## Try and run the test
+## Thử chạy test
 
 ```
 too many arguments in call to Countdown
@@ -287,7 +287,7 @@ too many arguments in call to Countdown
     want (io.Writer)
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We need to update `Countdown` to accept our `Sleeper`
 
@@ -329,7 +329,7 @@ func main() {
 }
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 The test is now compiling but not passing because we're still calling the `time.Sleep` rather than the injected in dependency. Let's fix that.
 
@@ -516,7 +516,7 @@ func TestConfigurableSleeper(t *testing.T) {
 
 There should be nothing new in this test and it is set up very similar to the previous mock tests.
 
-### Try and run the test
+### Thử chạy test
 ```
 sleeper.Sleep undefined (type ConfigurableSleeper has no field or method Sleep, but does have sleep)
 
@@ -536,7 +536,7 @@ With our new `Sleep` function implemented we have a failing test.
 countdown_test.go:56: should have slept for 5s but slept for 0s
 ```
 
-### Write enough code to make it pass
+### Viết đủ code để test chạy thành công
 
 All we need to do now is implement the `Sleep` function for `ConfigurableSleeper`.
 
@@ -561,7 +561,7 @@ func main() {
 
 If we run the tests and the program manually, we can see that all the behavior remains the same.
 
-Since we are using the `ConfigurableSleeper`, it is now safe to delete the `DefaultSleeper` implementation. Wrapping up our program and having a more [generic](https://stackoverflow.com/questions/19291776/whats-the-difference-between-abstraction-and-generalization) Sleeper with arbitrary long countdowns.
+Since we are using the `ConfigurableSleeper`, it is now safe to delete the `DefaultSleeper` implementation. Tổng kết our program and having a more [generic](https://stackoverflow.com/questions/19291776/whats-the-difference-between-abstraction-and-generalization) Sleeper with arbitrary long countdowns.
 
 ## But isn't mocking evil?
 
@@ -612,7 +612,7 @@ In collaborative projects there is value in auto-generating mocks. In a team, a 
 
 You should only use a mock generator that generates test doubles against an interface. Any tool that overly dictates how tests are written, or that use lots of 'magic', can get in the sea.
 
-## Wrapping up
+## Tổng kết
 
 ### More on TDD approach
 

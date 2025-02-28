@@ -1,6 +1,6 @@
 # Roman Numerals
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/roman-numerals)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/roman-numerals)**
 
 Some companies will ask you to do the [Roman Numeral Kata](http://codingdojo.org/kata/RomanNumerals/) as part of the interview process. This chapter will show how you can tackle it with TDD.
 
@@ -43,7 +43,7 @@ If you've got this far in the book this is hopefully feeling very boring and rou
 
 Let the compiler guide the way
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Create our function but don't make the test pass yet, always make sure the tests fails how you expect
 
@@ -62,7 +62,7 @@ It should run now
 FAIL
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -114,7 +114,7 @@ func TestRomanNumerals(t *testing.T) {
 
 Not much surprise there
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -173,7 +173,7 @@ Add the following to our cases
         numeral_test.go:20: got 'I', want 'III'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -238,7 +238,7 @@ For example `5` in Roman Numerals is `V`. To create 4 you do not do `IIII`, inst
         numeral_test.go:24: got 'IIII', want 'IV'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func ConvertToRoman(arabic int) string {
@@ -296,7 +296,7 @@ Let's make 5 work
         numeral_test.go:25: got 'IIV', want 'V'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Just copy the approach we did for 4
 
@@ -370,7 +370,7 @@ I'm pretty sure this approach will be valid for 6 (VI), 7 (VII) and 8 (VIII) too
         numeral_test.go:29: got 'VIV', want 'IX'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We should be able to adopt the same approach as before
 
@@ -565,7 +565,7 @@ Notice I am using the slice functionality to just run one of the tests for now (
 ./numeral_test.go:60:11: undefined: ConvertToArabic
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Add our new function definition
 
@@ -583,7 +583,7 @@ The test should now run and fail
         numeral_test.go:62: got 0, want 1
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 You know what to do
 
@@ -623,7 +623,7 @@ func ConvertToArabic(roman string) int {
 
 Next we move to `cases[:4]` (`IV`) which now fails because it gets 2 back as that's the length of the string.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 // earlier..
@@ -797,7 +797,7 @@ if err := quick.Check(assertion, &quick.Config{
     - Or create a new type that cannot represent > 3999
         - What do you think is best?
 
-## Wrapping up
+## Tổng kết
 
 ### More TDD practice with iterative development
 

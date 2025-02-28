@@ -369,7 +369,7 @@ With the old design we'd have to change the handler _and_ the surrounding tests.
 
 By separating concerns using an interface we don't have to edit the handler _at all_ because it's not concerned with the business logic around registration.
 
-## Wrapping up
+## Tổng kết
 
 Testing Go's HTTP handlers is not challenging, but designing good software can be!
 

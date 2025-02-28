@@ -557,7 +557,7 @@ Whilst Docker et al. _do_ make running databases locally easier, they can still 
 
 Using in-memory fakes for acceptance and integration tests for *the rest* of the system provides a much faster and simpler developer experience.
 
-## Wrapping up
+## Tổng kết
 
 It’s common for software projects to be organised with various teams building systems concurrently to try to reach a common goal.
 

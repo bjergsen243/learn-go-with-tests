@@ -1,6 +1,6 @@
 # WebSockets
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/websockets)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/websockets)**
 
 In this chapter we'll learn how to use WebSockets to improve our application.
 
@@ -91,7 +91,7 @@ func TestGame(t *testing.T) {
     	server_test.go:109: did not get correct status, got 404, want 200
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Our server has a router setup so it's relatively easy to fix.
 
@@ -262,7 +262,7 @@ Finally, we assert on the player store to check the winner was recorded.
 
 We have not changed our server to accept WebSocket connections on `/ws` so we're not shaking hands yet.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Add another listing to our router
 
@@ -662,7 +662,7 @@ The final error is where we are trying to pass in `Game` to `NewPlayerServer` bu
 	want ("github.com/quii/learn-go-with-tests/WebSockets/v2".PlayerStore)
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Just add it as an argument for now just to get the test running
 
@@ -681,7 +681,7 @@ Finally!
 FAIL
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We need to add `Game` as a field to `PlayerServer` so that it can use it when it gets requests.
 
@@ -942,7 +942,7 @@ t.Run("start a game with 3 players, send some blind alerts down WS and declare R
 You should find the test hangs forever. This is because `ws.ReadMessage()` will block until it gets a message, which it never will.
 
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We should never have tests that hang so let's introduce a way of handling code that we want to timeout.
 
@@ -1016,7 +1016,7 @@ Now if you run the test...
     	server_test.go:150: got "", want "Blind is 100"
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Finally, we can now change our server code, so it sends our WebSocket connection to the game when it starts
 
@@ -1069,7 +1069,7 @@ func retryUntil(d time.Duration, f func() bool) bool {
 }
 ```
 
-## Wrapping up
+## Tổng kết
 
 Our application is now complete. A game of poker can be started via a web browser and the users are informed of the blind bet value as time goes by via WebSockets. When the game finishes they can record the winner which is persisted using code we wrote a few chapters ago. The players can find out who is the best (or luckiest) poker player using the website's `/league` endpoint.
 

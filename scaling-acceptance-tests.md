@@ -256,7 +256,7 @@ We're still practising TDD here! It's a big first step we have to make; we need 
 
 > Commit as many sins as necessary to get the test passing
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Hold your nose; remember, we can refactor when the test has passed. Here's the code for the driver in `driver.go` which we will place in the project root:
 
@@ -351,7 +351,7 @@ func TestGreeterServer(t *testing.T) {
 }
 ```
 
-Try and run the test.
+Thử chạy test.
 
 ```
 === RUN   TestGreeterHandler
@@ -418,7 +418,7 @@ Try to run the test again, and it should fail with the following.
 --- FAIL: TestGreeterHandler (2.09s)
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Update the handler to behave how our specification wants it to
 
@@ -558,7 +558,7 @@ To allow us to greet specific people, we need to change the interface to our sys
 
 The change in the specification has meant our driver needs to be updated.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Update the driver so that it specifies a `name` query value in the request to ask for a particular `name` to be greeted.
 
@@ -590,7 +590,7 @@ The test should now run, and fail.
 --- FAIL: TestGreeterHandler (1.92s)
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Extract the `name` from the request and greet.
 
@@ -949,7 +949,7 @@ The only differences are:
 
 We haven't created a `Driver` yet, so it won't compile.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Create a `grpcserver` folder inside `adapters` and inside it create `driver.go`
 
@@ -1001,7 +1001,7 @@ func main() {
 
 You should find now that the test fails because our server is not listening on the port. Now is the time to start building our client and server with gRPC.
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ### gRPC
 
@@ -1430,7 +1430,7 @@ func TestGreeterServer(t *testing.T) {
 
 Our `Driver` doesn't support `Curse` yet.
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Remember we're just trying to get the test to run, so add the method to `Driver`
 
@@ -1448,7 +1448,7 @@ greet.go:26: Expected values to be equal:
 \ No newline at end of file
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We'll need to update our protocol buffer specification have a `Curse` method on it, and then regenerate our code.
 
@@ -1543,7 +1543,7 @@ As mentioned, not every change to a system should be driven via an acceptance te
 
 Add a unit test to our `Greet` function to default the `name` to `World` if it is empty. You should see how simple this is, and then the business rules are reflected in both applications for "free".
 
-## Wrapping up
+## Tổng kết
 
 Building systems with a reasonable cost of change requires you to have ATs engineered to help you, not become a maintenance burden. They can be used as a means of guiding, or as a GOOS says, "growing" your software methodically.
 

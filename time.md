@@ -1,6 +1,6 @@
 # Time
 
-**[You can find all the code for this chapter here](https://github.com/quii/learn-go-with-tests/tree/main/time)**
+**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/time)**
 
 The product owner wants us to expand the functionality of our command line application by helping a group of people play Texas-Holdem Poker.
 
@@ -125,7 +125,7 @@ func (s *SpyBlindAlerter) ScheduleAlertAt(duration time.Duration, amount int) {
 	want (poker.PlayerStore, io.Reader)
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We have added a new argument and the compiler is complaining. _Strictly speaking_ the minimal amount of code is to make `NewCLI` accept a `*SpyBlindAlerter` but let's cheat a little and just define the dependency as an interface.
 
@@ -163,7 +163,7 @@ The tests should now compile and our new test fails.
     	CLI_test.go:38: expected a blind alert to be scheduled
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We'll need to add the `BlindAlerter` as a field on our `CLI` so we can reference it in our `PlayPoker` method.
 
@@ -265,7 +265,7 @@ You should have a lot of failures looking like this
         	CLI_test.go:59: alert 1 was not scheduled [{5000000000 100}]
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 ```go
 func (cli *CLI) PlayPoker() {
@@ -463,7 +463,7 @@ We pass in what will be `os.Stdout` in `main` and see what is written.
 	want (poker.PlayerStore, io.Reader, poker.BlindAlerter)
 ```
 
-## Write the minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 We have a new dependency so we'll have to update `NewCLI`
 
@@ -486,7 +486,7 @@ The new test should fail like so
 FAIL
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 We need to add our new dependency to our `CLI` so we can reference it in `PlayPoker`
 
@@ -590,7 +590,7 @@ The test should still compile and fail reporting that the scheduled times are wr
 === RUN   TestCLI/it_prompts_the_user_to_enter_the_number_of_players/200_chips_at_12m0s
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Remember, we are free to commit whatever sins we need to make this work. Once we have working software we can then work on refactoring the mess we're about to make!
 
@@ -933,7 +933,7 @@ You'll need to add to our `GameSpy` a field `StartCalled` which only gets set if
         CLI_test.go:62: game should not have started
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Around where we call `Atoi` we just need to check for the error
 
@@ -971,7 +971,7 @@ We are storing _everything_ that gets written to stdout so we still expect the `
         CLI_test.go:70: got 'Please enter the number of players: ', want 'Please enter the number of players: you're so silly'
 ```
 
-## Write enough code to make it pass
+## Viết đủ code để test chạy thành công
 
 Change the error handling code
 
@@ -1068,7 +1068,7 @@ What happens if instead of putting `Ruth wins` the user puts in `Lloyd is a kill
 
 Finish this chapter by writing a test for this scenario and making it pass.
 
-## Wrapping up
+## Tổng kết
 
 ### A quick project recap
 
