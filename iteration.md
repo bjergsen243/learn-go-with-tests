@@ -91,7 +91,6 @@ func Repeat(character string) string {
 
 Toán tử `+=`, được gọi là _“toán tử cộng và gán”_, sẽ cộng toán hạng bên phải vào toán hạng bên trái và gán kết quả cho toán hạng bên trái. Toán tử này cũng hoạt động với các kiểu dữ liệu khác như số nguyên.
 
-
 ### Benchmarking
 
 Viết [benchmark](https://golang.org/pkg/testing/#hdr-Benchmarks) trong Go là một tính năng quan trọng của ngôn ngữ và nó có cách viết rất giống với viết test.
@@ -114,8 +113,8 @@ Số lần chạy không quan trọng với bạn, vì Go sẽ tự động xác
 
 Để chạy benchmark, dùng lệnh:
 
-- Trên Linux/macOS: `go test -bench=.`
-- Trên Windows PowerShell: go test -bench="."
+-   Trên Linux/macOS: `go test -bench=.`
+-   Trên Windows PowerShell: go test -bench="."
 
 ```text
 goos: darwin
@@ -130,6 +129,7 @@ PASS
 **Chú ý:** Mặc định, các benchmark chạy tuần tự.
 
 **Chú ý:** Đôi khi, Go có thể tối ưu hóa quá mức, làm cho benchmark không chính xác, chẳng hạn như loại bỏ hoàn toàn hàm đang được đo. Nếu thấy kết quả quá tốt để tin, hãy tham khảo các chiến lược trong **[bài viết này](https://dave.cheney.net/2013/06/30/how-to-write-benchmarks-in-go)** để đảm bảo benchmark phản ánh đúng hiệu suất thực tế.
+
 ## Bài tập thực hành
 
 -   Chỉnh sửa bài kiểm thử để người dùng có thể chỉ định số lần lặp lại ký tự, sau đó sửa mã để đáp ứng yêu cầu.
