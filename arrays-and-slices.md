@@ -1,4 +1,4 @@
-# Arrays and slices
+# Arrays và slices
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/arrays)**
 

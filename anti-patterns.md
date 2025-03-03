@@ -1,10 +1,13 @@
 # TDD Anti-patterns
 
+
 From time to time it's necessary to review your TDD techniques and remind yourself of behaviours to avoid.
 
 The TDD process is conceptually simple to follow, but as you do it you'll find it challenging your design skills. **Don't mistake this for TDD being hard, it's design that's hard!**
 
 This chapter lists a number of TDD and testing anti-patterns, and how to remedy them.
+
+(Người dịch) Các bạn có thể đọc thêm về anti-pattern [tại đây](https://en.wikibooks.org/wiki/Introduction_to_Software_Engineering/Architecture/Anti-Patterns) để hiểu thêm về nó.
 
 ## Not doing TDD at all
 

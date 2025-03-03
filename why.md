@@ -1,97 +1,105 @@
-# Why unit tests and how to make them work for you
+# Tại sao cần kiểm thử đơn vị và cách tận dụng chúng hiệu quả
 
-[Here's a link to a video of me chatting about this topic](https://www.youtube.com/watch?v=Kwtit8ZEK7U)
+[Nếu bạn thích xem video, đây là link mà tác giả chia sẻ về chủ đề này](https://www.youtube.com/watch?v=Kwtit8ZEK7U)
 
-If you're not into videos, here's wordy version of it.
+Nếu bạn thích đọc hơn, đây là phiên bản bằng chữ.
 
-## Software 
+## Software
 
-The promise of software is that it can change. This is why it is called _soft_ ware, it is malleable compared to hardware. A great engineering team should be an amazing asset to a company, writing systems that can evolve with a business to keep delivering value. 
+Sự hứa hẹn của phần mềm ở khả năng thay đổi của nó. Đó là lý do nó được gọi là _soft_ware - dễ uốn nắn hơn so với phần cứng (hardware). Một đội ngũ kỹ sư giỏi có thể trở thành tài sản quý giá của công ty, xây dựng các hệ thống có thể phát triển theo nhu cầu kinh doanh để tiếp tục tạo ra giá trị ấy.
 
-So why are we so bad at it? How many projects do you hear about that outright fail? Or become "legacy" and have to be entirely re-written (and the re-writes often fail too!) 
+Vậy tại sao chúng ta lại làm điều này tệ đến vậy? Có bao nhiêu dự án mà bạn biết đã thất bại hoàn toàn? Hoặc trở thành "di sản" (lecacy) rồi phải viết lại từ đầu (và đôi khi bản viết lại cũng thất bại!).
 
-How does a software system "fail" anyway? Can't it just be changed until it's correct? That's what we're promised!
+Một hệ thống phần mềm "thất bại" như thế nào? Chẳng phải chúng ta có thể thay đổi nó cho đến khi đúng lúc sao? Đó là những gì chúng ta được hứa hẹn!
 
-A lot of people are choosing Go to build systems because it has made a number of choices which one hopes will make it more legacy-proof. 
+Nhiều người chọn Go để phát triển hệ thống vì ngôn ngữ này có những thứ giúp phần mềm ít bị lỗi thời hơn:
 
-- Compared to my previous life of Scala where [I described how it has enough rope to hang yourself](http://www.quii.dev/Scala_-_Just_enough_rope_to_hang_yourself), Go has only 25 keywords and _a lot_ of systems can be built from the standard library and a few other small libraries. The hope is that with Go you can write code and come back to it in 6 months time and it'll still make sense.
-- The tooling in respect to testing, benchmarking, linting & shipping is first class compared to most alternatives.
-- The standard library is brilliant.
-- Very fast compilation speed for tight feedback loops
-- The Go backward compatibility promise. It looks like Go will get generics and other features in the future but the designers have promised that even Go code you wrote 5 years ago will still build. I literally spent weeks upgrading a project from Scala 2.8 to 2.10. 
+- So với những ngôn ngữ phức tạp như Scala – nơi mà [tác giả từng mô tả là “đủ dây để tự treo cổ”](http://www.quii.dev/Scala_-_Just_enough_rope_to_hang_yourself) – Go chỉ có 25 từ khóa (keyword). Nhiều hệ thống có thể được xây dựng chỉ từ thư viện chuẩn và một số thư viện nhỏ khác. Với Go, bạn có thể viết code và quay lại sau 6 tháng mà vẫn hiểu được nó.
+- Công cụ hỗ trợ kiểm thử, đo hiệu năng (benchmarking), linting và triển khai (shipping) của Go thuộc hàng tốt nhất so với hầu hết các lựa chọn khác.
+- Thư viện chuẩn cực kỳ mạnh mẽ.
+- Tốc độ biên dịch nhanh, giúp rút ngắn vòng phản hồi (feedback loop).
+- Cam kết về khả năng tương thích ngược của Go: Ngay cả khi Go sắp có generics và nhiều tính năng khác, các nhà thiết kế hứa rằng mã Go viết 5 năm trước vẫn có thể biên dịch được. Tác giả từng mất hàng tuần để nâng cấp một dự án từ Scala 2.8 lên 2.10.
 
-Even with all these great properties we can still make terrible systems, so we should look to the past and understand lessons in software engineering that apply no matter how shiny (or not) your language is.
+Dù có những đặc điểm tuyệt vời này, chúng ta vẫn có thể tạo ra những hệ thống tệ hại. Vì vậy, hãy nhìn lại quá khứ và rút ra những bài học về kỹ nghệ phần mềm – những bài học này đúng bất kể ngôn ngữ của bạn có “hào nhoáng” thế nào.
 
-In 1974 a clever software engineer called [Manny Lehman](https://en.wikipedia.org/wiki/Manny_Lehman_%28computer_scientist%29) wrote [Lehman's laws of software evolution](https://en.wikipedia.org/wiki/Lehman%27s_laws_of_software_evolution).
+Năm 1974, kỹ sư phần mềm [Manny Lehman](https://en.wikipedia.org/wiki/Manny_Lehman_%28computer_scientist%29) đã đưa ra [các định luật tiến hóa phần mềm của Lehman](https://en.wikipedia.org/wiki/Lehman%27s_laws_of_software_evolution):
 
-> The laws describe a balance between forces driving new developments on one hand, and forces that slow down progress on the other hand.
+> Những định luật này mô tả sự cân bằng giữa các lực thúc đẩy phát triển phần mềm và những lực cản làm chậm tiến trình.
 
-These forces seem like important things to understand if we have any hope of not being in an endless cycle of shipping systems that turn into legacy and then get re-written over and over again.
+Hiểu được những lực tác động này là điều quan trọng nếu chúng ta muốn thoát khỏi vòng lặp vô tận của việc tạo ra các hệ thống rồi biến chúng thành “di sản”, rồi lại viết lại từ đầu.
 
-## The Law of Continuous Change
+## Định luật về Sự thay đổi liên tục (The Law of Continuous Change)
 
-> Any software system used in the real-world must change or become less and less useful in the environment
+> Bất kỳ hệ thống phần mềm nào được sử dụng trong thế giới thực đều phải thay đổi, nếu không nó sẽ ngày càng trở nên kém hữu ích trong môi trường đó (Any software system used in the real-world must change or become less and less useful in the environment).
 
-It feels obvious that a system _has_ to change or it becomes less useful but how often is this ignored? 
+Điều này nghe có vẻ hiển nhiên – một hệ thống _phải_ thay đổi nếu không sẽ mất dần giá trị. Nhưng thực tế, điều này lại thường bị phớt lờ.
 
-Many teams are incentivised to deliver a project on a particular date and then move on to the next project. If the software is "lucky" there is at least some kind of hand-off to another set of individuals to maintain it, but they didn't write it of course. 
+Nhiều nhóm phát triển phần mềm bị thúc đẩy bởi mục tiêu hoàn thành một dự án vào một thời điểm cụ thể, rồi sau đó chuyển sang dự án khác. Nếu phần mềm “may mắn”, nó có thể được bàn giao cho một nhóm khác để bảo trì – nhưng những người đó không phải là người viết ra nó ngay từ đầu.
 
-People often concern themselves with trying to pick a framework which will help them "deliver quickly" but not focusing on the longevity of the system in terms of how it needs to evolve.
+Mọi người thường tập trung vào việc chọn một framework giúp họ “phát triển nhanh chóng” mà không quan tâm đến tuổi thọ của hệ thống và khả năng tiến hóa của nó.
 
-Even if you're an incredible software engineer, you will still fall victim to not knowing the future needs of your system. As the business changes some of the brilliant code you wrote is now no longer relevant.
+Ngay cả khi bạn là một kỹ sư phần mềm xuất sắc, bạn cũng không thể đoán trước được tất cả nhu cầu tương lai của hệ thống. Khi doanh nghiệp thay đổi, một số đoạn code tuyệt vời bạn từng viết có thể trở nên không còn phù hợp.
 
-Lehman was on a roll in the 70s because he gave us another law to chew on.
+Lehman không dừng lại ở đây – trong thập niên 70, ông tiếp tục đưa ra một định luật khác đáng để suy ngẫm.
 
-## The Law of Increasing Complexity
+## Định luật về Sự gia tăng độ phức tạp (The Law of Increasing Complexity)
 
-> As a system evolves, its complexity increases unless work is done to reduce it
+> Khi một hệ thống phát triển, độ phức tạp của nó sẽ tăng lên trừ khi có nỗ lực để giảm bớt điều đó (As a system evolves, its complexity increases unless work is done to reduce it).
 
-What he's saying here is we can't have software teams as blind feature factories, piling more and more features on to software in the hope it will survive in the long run. 
+Điều mà Lehman muốn nói ở đây là chúng ta không thể vận hành các nhóm phát triển phần mềm như những “nhà máy sản xuất tính năng”, liên tục chồng chất thêm tính năng vào hệ thống với hy vọng rằng nó sẽ tồn tại lâu dài.
 
-We **have** to keep managing the complexity of the system as the knowledge of our domain changes. 
+Chúng ta **phải** quản lý độ phức tạp của hệ thống khi kiến thức về lĩnh vực mà nó phục vụ thay đổi.
 
 ## Refactoring
 
-There are _many_ facets of software engineering that keeps software malleable, such as:
+Refactoring là một trong những yếu tố quan trọng giúp phần mềm luôn dễ bảo trì và mở rộng. Tuy nhiên, khái niệm này thường bị hiểu sai hoặc sử dụng không chính xác.
 
-- Developer empowerment
-- Generally "good" code. Sensible separation of concerns, etc etc
-- Communication skills
-- Architecture
-- Observability
-- Deployability
-- Automated tests
-- Feedback loops
+[Martin Fowler đã chỉ ra một sai lầm phổ biến](https://martinfowler.com/bliki/RefactoringMalapropism.html)
 
-I am going to focus on refactoring. It's a phrase that gets thrown around a lot "we need to refactor this" - said to a developer on their first day of programming without a second thought. 
+> Nếu ai đó nói rằng hệ thống bị lỗi trong vài ngày vì đang refactoring, thì gần như chắc chắn họ không thực sự đang refactor (However the term "refactoring" is often used when it's not appropriate. If somebody talks about a system being broken for a couple of days while they are refactoring, you can be pretty sure they are not refactoring).
 
-Where does the phrase come from? How is refactoring just different from writing code?
+Vậy refactoring thực chất là gì?
 
-I know that I and many others have _thought_ we were doing refactoring but we were mistaken
+Refactoring **KHÔNG** phải là:
 
-[Martin Fowler describes how people are getting it wrong](https://martinfowler.com/bliki/RefactoringMalapropism.html)
+- Viết lại toàn bộ hệ thống từ đầu.
+- Thay đổi cách phần mềm hoạt động.
+- Một quá trình kéo dài làm gián đoạn công việc.
 
-> However the term "refactoring" is often used when it's not appropriate. If somebody talks about a system being broken for a couple of days while they are refactoring, you can be pretty sure they are not refactoring.
+Refactoring **ĐÚNG** nghĩa là:
 
-So what is it?
+- Cải thiện mã nguồn mà không thay đổi hành vi của chương trình.
+- Chia nhỏ thành từng bước nhỏ, mỗi bước đều có thể kiểm tra ngay.
+- Dựa vào kiểm thử tự động để đảm bảo không làm hỏng hệ thống.
 
-### Factorisation
+Refactoring không phải là một nhiệm vụ “làm nếu có thời gian”. Nó là một quá trình liên tục giúp phần mềm duy trì tính linh hoạt, dễ mở rộng và không bị sa lầy vào sự phức tạp ngày càng gia tăng.
 
-When learning maths at school you probably learned about factorisation. Here's a very simple example
+### Phân tích và Tương đồng với Toán Học
 
-Calculate `1/2 + 1/4`
+Trong toán học, bạn có thể đã học về phân tích thừa số (factorisation). Hãy xem một ví dụ đơn giản:
 
-To do this you _factorise_ the denominators, turning the expression into 
+Tính giá trị của `1/2 + 1/4`
 
-`2/4 + 1/4` which you can then turn into `3/4`. 
+Để làm điều này, chúng ta _phân tích mẫu số_ để đưa các phân số về cùng một hệ quy chiếu: `1/2 = 2/4`
 
-We can take some important lessons from this. When we _factorise the expression_ we have **not changed the meaning of the expression**. Both of them equal `3/4` but we have made it easier for us to work with; by changing `1/2` to `2/4` it fits into our "domain" easier. 
+Bây giờ, biểu thức trở thành: `2/4 + 1/4 = 3/4`.
 
-When you refactor your code, you are trying to find ways of making your code easier to understand and "fit" into your current understanding of what the system needs to do. Crucially **you should not be changing behaviour**. 
+Điều quan trọng cần lưu ý ở đây là:
 
-#### An example in Go
+- Chúng ta **không thay đổi giá trị của biểu thức** – cả hai cách viết đều bằng `3/4`.
+- Chúng ta chỉ thay đổi cách biểu diễn, giúp việc tính toán trở nên dễ dàng hơn.
 
-Here is a function which greets `name` in a particular `language`
+Tương tự như vậy, khi bạn refactor code, bạn đang tìm cách làm cho nó dễ hiểu và phù hợp hơn với hệ thống mà không thay đổi hành vi của nó.
+
+- Refactoring không phải là viết lại code từ đầu.
+- Refactoring giúp mã nguồn dễ bảo trì và mở rộng hơn.
+- Một hệ thống tốt là hệ thống có thể được cải thiện liên tục mà không gây gián đoạn.
+
+Tóm lại, refactoring chính là cải thiện cách tổ chức mà **không làm thay đổi kết quả** – giống như cách ta làm với toán học!
+
+#### Ví dụ với Go
+
+Dưới đây là một hàm nhận vào `name` và `language`:
 
     func Hello(name, language string) string {
     
@@ -108,7 +116,11 @@ Here is a function which greets `name` in a particular `language`
       return "Hello, " + name
     }
 
-Having dozens of `if` statements doesn't feel good and we have a duplication of concatenating a language specific greeting with `, ` and the `name.` So I'll refactor the code.
+Vấn đề của đoạn code này:
+
+- Quá nhiều câu lệnh `if`, làm cho mã nguồn trở nên khó đọc và bảo trì.
+- Trùng lặp logic: Mỗi dòng đều ghép chuỗi `", " + name`, gây dư thừa.
+- Nếu muốn thêm một ngôn ngữ mới, ta phải chỉnh sửa code, vi phạm nguyên tắc Open/Closed Principle (OCP).
 
     func Hello(name, language string) string {
       	return fmt.Sprintf(
@@ -134,29 +146,39 @@ Having dozens of `if` statements doesn't feel good and we have a duplication of 
       return "Hello"
     }
 
-The nature of this refactor isn't actually important, what's important is I haven't changed behaviour. 
+Bản chất của việc refactor không quan trọng, điều quan trọng là hành vi của chương trình không thay đổi.
 
-When refactoring you can do whatever you like, add interfaces, new types, functions, methods etc. The only rule is you don't change behaviour
+Khi refactor, bạn có thể làm bất cứ điều gì:
 
-### When refactoring code you must not be changing behaviour
+- Thêm interface để code linh hoạt hơn
+- Định nghĩa thêm struct, method để tổ chức lại logic
+- Tách nhỏ function để dễ đọc, dễ hiểu hơn
 
-This is very important. If you are changing behaviour at the same time you are doing _two_ things at once. As software engineers we learn to break systems up into different files/packages/functions/etc because we know trying to understand a big blob of stuff is hard. 
+Nhưng kết quả đầu ra của chương trình phải giữ nguyên.
 
-We don't want to have to be thinking about lots of things at once because that's when we make mistakes. I've witnessed so many refactoring endeavours fail because the developers are biting off more than they can chew.  
+Vì vậy, viết test trước khi refactor là bắt buộc. Sau khi thay đổi code, chỉ cần chạy test để đảm bảo mọi thứ vẫn hoạt động đúng.
 
-When I was doing factorisations in maths classes with pen and paper I would have to manually check that I hadn't changed the meaning of the expressions in my head. How do we know we aren't changing behaviour when refactoring when working with code, especially on a system that is non-trivial?
+### Khi refactor code, bạn không được thay đổi hành vi
 
-Those who choose not to write tests will typically be reliant on manual testing. For anything other than a small project this will be a tremendous time-sink and does not scale in the long run. 
- 
-**In order to safely refactor you need unit tests** because they provide
+Là lập trình viên, chúng ta luôn cố gắng chia nhỏ hệ thống thành các file, package, function… để dễ hiểu hơn. Nếu làm quá nhiều thứ cùng lúc, bạn sẽ dễ mắc sai lầm.
 
-- Confidence you can reshape code without worrying about changing behaviour
-- Documentation for humans as to how the system should behave
-- Much faster and more reliable feedback than manual testing
+Nhiều dự án thất bại khi refactor vì các lập trình viên cố gắng làm quá nhiều thứ cùng lúc.
 
-#### An example in Go
+Vậy làm sao để đảm bảo refactor không thay đổi hành vi?
 
-A unit test for our `Hello` function could look like this
+Khi làm toán, chúng ta phải tự kiểm tra xem kết quả sau khi biến đổi có giống ban đầu không. Với code, cách tốt nhất để kiểm tra là viết unit test trước khi refactor.
+
+Những ai không viết test thường phải kiểm thử thủ công, điều này tốn thời gian và không thể mở rộng.
+
+**Lợi ích của unit test khi refactor**:
+
+- Giúp bạn tự tin thay đổi code mà không làm thay đổi hành vi
+- Là tài liệu mô tả cách hệ thống hoạt động
+- Cung cấp phản hồi nhanh hơn nhiều so với kiểm thử thủ công
+
+#### Ví dụ với Go
+
+Một unit test cho hàm `Hello` như sau
 
     func TestHello(t *testing.T) {
       got := Hello(“Chris”, es)
@@ -167,125 +189,150 @@ A unit test for our `Hello` function could look like this
       }
     }
 
-At the command line I can run `go test` and get immediate feedback as to whether my refactoring efforts have altered behaviour. In practice it's best to learn the magic button to run your tests within your editor/IDE. 
+Trên dòng lệnh, bạn có thể chạy `go test` để nhận phản hồi ngay lập tức về việc refactor có làm thay đổi hành vi hay không. Nhưng trong thực tế, bạn nên tìm cách chạy test nhanh nhất trong editor/IDE của mình.
 
-You want to get in to a state where you are doing 
+Bạn nên duy trì một vòng lặp chặt chẽ:
 
-- Small refactor
-- Run tests
-- Repeat
+- Refactor từng bước nhỏ
+- Chạy tests
+- Lặp lại
 
-All within a very tight feedback loop so you don't go down rabbit holes and make mistakes.
+Điều này giúp bạn tránh đi lạc hướng hoặc mắc sai lầm trong quá trình refactor.
 
-Having a project where all your key behaviours are unit tested and give you feedback well under a second is a very empowering safety net to do bold refactoring when you need to. This helps us manage the incoming force of complexity that Lehman describes.
+Nếu dự án của bạn có đầy đủ unit test cho các hành vi quan trọng và có thể chạy test trong chưa đến một giây, bạn sẽ có một mạng lưới an toàn để refactor một cách tự tin.
 
-## If unit tests are so great, why is there sometimes resistance to writing them?
+Điều này giúp bạn kiểm soát sự phức tạp ngày càng tăng của hệ thống, như Lehman đã mô tả.
 
-On the one hand you have people (like me) saying that unit tests are important for the long term health of your system because they ensure you can keep refactoring with confidence. 
+## Nếu unit test tuyệt vời như vậy, tại sao đôi khi vẫn có sự phản đối khi viết chúng?
 
-On the other you have people describing experiences of unit tests actually _hindering_ refactoring.
+Một số người (như tác giả) cho rằng unit test rất quan trọng để duy trì sự linh hoạt của hệ thống trong dài hạn, vì nó giúp bạn refactor một cách tự tin.
 
-Ask yourself, how often do you have to change your tests when refactoring? Over the years I have been on many projects with very good test coverage and yet the engineers are reluctant to refactor because of the perceived effort of changing tests.
+Nhưng cũng có nhiều người cảm thấy unit test _gây cản trở_ quá trình refactor.
 
-This is the opposite of what we are promised!
+Hãy tự hỏi: Bạn có phải thay đổi quá nhiều test khi refactor không?
 
-### Why is this happening?
+Trong nhiều dự án, dù có test coverage tốt, các kỹ sư vẫn e ngại refactor vì cho rằng việc sửa test quá tốn công sức.
 
-Imagine you were asked to develop a square and we thought the best way to accomplish that would be stick two triangles together. 
+Điều này đi ngược lại với những gì unit test hứa hẹn!
+
+### Tại sao điều này xảy ra?
+
+Hãy tưởng tượng bạn được yêu cầu tạo ra một hình vuông, và bạn nghĩ cách tốt nhất là ghép hai tam giác vuông lại với nhau.
 
 ![Two right-angled triangles to form a square](https://i.imgur.com/ela7SVf.jpg)
 
-We write our unit tests around our square to make sure the sides are equal and then we write some tests around our triangles. We want to make sure our triangles render correctly so we assert that the angles sum up to 180 degrees, perhaps check we make 2 of them, etc etc. Test coverage is really important and writing these tests is pretty easy so why not? 
+Bạn viết unit test để kiểm tra rằng các cạnh của hình vuông bằng nhau, đồng thời kiểm tra tam giác để đảm bảo tổng góc là 180 độ, số lượng tam giác đúng, v.v. Viết những test này khá dễ và test coverage cao là điều tốt, vậy tại sao không làm?
 
-A few weeks later The Law of Continuous Change strikes our system and a new developer makes some changes. She now believes it would be better if squares were formed with 2 rectangles instead of 2 triangles. 
+Vài tuần sau, “Định luật Thay đổi Liên tục” (The Law of Continuous Change) xuất hiện và một lập trình viên mới vào dự án. Cô ấy cho rằng hình vuông nên được tạo từ hai hình chữ nhật thay vì hai tam giác.
 
 ![Two rectangles to form a square](https://i.imgur.com/1G6rYqD.jpg)
 
-She tries to do this refactor and gets mixed signals from a number of failing tests. Has she actually broken important behaviours here? She now has to dig through these triangle tests and try and understand what's going on. 
+Cô ấy thử refactor nhưng nhận được hàng loạt test bị lỗi. Câu hỏi đặt ra là: cô ấy có thực sự làm hỏng hành vi quan trọng không? Bây giờ cô ấy phải đào sâu vào các test cũ về tam giác để hiểu chuyện gì đang xảy ra.
 
-_It's not actually important that the square was formed out of triangles_ but **our tests have falsely elevated the importance of our implementation details**. 
+_Việc hình vuông được tạo từ tam giác hay chữ nhật không quan trọng_, nhưng các **test đã vô tình làm cho chi tiết này trở nên quan trọng**. Chúng ta đã viết test không đúng cách: thay vì kiểm tra hành vi, chúng ta kiểm tra cách triển khai.
 
-## Favour testing behaviour rather than implementation detail
+## Ưu tiên kiểm tra hành vi hơn là chi tiết triển khai
 
-When I hear people complaining about unit tests it is often because the tests are at the wrong abstraction level. They're testing implementation details, overly spying on collaborators and mocking too much. 
+Khi nghe ai đó phàn nàn về unit test, thường thì nguyên nhân là do test được viết ở sai mức trừu tượng.
 
-I believe it stems from a misunderstanding of what unit tests are and chasing vanity metrics (test coverage). 
+- Họ test quá nhiều chi tiết triển khai, theo dõi quá mức cách các module tương tác với nhau.
+- Họ lạm dụng mocking, khiến test trở nên mong manh và khó bảo trì.
+- Họ chạy theo chỉ số test coverage mà không quan tâm test đó có thực sự hữu ích hay không.
 
-If I am saying just test behaviour, should we not just only write system/black-box tests? These kind of tests do have lots of value in terms of verifying key user journeys but they are typically expensive to write and slow to run. For that reason they're not too helpful for _refactoring_ because the feedback loop is slow. In addition black box tests don't tend to help you very much with root causes compared to unit tests. 
+Nếu chỉ cần kiểm tra hành vi, vậy có nên chỉ viết test hệ thống (system test/black-box test)?
 
-So what _is_ the right abstraction level?
+ Không hẳn!
 
-## Writing effective unit tests is a design problem
+- System test rất hữu ích trong việc kiểm tra hành trình người dùng, đảm bảo hệ thống hoạt động đúng.
+- Nhưng chúng thường đắt đỏ để viết, chạy chậm và khó tìm nguyên nhân lỗi khi có vấn đề.
+- Vì vậy, chúng không lý tưởng cho việc refactor vì vòng lặp phản hồi (feedback loop) quá chậm.
 
-Forgetting about tests for a moment, it is desirable to have within your system self-contained, decoupled "units" centered around key concepts in your domain. 
+Vậy mức trừu tượng đúng khi viết test là gì?
 
-I like to imagine these units as simple Lego bricks which have coherent APIs that I can combine with other bricks to make bigger systems. Underneath these APIs there could be dozens of things (types, functions et al) collaborating to make them work how they need to.
+Câu trả lời là: Kiểm tra hành vi ở đúng cấp độ, không đi quá sâu vào chi tiết triển khai.
 
-For instance if you were writing a bank in Go, you might have an "account" package. It will present an API that does not leak implementation detail and is easy to integrate with.
+## Viết unit test hiệu quả là một bài toán thiết kế
 
-If you have these units that follow these properties you can write unit tests against their public APIs. _By definition_ these tests can only be testing useful behaviour. Underneath these units I am free to refactor the implementation as much as I need to and the tests for the most part should not get in the way.
+Bỏ qua chuyện test một chút, trong một hệ thống phần mềm, chúng ta luôn muốn có các “đơn vị” (units) độc lập, ít phụ thuộc, xoay quanh các khái niệm quan trọng trong domain.
 
-### Are these unit tests?
+Hãy hình dung những đơn vị này như các mảnh Lego, mỗi mảnh có một API rõ ràng, dễ sử dụng, không để lộ chi tiết triển khai. Khi ghép chúng lại với nhau, ta có thể xây dựng những hệ thống lớn hơn mà không bị ràng buộc vào cách chúng hoạt động bên trong.
 
-**YES**. Unit tests are against "units" like I described. They were _never_ about only being against a single class/function/whatever.
+Ví dụ, nếu bạn đang viết một hệ thống ngân hàng bằng Go, bạn có thể có một package account:
 
-## Bringing these concepts together
+- Nó cung cấp một API sạch, dễ hiểu.
+- Bên trong có thể có hàng tá types, functions hợp tác với nhau để hoạt động.
+- Nhưng API bên ngoài không bị ảnh hưởng bởi cách nó triển khai nội bộ.
 
-We've covered
+Áp dụng vào unit test:
 
-- Refactoring
-- Unit tests
-- Unit design
+- Nếu một hệ thống có những unit như vậy, unit test chỉ cần kiểm tra API công khai của chúng.
+- Điều này đảm bảo rằng test chỉ kiểm tra hành vi thực sự hữu ích, thay vì ràng buộc vào chi tiết triển khai.
+- Khi đó, ta có thể thoải mái refactor bên trong mà không phải sửa hàng loạt test không cần thiết.
 
-What we can start to see is that these facets of software design reinforce each other. 
+### Đây có phải là unit test không?
+
+**CÓ**. Unit test là kiểm thử các “đơn vị” (units) trong hệ thống, như cách tôi đã mô tả trước đó. Unit test **KHÔNG** đơn giản là kiểm thử một class, function hay một đoạn code cụ thể. Chúng kiểm tra một **đơn vị** có **ý nghĩa trong domain**, với API rõ ràng và không ràng buộc vào cách triển khai bên trong.
+
+## Kết nối các khái niệm với nhau
+
+Chúng ta đã đề cập đến:
+
+- Refactoring (Tái cấu trúc)
+- Unit tests (Kiểm thử đơn vị)
+- Unit design (Thiết kế đơn vị)
+
+Chúng ta có thể thấy rằng Refactoring (tái cấu trúc), Unit Test (kiểm thử đơn vị), và Thiết kế Unit tốt bổ trợ lẫn nhau để giúp phần mềm dễ bảo trì và mở rộng.
 
 ### Refactoring
 
-- Gives us signals about our unit tests. If we have to do manual checks, we need more tests. If tests are wrongly failing then our tests are at the wrong abstraction level (or have no value and should be deleted).
-- Helps us handle the complexities within and between our units.
+- Cho ta thấy chất lượng của unit test. Nếu sau khi tái cấu trúc, ta phải kiểm thử thủ công, nghĩa là unit test chưa đủ. Nếu test bị fail mà không rõ lý do, có thể test đang ở mức trừu tượng sai (hoặc thậm chí không có giá trị và nên bị xóa).
+- Giúp quản lý độ phức tạp bên trong và giữa các module.
 
 ### Unit tests
 
-- Give a safety net to refactor.
-- Verify and document the behaviour of our units.
+- Là “tấm lưới an toàn” giúp ta tái cấu trúc mà không lo làm hỏng chức năng
+- Xác minh và ghi lại hành vi mong muốn của hệ thống.
 
-### (Well designed) units
+### Unit (có thiết kế tốt)
 
-- Easy to write _meaningful_ unit tests.
-- Easy to refactor.
+- Dễ viết unit test _có ý nghĩa_, tập trung vào hành vi thay vì chi tiết triển khai.
+- Dễ dàng tái cấu trúc mà không cần sửa đổi quá nhiều test.
 
-Is there a process to help us arrive at a point where we can constantly refactor our code to manage complexity and keep our systems malleable?
+Làm thế nào để duy trì khả năng tái cấu trúc liên tục?
 
-## Why Test Driven Development (TDD)
+## Tại sao nên dùng Test Driven Development (TDD)
 
-Some people might take Lehman's quotes about how software has to change and overthink elaborate designs, wasting lots of time upfront trying to create the "perfect" extensible system and end up getting it wrong and going nowhere. 
+Nhiều người khi hiểu rằng phần mềm luôn phải thay đổi (theo định luật của Lehman) sẽ cố gắng thiết kế một hệ thống “hoàn hảo” ngay từ đầu. Họ dành nhiều tháng lên kế hoạch nhưng cuối cùng lại đi vào ngõ cụt vì dự đoán sai nhu cầu thực tế.
 
-This is the bad old days of software where an analyst team would spend 6 months writing a requirements document and an architect team would spend another 6 months coming up with a design and a few years later the whole project fails.
+Đây chính là sai lầm của thời kỳ phát triển phần mềm kiểu cũ, nơi:
 
-I say bad old days but this still happens! 
+- Nhóm phân tích dành 6 tháng viết tài liệu yêu cầu.
+- Nhóm kiến trúc dành 6 tháng lên thiết kế hệ thống.
+- Sau vài năm, dự án thất bại vì không đáp ứng đúng nhu cầu thực tế.
 
-Agile teaches us that we need to work iteratively, starting small and evolving the software so that we get fast feedback on the design of our software and how it works with real users;  TDD enforces this approach.
+Chuyện này vẫn đang xảy ra!
 
-TDD addresses the laws that Lehman talks about and other lessons hard learned through history by encouraging a methodology of constantly refactoring and delivering iteratively.
+Agile dạy chúng ta rằng phần mềm nên được phát triển theo hướng lặp lại (iterative), bắt đầu nhỏ, nhận phản hồi nhanh từ người dùng, rồi tiến hóa dần dần. **TDD giúp thực thi triết lý này trong code**.
 
-### Small steps
+### Phát triển theo từng bước nhỏ
 
-- Write a small test for a small amount of desired behaviour
-- Check the test fails with a clear error (red)
-- Write the minimal amount of code to make the test pass (green)
+- Viết một test nhỏ cho một hành vi cụ thể của hệ thống.
+- Chạy test để đảm bảo nó fail (red).
+- Viết đúng lượng code tối thiểu để làm test pass (green).
 - Refactor
-- Repeat
+- Lặp lại
 
-As you become proficient, this way of working will become natural and fast.
+Lợi ích của việc làm theo TDD:
 
-You'll come to expect this feedback loop to not take very long and feel uneasy if you're in a state where the system isn't "green" because it indicates you may be down a rabbit hole. 
-
-You'll always be driving small & useful functionality comfortably backed by the feedback from your tests.
+- Giúp bạn không đi lạc hướng, luôn tập trung vào giá trị thực tế.
+- Phản hồi nhanh chóng, dễ dàng điều chỉnh thiết kế khi cần.
+- Dần hình thành tư duy phát triển theo hướng hành vi (behavior-driven).
+- Khi đã quen, bạn sẽ thấy cảm giác khó chịu nếu hệ thống không “xanh” vì đó là dấu hiệu bạn có thể đang đi sai hướng.
 
 ## Tổng kết 
 
-- The strength of software is that we can change it. _Most_ software will require change over time in unpredictable ways; but don't try and over-engineer because it's too hard to predict the future.
-- Instead we need to make it so we can keep our software malleable. In order to change software we have to refactor it as it evolves or it will turn into a mess
-- A good test suite can help you refactor quicker and in a less stressful manner
-- Writing good unit tests is a design problem so think about structuring your code so you have meaningful units that you can integrate together like Lego bricks.
-- TDD can help and force you to design well factored software iteratively, backed by tests to help future work as it arrives.
+- Sức mạnh của phần mềm là nó có thể thay đổi. _Hầu hết_ phần mềm sẽ cần thay đổi theo thời gian theo những cách không thể đoán trước. Nhưng đừng cố gắng thiết kế quá phức tạp ngay từ đầu, vì dự đoán tương lai là điều rất khó.
+- Thay vào đó, hãy tập trung làm cho phần mềm dễ thay đổi (malleable). Nếu không refactor liên tục khi phần mềm phát triển, nó sẽ trở thành một mớ hỗn độn.
+- Bộ test tốt giúp bạn refactor nhanh hơn và ít căng thẳng hơn.
+- Viết unit test tốt là một bài toán thiết kế. Hãy tổ chức code theo các đơn vị (unit) có ý nghĩa, có thể kết hợp như các viên gạch Lego.
+- TDD giúp bạn phát triển phần mềm một cách có tổ chức, từng bước nhỏ, được hỗ trợ bởi test để đảm bảo phần mềm luôn sẵn sàng cho những thay đổi trong tương lai.

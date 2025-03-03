@@ -7,10 +7,10 @@
 * [Cài đặt Go](install-go.md)
 * [Hello, World](hello-world.md)
 * [Integers](integers.md)
-* [Iteration](iteration.md)
-* [Arrays and slices](arrays-and-slices.md)
+* [Vòng lặp](iteration.md)
+* [Arrays và slices](arrays-and-slices.md)
 * [Structs, methods & interfaces](structs-methods-and-interfaces.md)
-* [Pointers & errors](pointers-and-errors.md)
+* [Con trỏ và xử lý lỗi](pointers-and-errors.md)
 * [Maps](maps.md)
 * [Dependency Injection](dependency-injection.md)
 * [Mocking](mocking.md)
@@ -52,7 +52,7 @@
 
 ## Tổng quan
 
-* [Why unit tests and how to make them work for you](why.md)
+* [Tại sao cần kiểm thử đơn vị (Unit Test) và cách tận dụng chúng hiệu quả](why.md)
 * [Anti-patterns](anti-patterns.md)
-* [Contributing](contributing.md)
+* [Đóng góp](contributing.md)
 * [Chapter Template](template.md)

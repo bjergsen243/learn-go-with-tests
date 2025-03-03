@@ -68,7 +68,7 @@ Không giống như các ngôn ngữ khác như C, Java hay JavaScript, câu l�
 ```
 
 Từ trước đến giờ, chúng ta đã sử dụng `:=` để khai báo và khởi tạo biến. Tuy nhiên, `:=` chỉ là một cách viết tắt cho cả hai bước này ([xem chi tiết tại đây](https://gobyexample.com/variables)). Trong trường hợp này, chúng ta chỉ khai báo một biến kiểu `string`, vì vậy cần viết tường minh hơn.
-
+Iterat
 Ngoài ra, chúng ta cũng có thể sử dụng `var` để khai báo hàm, điều này sẽ được đề cập sau.
 
 Các biến thể khác của vòng lặp for được mô tả [tại đây](https://gobyexample.com/for).
