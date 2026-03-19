@@ -39,7 +39,7 @@
 * [HTTP server](http-server.md)
 * [JSON, định tuyến và nhúng kiểu](json.md)
 * [IO và sắp xếp](io.md)
-* [Command line & package structure](command-line.md)
+* [Giao diện dòng lệnh và cấu trúc dự án](command-line.md)
 * [Time](time.md)
 * [WebSockets](websockets.md)
 

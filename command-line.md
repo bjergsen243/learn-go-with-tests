@@ -1,16 +1,16 @@
-# Command line and project structure
+# Giao diện dòng lệnh và cấu trúc dự án
 
-**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/command-line)**
+**[Tất cả mã nguồn của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/command-line)**
 
-Our product owner now wants to _pivot_ by introducing a second application - a command line application.
+Chủ sở hữu sản phẩm của chúng ta bây giờ muốn *thay đổi hướng đi* bằng cách giới thiệu một ứng dụng thứ hai - một ứng dụng dòng lệnh.
 
-For now, it will just need to be able to record a player's win when the user types `Ruth wins`. The intention is to eventually be a tool for helping users play poker.
+Hiện tại, nó sẽ chỉ cần có khả năng ghi lại trận thắng của người chơi khi người dùng nhập `Ruth wins`. Mục đích là cuối cùng nó sẽ trở thành một công cụ giúp người dùng chơi poker.
 
-The product owner wants the database to be shared amongst the two applications so that the league updates according to wins recorded in the new application.
+Chủ sở hữu sản phẩm muốn cơ sở dữ liệu được chia sẻ giữa hai ứng dụng để bảng xếp hạng cập nhật theo các trận thắng được ghi lại trong ứng dụng mới.
 
-## A reminder of the code
+## Nhắc lại về mã nguồn
 
-We have an application with a `main.go` file that launches an HTTP server. The HTTP server won't be interesting to us for this exercise but the abstraction it uses will. It depends on a `PlayerStore`.
+Chúng ta có một ứng dụng với tệp `main.go` khởi chạy một máy chủ HTTP. Máy chủ HTTP sẽ không thú vị đối với chúng ta trong bài tập này nhưng sự trừu tượng hóa mà nó sử dụng thì có. Nó phụ thuộc vào một `PlayerStore`.
 
 ```go
 type PlayerStore interface {
@@ -20,29 +20,29 @@ type PlayerStore interface {
 }
 ```
 
-In the previous chapter, we made a `FileSystemPlayerStore` which implements that interface. We should be able to re-use some of this for our new application.
+Trong chương trước, chúng ta đã tạo một `FileSystemPlayerStore` thực hiện interface đó. Chúng ta sẽ có thể tái sử dụng một phần của nó cho ứng dụng mới của mình.
 
-## Some project refactoring first
+## Tái cấu trúc dự án trước tiên
 
-Our project now needs to create two binaries, our existing web server and the command line app.
+Dự án của chúng ta bây giờ cần tạo ra hai bản thực thi (binaries), máy chủ web hiện có và ứng dụng dòng lệnh (CLI).
 
-Before we get stuck into our new work we should structure our project to accommodate this.
+Trước khi bắt tay vào công việc mới, chúng ta nên cấu trúc lại dự án của mình để phù hợp với việc này.
 
-So far all the code has lived in one folder, in a path looking like this
+Cho đến nay, tất cả mã nguồn đều nằm trong một thư mục, trong một đường dẫn trông như thế này:
 
 `$GOPATH/src/github.com/your-name/my-app`
 
-In order for you to make an application in Go, you need a `main` function inside a `package main`. So far all of our "domain" code has lived inside `package main` and our `func main` can reference everything.
+Để bạn có thể tạo một ứng dụng trong Go, bạn cần một hàm `main` bên trong một `package main`. Cho đến nay, tất cả mã nguồn "tên miền" (domain) của chúng ta đều nằm bên trong `package main` và `func main` của chúng ta có thể tham chiếu đến mọi thứ.
 
-This was fine so far and it is good practice not to go over-the-top with package structure. If you take the time to look through the standard library you will see very little in the way of lots of folders and structure.
+Điều này vẫn ổn cho đến nay và là một phương pháp hay khi không quá sa đà vào cấu trúc gói (package structure). Nếu bạn dành thời gian xem qua thư viện tiêu chuẩn, bạn sẽ thấy rất ít các thư mục và cấu trúc phức tạp.
 
-Thankfully it's pretty straightforward to add structure _when you need it_.
+Rất may là việc thêm cấu trúc khi bạn cần nó khá đơn giản.
 
-Inside the existing project create a `cmd` directory with a `webserver` directory inside that (e.g `mkdir -p cmd/webserver`).
+Bên trong dự án hiện có, hãy tạo một thư mục `cmd` với một thư mục `webserver` bên trong đó (ví dụ: `mkdir -p cmd/webserver`).
 
-Move the `main.go` inside there.
+Di chuyển tệp `main.go` vào trong đó.
 
-If you have `tree` installed you should run it and your structure should look like this
+Nếu bạn đã cài đặt `tree`, bạn nên chạy nó và cấu trúc của bạn sẽ trông như thế này:
 
 ```
 .
@@ -59,13 +59,13 @@ If you have `tree` installed you should run it and your structure should look li
 |-- tape_test.go
 ```
 
-We now effectively have a separation between our application and the library code but we now need to change some package names. Remember when you build a Go application its package _must_ be `main`.
+Hiện tại chúng ta đã thực hiện việc tách biệt hiệu quả giữa ứng dụng và mã nguồn thư viện nhưng bây giờ chúng ta cần thay đổi một số tên gói. Hãy nhớ rằng khi bạn xây dựng một ứng dụng Go, gói của nó *phải* là `main`.
 
-Change all the other code to have a package called `poker`.
+Thay đổi tất cả các mã nguồn khác để có một gói tên là `poker`.
 
-Finally, we need to import this package into `main.go` so we can use it to create our web server. Then we can use our library code by using `poker.FunctionName`.
+Cuối cùng, chúng ta cần nhập (import) gói này vào `main.go` để có thể sử dụng nó nhằm tạo máy chủ web của mình. Sau đó, chúng ta có thể sử dụng mã nguồn thư viện của mình bằng cách sử dụng `poker.TenHam`.
 
-The paths will be different on your computer, but it should be similar to this:
+Các đường dẫn sẽ khác nhau trên máy tính của bạn, nhưng nó sẽ tương tự như thế này:
 
 ```go
 // cmd/webserver/main.go
@@ -99,21 +99,21 @@ func main() {
 }
 ```
 
-The full path may seem a bit jarring, but this is how you can import _any_ publicly available library into your code.
+Đường dẫn đầy đủ có vẻ hơi rắc rối, nhưng đây là cách bạn có thể nhập *bất kỳ* thư viện công khai nào vào mã nguồn của mình.
 
-By separating our domain code into a separate package and committing it to a public repo like GitHub any Go developer can write their own code which imports that package the features we've written available. The first time you try and run it will complain it is not existing but all you need to do is run `go get`.
+Bằng cách tách biệt mã nguồn tên miền của chúng ta thành một gói riêng biệt và đẩy nó lên một kho lưu trữ công khai như GitHub, bất kỳ nhà phát triển Go nào cũng có thể viết mã nguồn của riêng họ để nhập gói đó và sử dụng các tính năng mà chúng ta đã viết. Lần đầu tiên bạn thử chạy nó, nó sẽ phàn nàn rằng tệp không tồn tại nhưng tất cả những gì bạn cần làm là chạy `go get`.
 
-In addition, users can view [the documentation at pkg.go.dev](https://pkg.go.dev/github.com/quii/learn-go-with-tests/command-line/v1).
+Ngoài ra, người dùng có thể xem [tài liệu tại pkg.go.dev](https://pkg.go.dev/github.com/quii/learn-go-with-tests/command-line/v1).
 
-### Final checks
+### Kiểm tra cuối cùng
 
-- Inside the root run `go test` and check they're still passing
-- Go inside our `cmd/webserver` and do `go run main.go`
-  - Visit `http://localhost:5000/league` and you should see it's still working
+- Bên trong thư mục gốc, hãy chạy `go test` và kiểm tra xem chúng vẫn vượt qua
+- Đi vào bên trong `cmd/webserver` của chúng ta và thực hiện `go run main.go`
+  - Truy cập `http://localhost:5000/league` và bạn sẽ thấy nó vẫn hoạt động
 
-### Walking skeleton
+### Khung xương di động (Walking skeleton)
 
-Before we get stuck into writing tests, let's add a new application that our project will build. Create another directory inside `cmd` called `cli` (command line interface) and add a `main.go` with the following
+Trước khi bắt tay vào viết các bản kiểm thử, hãy thêm một ứng dụng mới mà dự án của chúng ta sẽ xây dựng. Tạo một thư mục khác bên trong `cmd` gọi là `cli` (giao diện dòng lệnh) và thêm một `main.go` với nội dung sau:
 
 ```go
 // cmd/cli/main.go
@@ -122,19 +122,19 @@ package main
 import "fmt"
 
 func main() {
-	fmt.Println("Let's play poker")
+	fmt.Println("Hãy chơi poker")
 }
 ```
 
-The first requirement we'll tackle is recording a win when the user types `{PlayerName} wins`.
+Yêu cầu đầu tiên chúng ta sẽ giải quyết là ghi lại một trận thắng khi người dùng nhập `{TenNguoiChoi} wins`.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-We know we need to make something called `CLI` which will allow us to `Play` poker. It'll need to read user input and then record wins to a `PlayerStore`.
+Chúng ta biết mình cần tạo ra một thứ gọi là `CLI` cho phép chúng ta `Chơi` (Play) poker. Nó sẽ cần đọc đầu vào của người dùng và sau đó ghi lại các trận thắng vào một `PlayerStore`.
 
-Before we jump too far ahead though, let's just write a test to check it integrates with the `PlayerStore` how we'd like.
+Tuy nhiên, trước khi đi quá xa, hãy viết một bản kiểm thử để kiểm tra xem nó có tích hợp với `PlayerStore` như chúng ta mong muốn hay không.
 
-Inside `CLI_test.go` (in the root of the project, not inside `cmd`)
+Bên trong `CLI_test.go` (trong thư mục gốc của dự án, không phải bên trong `cmd`):
 
 ```go
 // CLI_test.go
@@ -153,23 +153,23 @@ func TestCLI(t *testing.T) {
 }
 ```
 
-- We can use our `StubPlayerStore` from other tests
-- We pass in our dependency into our not yet existing `CLI` type
-- Trigger the game by an unwritten `PlayPoker` method
-- Check that a win is recorded
+- Chúng ta có thể sử dụng `StubPlayerStore` từ các bản kiểm thử khác
+- Chúng ta truyền sự phụ thuộc của mình vào kiểu `CLI` chưa tồn tại
+- Kích hoạt trò chơi bằng một phương thức `PlayPoker` chưa được viết
+- Kiểm tra xem một trận thắng đã được ghi lại hay chưa
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 # github.com/quii/learn-go-with-tests/command-line/v2
 ./cli_test.go:25:10: undefined: CLI
 ```
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
+## Viết lượng mã nguồn tối thiểu để bản kiểm thử chạy và kiểm tra kết quả lỗi
 
-At this point, you should be comfortable enough to create our new `CLI` struct with the respective field for our dependency and add a method.
+Tại thời điểm này, bạn nên cảm thấy đủ thoải mái để tạo cấu trúc `CLI` mới của chúng ta với trường tương ứng cho sự phụ thuộc của chúng ta và thêm một phương thức.
 
-You should end up with code like this
+Bạn sẽ kết thúc với mã nguồn như thế này:
 
 ```go
 // CLI.go
@@ -182,7 +182,7 @@ type CLI struct {
 func (cli *CLI) PlayPoker() {}
 ```
 
-Remember we're just trying to get the test running so we can check the test fails how we'd hope
+Hãy nhớ rằng chúng ta chỉ đang cố gắng làm cho bản kiểm thử chạy để có thể kiểm tra xem bản kiểm thử có thất bại như chúng ta mong đợi hay không:
 
 ```
 --- FAIL: TestCLI (0.00s)
@@ -190,25 +190,25 @@ Remember we're just trying to get the test running so we can check the test fail
 FAIL
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
 ```go
-//CLI.go
+// CLI.go
 func (cli *CLI) PlayPoker() {
 	cli.playerStore.RecordWin("Cleo")
 }
 ```
 
-That should make it pass.
+Điều đó sẽ làm cho nó vượt qua.
 
-Next, we need to simulate reading from `Stdin` (the input from the user) so that we can record wins for specific players.
+Tiếp theo, chúng ta cần mô phỏng việc đọc từ `Stdin` (đầu vào từ người dùng) để chúng ta có thể ghi lại các trận thắng cho những người chơi cụ thể.
 
-Let's extend our test to exercise this.
+Hãy mở rộng bản kiểm thử của chúng ta để thực hiện việc này.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
 ```go
-//CLI_test.go
+// CLI_test.go
 func TestCLI(t *testing.T) {
 	in := strings.NewReader("Chris wins\n")
 	playerStore := &StubPlayerStore{}
@@ -229,20 +229,24 @@ func TestCLI(t *testing.T) {
 }
 ```
 
-`os.Stdin` is what we'll use in `main` to capture the user's input. It is a `*File` under the hood which means it implements `io.Reader` which as we know by now is a handy way of capturing text.
+`os.Stdin` là những gì chúng ta sẽ sử dụng trong `main` để thu thập đầu vào của người dùng. Nó là một `*File` bên dưới, có nghĩa là nó triển khai `io.Reader`, mà như chúng ta đã biết cho đến nay, là một cách thuận tiện để thu thập văn bản.
 
-We create an `io.Reader` in our test using the handy `strings.NewReader`, filling it with what we expect the user to type.
+Chúng ta tạo một `io.Reader` trong bản kiểm thử của mình bằng cách sử dụng `strings.NewReader` tiện dụng, làm đầy nó bằng những gì chúng ta mong đợi người dùng sẽ nhập.
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 `./CLI_test.go:12:32: too many values in struct initializer`
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
+## Viết lượng mã nguồn tối thiểu để bản kiểm thử chạy và kiểm tra kết quả lỗi
 
-We need to add our new dependency into `CLI`.
+Chúng ta cần thêm sự phụ thuộc mới của mình vào `CLI`.
 
 ```go
-//CLI.go
+// CLI.go
+package poker
+
+import "io"
+
 type CLI struct {
 	playerStore PlayerStore
 	in          io.Reader
@@ -255,9 +259,9 @@ type CLI struct {
 FAIL
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-Remember to do the strictly easiest thing first
+Hãy nhớ làm điều đơn giản nhất trước tiên:
 
 ```go
 func (cli *CLI) PlayPoker() {
@@ -265,14 +269,14 @@ func (cli *CLI) PlayPoker() {
 }
 ```
 
-The test passes. We'll add another test to force us to write some real code next, but first, let's refactor.
+Bản kiểm thử vượt qua. Tiếp theo chúng ta sẽ thêm một bản kiểm thử khác để buộc mình phải viết một số mã nguồn thực sự, nhưng trước tiên, hãy tái cấu trúc.
 
-## Refactor
+## Tái cấu trúc
 
-In `server_test` we earlier did checks to see if wins are recorded as we have here. Let's DRY that assertion up into a helper
+Trong `server_test`, trước đó chúng ta đã thực hiện các kiểm tra để xem liệu các trận thắng có được ghi lại như chúng ta có ở đây hay không. Hãy làm cho khẳng định đó gọn gàng hơn (DRY) bằng một helper:
 
 ```go
-//server_test.go
+// server_test.go
 func assertPlayerWin(t testing.TB, store *StubPlayerStore, winner string) {
 	t.Helper()
 
@@ -286,12 +290,12 @@ func assertPlayerWin(t testing.TB, store *StubPlayerStore, winner string) {
 }
 ```
 
-Now replace the assertions in both `server_test.go` and `CLI_test.go`.
+Bây giờ hãy thay thế các khẳng định trong cả `server_test.go` và `CLI_test.go`.
 
-The test should now read like so
+Bản kiểm thử bây giờ nên trông như sau:
 
 ```go
-//CLI_test.go
+// CLI_test.go
 func TestCLI(t *testing.T) {
 	in := strings.NewReader("Chris wins\n")
 	playerStore := &StubPlayerStore{}
@@ -303,12 +307,12 @@ func TestCLI(t *testing.T) {
 }
 ```
 
-Now let's write _another_ test with different user input to force us into actually reading it.
+Bây giờ hãy viết một bản kiểm thử *khác* với đầu vào người dùng khác để buộc chúng ta thực sự phải đọc nó.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
 ```go
-//CLI_test.go
+// CLI_test.go
 func TestCLI(t *testing.T) {
 
 	t.Run("record chris win from user input", func(t *testing.T) {
@@ -334,7 +338,7 @@ func TestCLI(t *testing.T) {
 }
 ```
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 === RUN   TestCLI
@@ -347,16 +351,24 @@ func TestCLI(t *testing.T) {
 FAIL
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-We'll use a [`bufio.Scanner`](https://golang.org/pkg/bufio/) to read the input from the `io.Reader`.
+Chúng ta sẽ sử dụng một [`bufio.Scanner`](https://golang.org/pkg/bufio/) để đọc đầu vào từ `io.Reader`.
 
-> Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer object, creating another object (Reader or Writer) that also implements the interface but provides buffering and some help for textual I/O.
+> Gói bufio triển khai I/O có bộ đệm. Nó bao bọc một đối tượng io.Reader hoặc io.Writer, tạo ra một đối tượng khác (Reader hoặc Writer) cũng thực hiện interface đó nhưng cung cấp bộ đệm và một số trợ giúp cho I/O dạng văn bản.
 
-Update the code to the following
+Cập nhật mã nguồn thành như sau:
 
 ```go
-//CLI.go
+// CLI.go
+package poker
+
+import (
+	"bufio"
+	"io"
+	"strings"
+)
+
 type CLI struct {
 	playerStore PlayerStore
 	in          io.Reader
@@ -373,14 +385,14 @@ func extractWinner(userInput string) string {
 }
 ```
 
-The tests will now pass.
+Các bản kiểm thử bây giờ sẽ vượt qua.
 
-- `Scanner.Scan()` will read up to a newline.
-- We then use `Scanner.Text()` to return the `string` the scanner read to.
+- `Scanner.Scan()` sẽ đọc cho đến khi gặp dòng mới.
+- Sau đó, chúng ta sử dụng `Scanner.Text()` để trả về chuỗi (`string`) mà scanner đã đọc được.
 
-Now that we have some passing tests, we should wire this up into `main`. Remember we should always strive to have fully-integrated working software as quickly as we can.
+Bây giờ khi chúng ta đã có một số bản kiểm thử vượt qua, chúng ta nên kết nối mọi thứ vào `main`. Hãy nhớ rằng chúng ta nên luôn cố gắng có phần mềm hoạt động được tích hợp đầy đủ càng nhanh càng tốt.
 
-In `main.go` add the following and run it. (you may have to adjust the path of the second dependency to match what's on your computer)
+Trong `main.go`, hãy thêm đoạn mã nguồn sau và chạy nó. (bạn có thể phải điều chỉnh đường dẫn của sự phụ thuộc thứ hai để khớp với đường dẫn trên máy tính của bạn)
 
 ```go
 package main
@@ -395,8 +407,8 @@ import (
 const dbFileName = "game.db.json"
 
 func main() {
-	fmt.Println("Let's play poker")
-	fmt.Println("Type {Name} wins to record a win")
+	fmt.Println("Hãy chơi poker")
+	fmt.Println("Nhập {Ten} wins để ghi lại một trận thắng")
 
 	db, err := os.OpenFile(dbFileName, os.O_RDWR|os.O_CREATE, 0666)
 
@@ -415,34 +427,34 @@ func main() {
 }
 ```
 
-You should get an error
+Bạn sẽ nhận được một lỗi:
 
 ```
 command-line/v3/cmd/cli/main.go:32:25: implicit assignment of unexported field 'playerStore' in poker.CLI literal
 command-line/v3/cmd/cli/main.go:32:34: implicit assignment of unexported field 'in' in poker.CLI literal
 ```
 
-What's happening here is because we are trying to assign to the fields `playerStore` and `in` in `CLI`. These are unexported (private) fields. We _could_ do this in our test code because our test is in the same package as `CLI` (`poker`). But our `main` is in package `main` so it does not have access.
+Những gì đang xảy ra ở đây là do chúng ta đang cố gắng gán cho các trường `playerStore` và `in` trong `CLI`. Đây là các trường chưa được xuất khẩu (riêng tư - unexported). Chúng ta *có thể* làm điều này trong mã nguồn kiểm thử của mình vì bản kiểm thử của chúng ta nằm trong cùng một gói với `CLI` (`poker`). Nhưng `main` của chúng ta nằm trong gói `main` nên nó không có quyền truy cập.
 
-This highlights the importance of _integrating your work_. We rightfully made the dependencies of our `CLI` private (because we don't want them exposed to users of `CLI`s) but haven't made a way for users to construct it.
+Điều này nhấn mạnh tầm quan trọng của việc *tích hợp công việc của bạn*. Chúng ta đã biến các sự phụ thuộc của `CLI` thành riêng tư một cách đúng đắn (vì chúng ta không muốn chúng bị lộ cho người dùng của `CLI`) nhưng chưa tạo ra cách để người dùng khởi tạo nó.
 
-Is there a way to have caught this problem earlier?
+Có cách nào để phát hiện vấn đề này sớm hơn không?
 
 ### `package mypackage_test`
 
-In all other examples so far, when we make a test file we declare it as being in the same package that we are testing.
+Trong tất cả các ví dụ khác cho đến nay, khi chúng ta tạo một tệp kiểm thử, chúng ta khai báo nó nằm trong cùng một gói với gói mà chúng ta đang kiểm thử.
 
-This is fine and it means on the odd occasion where we want to test something internal to the package we have access to the unexported types.
+Điều này vẫn ổn và nó có nghĩa là trong những dịp hiếm hoi khi chúng ta muốn kiểm thử thứ gì đó bên trong gói, chúng ta có quyền truy cập vào các kiểu chưa được xuất khẩu.
 
-But given we have advocated for _not_ testing internal things _generally_, can Go help enforce that? What if we could test our code where we only have access to the exported types (like our `main` does)?
+Nhưng vì chúng ta đã ủng hộ việc *không* kiểm thử các thứ bên trong *nói chung*, liệu Go có thể giúp thực thi điều đó không? Điều gì sẽ xảy ra nếu chúng ta có thể kiểm thử mã nguồn của mình ở nơi mà chúng ta chỉ có quyền truy cập vào các kiểu đã được xuất khẩu (giống như `main` của chúng ta đã làm)?
 
-When you're writing a project with multiple packages I would strongly recommend that your test package name has `_test` at the end. When you do this you will only be able to have access to the public types in your package. This would help with this specific case but also helps enforce the discipline of only testing public APIs. If you still wish to test internals you can make a separate test with the package you want to test.
+Khi bạn viết một dự án với nhiều gói, tôi khuyên bạn nên đặt tên gói kiểm thử có hậu tố `_test`. Khi bạn làm điều này, bạn sẽ chỉ có quyền truy cập vào các kiểu công khai trong gói của mình. Điều này sẽ giúp ích trong trường hợp cụ thể này nhưng cũng giúp thực thi kỷ luật chỉ kiểm thử các API công khai. Nếu bạn vẫn muốn kiểm thử các nội dung bên trong, bạn có thể tạo một bản kiểm thử riêng biệt với gói bạn muốn kiểm thử.
 
-An adage with TDD is that if you cannot test your code then it is probably hard for users of your code to integrate with it. Using `package foo_test` will help with this by forcing you to test your code as if you are importing it like users of your package will.
+Có một câu nói với TDD là nếu bạn không thể kiểm thử mã nguồn của mình thì có lẽ người dùng mã nguồn của bạn cũng khó tích hợp với nó. Sử dụng `package foo_test` sẽ giúp giải quyết vấn đề này bằng cách buộc bạn phải kiểm thử mã nguồn của mình như thể bạn đang nhập nó giống như người dùng gói của bạn sẽ làm.
 
-Before fixing `main` let's change the package of our test inside `CLI_test.go` to `poker_test`.
+Trước khi sửa lỗi `main`, hãy đổi gói của bản kiểm thử bên trong `CLI_test.go` thành `poker_test`.
 
-If you have a well-configured IDE you will suddenly see a lot of red! If you run the compiler you'll get the following errors
+Nếu bạn có một IDE được cấu hình tốt, bạn sẽ đột nhiên thấy rất nhiều màu đỏ! Nếu bạn chạy trình biên dịch, bạn sẽ nhận được các lỗi sau:
 
 ```
 ./CLI_test.go:12:19: undefined: StubPlayerStore
@@ -451,17 +463,17 @@ If you have a well-configured IDE you will suddenly see a lot of red! If you run
 ./CLI_test.go:27:3: undefined: assertPlayerWin
 ```
 
-We have now stumbled into more questions on package design. In order to test our software we made unexported stubs and helper functions which are no longer available for us to use in our `CLI_test` because the helpers are defined in the `_test.go` files in the `poker` package.
+Bây giờ chúng ta đã vấp phải nhiều câu hỏi hơn về thiết kế gói. Để kiểm thử phần mềm của mình, chúng ta đã tạo ra các stub chưa xuất khẩu và các hàm helper mà hiện tại không còn khả dụng cho chúng ta sử dụng trong `CLI_test` vì các helper được định nghĩa trong các tệp `_test.go` trong gói `poker`.
 
-#### Do we want to have our stubs and helpers 'public'?
+#### Chúng ta có muốn các stub và helper của mình là 'công khai' không?
 
-This is a subjective discussion. One could argue that you do not want to pollute your package's API with code to facilitate tests.
+Đây là một cuộc thảo luận mang tính chủ quan. Một số người có thể lập luận rằng bạn không muốn làm ô nhiễm API của gói mình bằng các mã nguồn để phục vụ các bản kiểm thử.
 
-In the presentation ["Advanced Testing with Go"](https://speakerdeck.com/mitchellh/advanced-testing-with-go?slide=53) by Mitchell Hashimoto, it is described how at HashiCorp they advocate doing this so that users of the package can write tests without having to re-invent the wheel writing stubs. In our case, this would mean anyone using our `poker` package won't have to create their own stub `PlayerStore` if they wish to work with our code.
+Trong bài trình bày ["Advanced Testing with Go"](https://speakerdeck.com/mitchellh/advanced-testing-with-go?slide=53) của Mitchell Hashimoto, có mô tả cách tại HashiCorp, họ ủng hộ việc làm điều này để người dùng gói có thể viết các bản kiểm thử mà không cần phải phát minh lại các stub. Trong trường hợp của chúng ta, điều này có nghĩa là bất kỳ ai sử dụng gói `poker` của chúng ta sẽ không phải tự tạo ra stub `PlayerStore` của riêng họ nếu họ muốn làm việc với mã nguồn của chúng ta.
 
-Anecdotally I have used this technique in other shared packages and it has proved extremely useful in terms of users saving time when integrating with our packages.
+Theo kinh nghiệm cá nhân, tôi đã sử dụng kỹ thuật này trong các gói dùng chung khác và nó đã tỏ ra cực kỳ hữu ích về mặt tiết kiệm thời gian cho người dùng khi tích hợp với các gói của chúng ta.
 
-So let's create a file called `testing.go` and add our stub and our helpers.
+Vì vậy, hãy tạo một tệp gọi là `testing.go` và thêm stub của chúng ta cùng các helper.
 
 ```go
 // testing.go
@@ -500,15 +512,15 @@ func AssertPlayerWin(t testing.TB, store *StubPlayerStore, winner string) {
 	}
 }
 
-// todo for you - the rest of the helpers
+// bài tập cho bạn - các helper còn lại
 ```
 
-You'll need to make the helpers public (remember exporting is done with a capital letter at the start) if you want them to be exposed to importers of our package.
+Bạn sẽ cần làm cho các helper trở thành công khai (hãy nhớ rằng việc xuất khẩu được thực hiện bằng một chữ cái viết hoa ở đầu) nếu bạn muốn chúng được lộ ra cho những người nhập gói của chúng ta.
 
-In our `CLI` test you'll need to call the code as if you were using it within a different package.
+Trong bản kiểm thử `CLI`, bạn sẽ cần gọi mã nguồn như thể bạn đang sử dụng nó trong một gói khác.
 
 ```go
-//CLI_test.go
+// CLI_test.go
 func TestCLI(t *testing.T) {
 
 	t.Run("record chris win from user input", func(t *testing.T) {
@@ -534,7 +546,7 @@ func TestCLI(t *testing.T) {
 }
 ```
 
-You'll now see we have the same problems as we had in `main`
+Bây giờ bạn sẽ thấy chúng ta gặp các vấn đề tương tự như chúng ta đã gặp trong `main`:
 
 ```
 ./CLI_test.go:15:26: implicit assignment of unexported field 'playerStore' in poker.CLI literal
@@ -543,10 +555,10 @@ You'll now see we have the same problems as we had in `main`
 ./CLI_test.go:25:39: implicit assignment of unexported field 'in' in poker.CLI literal
 ```
 
-The easiest way to get around this is to make a constructor as we have for other types. We'll also change `CLI` so it stores a `bufio.Scanner` instead of the reader as it's now automatically wrapped at construction time.
+Cách dễ nhất để vượt qua điều này là tạo một constructor như chúng ta đã làm cho các kiểu khác. Chúng ta cũng sẽ thay đổi `CLI` để nó lưu trữ một `bufio.Scanner` thay vì reader vì hiện tại nó được bọc tự động vào thời điểm khởi tạo.
 
 ```go
-//CLI.go
+// CLI.go
 type CLI struct {
 	playerStore PlayerStore
 	in          *bufio.Scanner
@@ -560,10 +572,10 @@ func NewCLI(store PlayerStore, in io.Reader) *CLI {
 }
 ```
 
-By doing this, we can then simplify and refactor our reading code
+Bằng cách làm này, chúng ta có thể đơn giản hóa và tái cấu trúc mã nguồn đọc:
 
 ```go
-//CLI.go
+// CLI.go
 func (cli *CLI) PlayPoker() {
 	userInput := cli.readLine()
 	cli.playerStore.RecordWin(extractWinner(userInput))
@@ -579,23 +591,23 @@ func (cli *CLI) readLine() string {
 }
 ```
 
-Change the test to use the constructor instead and we should be back to the tests passing.
+Thay đổi bản kiểm thử để sử dụng constructor thay thế và chúng ta sẽ quay lại tình trạng các bản kiểm thử vượt qua.
 
-Finally, we can go back to our new `main.go` and use the constructor we just made
+Cuối cùng, chúng ta có thể quay lại `main.go` mới của mình và sử dụng constructor mà chúng ta vừa tạo:
 
 ```go
-//cmd/cli/main.go
+// cmd/cli/main.go
 game := poker.NewCLI(store, os.Stdin)
 ```
 
-Try and run it, type "Bob wins".
+Thử và chạy nó, nhập "Bob wins".
 
-### Refactor
+### Tái cấu trúc
 
-We have some repetition in our respective applications where we are opening a file and creating a `file_system_store` from its contents. This feels like a slight weakness in our package's design so we should make a function in it to encapsulate opening a file from a path and returning you the `PlayerStore`.
+Chúng ta có một số sự lặp lại trong các ứng dụng tương ứng của mình, nơi chúng ta đang mở một tệp và tạo một `file_system_store` từ nội dung của nó. Đây có cảm giác như là một điểm yếu nhẹ trong thiết kế gói của chúng ta, vì vậy chúng ta nên tạo một hàm trong đó để đóng gói việc mở tệp từ một đường dẫn và trả về cho bạn `PlayerStore`.
 
 ```go
-//file_system_store.go
+// file_system_store.go
 func FileSystemPlayerStoreFromFile(path string) (*FileSystemPlayerStore, func(), error) {
 	db, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
 
@@ -617,9 +629,9 @@ func FileSystemPlayerStoreFromFile(path string) (*FileSystemPlayerStore, func(),
 }
 ```
 
-Now refactor both of our applications to use this function to create the store.
+Bây giờ hãy tái cấu trúc cả hai ứng dụng của chúng ta để sử dụng hàm này nhằm tạo kho lưu trữ.
 
-#### CLI application code
+#### Mã nguồn ứng dụng CLI
 
 ```go
 // cmd/cli/main.go
@@ -642,13 +654,13 @@ func main() {
 	}
 	defer close()
 
-	fmt.Println("Let's play poker")
-	fmt.Println("Type {Name} wins to record a win")
+	fmt.Println("Hãy chơi poker")
+	fmt.Println("Nhập {Ten} wins để ghi lại một trận thắng")
 	poker.NewCLI(store, os.Stdin).PlayPoker()
 }
 ```
 
-#### Web server application code
+#### Mã nguồn ứng dụng máy chủ web
 
 ```go
 // cmd/webserver/main.go
@@ -678,23 +690,24 @@ func main() {
 }
 ```
 
-Notice the symmetry: despite being different user interfaces the setup is almost identical. This feels like good validation of our design so far.
-And notice also that `FileSystemPlayerStoreFromFile` returns a closing function, so we can close the underlying file once we are done using the Store.
+Hãy chú ý sự đối xứng: mặc dù là các giao diện người dùng khác nhau nhưng việc thiết lập gần như giống hệt nhau. Điều này có cảm giác như một sự xác nhận tốt cho thiết kế của chúng ta cho đến nay.
+Và cũng lưu ý rằng `FileSystemPlayerStoreFromFile` trả về một hàm đóng, vì vậy chúng ta có thể đóng tệp bên dưới sau khi sử dụng xong Store.
 
 ## Tổng kết
 
-### Package structure
+### Cấu trúc gói (Package structure)
 
-This chapter meant we wanted to create two applications, re-using the domain code we've written so far. In order to do this, we needed to update our package structure so that we had separate folders for our respective `main`s.
+Chương này có nghĩa là chúng ta muốn tạo hai ứng dụng, tái sử dụng mã nguồn tên miền mà chúng ta đã viết cho đến nay. Để làm được điều này, chúng ta cần cập nhật cấu trúc gói của mình để có các thư mục riêng biệt cho các hàm `main` tương ứng.
 
-By doing this we ran into integration problems due to unexported values so this further demonstrates the value of working in small "slices" and integrating often.
+Bằng cách này, chúng ta đã gặp phải các vấn đề tích hợp do các giá trị chưa xuất khẩu, vì vậy điều này chứng minh thêm giá trị của việc làm việc theo từng "lát" nhỏ và tích hợp thường xuyên.
 
-We learned how `mypackage_test` helps us create a testing environment which is the same experience for other packages integrating with your code, to help you catch integration problems and see how easy (or not!) your code is to work with.
+Chúng ta đã học cách `mypackage_test` giúp chúng ta tạo một môi trường kiểm thử giống như trải nghiệm đối với các gói khác khi tích hợp với mã nguồn của bạn, nhằm giúp bạn nắm bắt các vấn đề tích hợp và xem mã nguồn của bạn dễ hoạt động như thế nào (hoặc không!).
 
-### Reading user input
+### Đọc dữ liệu người dùng nhập
 
-We saw how reading from `os.Stdin` is very easy for us to work with as it implements `io.Reader`. We used `bufio.Scanner` to easily read line by line user input.
+Chúng ta đã thấy việc đọc từ `os.Stdin` rất dễ dàng đối với chúng ta vì nó thực hiện `io.Reader`. Chúng ta đã sử dụng `bufio.Scanner` để dễ dàng đọc dữ liệu người dùng nhập theo từng dòng.
 
-### Simple abstractions leads to simpler code re-use
+### Sự trừu tượng hóa đơn giản dẫn đến việc tái sử dụng mã nguồn đơn giản hơn
 
-It was almost no effort to integrate `PlayerStore` into our new application (once we had made the package adjustments) and subsequently testing was very easy too because we decided to expose our stub version too.
+Hầu như không mất công sức để tích hợp `PlayerStore` vào ứng dụng mới của chúng ta (sau khi chúng ta đã thực hiện các điều chỉnh về gói) và việc kiểm thử sau đó cũng rất dễ dàng vì chúng ta đã quyết định để lộ phiên bản stub của mình.
+
