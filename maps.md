@@ -2,15 +2,15 @@
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/maps)**
 
-In [arrays & slices](arrays-and-slices.md), you saw how to store values in order. Now, we will look at a way to store items by a `key` and look them up quickly.
+Trong [arrays & slices](arrays-and-slices.md), bạn thấy cách lưu trữ các giá trị theo thứ tự. Giờ chúng ta sẽ xem xét cách lưu trữ các mục theo `key` và tra cứu nhanh.
 
-Maps allow you to store items in a manner similar to a dictionary. You can think of the `key` as the word and the `value` as the definition. And what better way is there to learn about Maps than to build our own dictionary?
+Maps cho phép bạn lưu trữ các mục theo cách tương tự như từ điển. Bạn có thể nghĩ `key` là từ và `value` là định nghĩa. Và cách nào tốt hơn để học về Maps hơn là xây dựng từ điển của riêng chúng ta?
 
-First, assuming we already have some words with their definitions in the dictionary, if we search for a word, it should return the definition of it.
+Đầu tiên, giả sử chúng ta đã có một số từ với định nghĩa trong từ điển, nếu tìm kiếm một từ, nó sẽ trả về định nghĩa của từ đó.
 
-## Write the test first
+## Viết test trước tiên
 
-In `dictionary_test.go`
+Trong `dictionary_test.go`
 
 ```go
 package main
@@ -29,21 +29,21 @@ func TestSearch(t *testing.T) {
 }
 ```
 
-Declaring a Map is somewhat similar to an array. Except, it starts with the `map` keyword and requires two types. The first is the key type, which is written inside the `[]`. The second is the value type, which goes right after the `[]`.
+Khai báo Map khá giống với array. Ngoại trừ, nó bắt đầu bằng từ khóa `map` và yêu cầu hai kiểu. Kiểu đầu tiên là kiểu key, được viết trong `[]`. Kiểu thứ hai là kiểu value, ngay sau `[]`.
 
-The key type is special. It can only be a comparable type because without the ability to tell if 2 keys are equal, we have no way to ensure that we are getting the correct value. Comparable types are explained in depth in the [language spec](https://golang.org/ref/spec#Comparison_operators).
+Kiểu key là đặc biệt. Nó chỉ có thể là kiểu comparable vì nếu không có khả năng so sánh 2 keys bằng nhau, chúng ta không có cách nào đảm bảo chúng ta đang lấy đúng value. Các kiểu comparable được giải thích kỹ trong [language spec](https://golang.org/ref/spec#Comparison_operators).
 
-The value type, on the other hand, can be any type you want. It can even be another map.
+Kiểu value, mặt khác, có thể là bất kỳ kiểu nào. Thậm chí có thể là một map khác.
 
-Everything else in this test should be familiar.
+Mọi thứ khác trong test này đã quen thuộc.
 
-## Try to run the test
+## Thử chạy test
 
-By running `go test` the compiler will fail with `./dictionary_test.go:8:9: undefined: Search`.
+Bằng cách chạy `go test`, compiler sẽ thất bại với `./dictionary_test.go:8:9: undefined: Search`.
 
-## Write the minimal amount of code for the test to run and check the output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-In `dictionary.go`
+Trong `dictionary.go`
 
 ```go
 package main
@@ -53,7 +53,7 @@ func Search(dictionary map[string]string, word string) string {
 }
 ```
 
-Your test should now fail with a *clear error message*
+Test của bạn giờ sẽ thất bại với *thông báo lỗi rõ ràng*
 
 `dictionary_test.go:12: got '' want 'this is just a test' given, 'test'`.
 
@@ -65,7 +65,7 @@ func Search(dictionary map[string]string, word string) string {
 }
 ```
 
-Getting a value out of a Map is the same as getting a value out of Array `map[key]`.
+Lấy giá trị từ Map giống như lấy từ Array `map[key]`.
 
 ## Refactor
 
@@ -88,13 +88,13 @@ func assertStrings(t testing.TB, got, want string) {
 }
 ```
 
-I decided to create an `assertStrings` helper to make the implementation more general.
+Tôi quyết định tạo helper `assertStrings` để khái quát hóa implementation hơn.
 
-### Using a custom type
+### Dùng kiểu tùy chỉnh
 
-We can improve our dictionary's usage by creating a new type around map and making `Search` a method.
+Chúng ta có thể cải thiện cách dùng từ điển bằng cách tạo kiểu mới xung quanh map và biến `Search` thành method.
 
-In `dictionary_test.go`:
+Trong `dictionary_test.go`:
 
 ```go
 func TestSearch(t *testing.T) {
@@ -107,11 +107,11 @@ func TestSearch(t *testing.T) {
 }
 ```
 
-We started using the `Dictionary` type, which we have not defined yet. Then called `Search` on the `Dictionary` instance.
+Chúng ta bắt đầu dùng kiểu `Dictionary`, mà chúng ta chưa định nghĩa. Sau đó gọi `Search` trên instance `Dictionary`.
 
-We did not need to change `assertStrings`.
+Chúng ta không cần thay đổi `assertStrings`.
 
-In `dictionary.go`:
+Trong `dictionary.go`:
 
 ```go
 type Dictionary map[string]string
@@ -121,13 +121,13 @@ func (d Dictionary) Search(word string) string {
 }
 ```
 
-Here we created a `Dictionary` type which acts as a thin wrapper around `map`. With the custom type defined, we can create the `Search` method.
+Ở đây chúng ta tạo kiểu `Dictionary` hoạt động như wrapper mỏng quanh `map`. Với kiểu tùy chỉnh được định nghĩa, chúng ta có thể tạo method `Search`.
 
-## Write the test first
+## Viết test trước tiên
 
-The basic search was very easy to implement, but what will happen if we supply a word that's not in our dictionary?
+Tìm kiếm cơ bản rất dễ implement, nhưng điều gì sẽ xảy ra nếu chúng ta cung cấp từ không có trong từ điển?
 
-We actually get nothing back. This is good because the program can continue to run, but there is a better approach. The function can report that the word is not in the dictionary. This way, the user isn't left wondering if the word doesn't exist or if there is just no definition (this might not seem very useful for a dictionary. However, it's a scenario that could be key in other usecases).
+Thực ra chúng ta không nhận được gì. Điều này tốt vì chương trình có thể tiếp tục chạy, nhưng có cách tiếp cận tốt hơn. Hàm có thể báo cáo từ không có trong từ điển. Như vậy người dùng không phải tự hỏi từ đó không tồn tại hay chỉ là không có định nghĩa (điều này không có vẻ hữu ích cho từ điển, nhưng là tình huống có thể quan trọng trong các use case khác).
 
 ```go
 func TestSearch(t *testing.T) {
@@ -153,20 +153,19 @@ func TestSearch(t *testing.T) {
 }
 ```
 
-The way to handle this scenario in Go is to return a second argument which is an `Error` type.
+Cách xử lý tình huống này trong Go là trả về đối số thứ hai kiểu `Error`.
 
-Notice that as we've seen in the [pointers and error section](./pointers-and-errors.md) here in order to assert the error message
-we first check that the error is not `nil` and then use `.Error()` method to get the string which we can then pass to the assertion.
+Chú ý rằng như đã thấy trong [phần pointers và error](./pointers-and-errors.md), để assert thông báo lỗi, trước tiên chúng ta kiểm tra lỗi không phải `nil` rồi dùng method `.Error()` để lấy string mà chúng ta có thể truyền vào assertion.
 
 ## Thử chạy test
 
-This does not compile
+Code này không biên dịch được
 
 ```
 ./dictionary_test.go:18:10: assignment mismatch: 2 variables but 1 values
 ```
 
-## Write the minimal amount of code for the test to run and check the output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 ```go
 func (d Dictionary) Search(word string) (string, error) {
@@ -174,7 +173,7 @@ func (d Dictionary) Search(word string) (string, error) {
 }
 ```
 
-Your test should now fail with a much clearer error message.
+Test của bạn sẽ thất bại với thông báo lỗi rõ ràng hơn.
 
 `dictionary_test.go:22: expected to get an error.`
 
@@ -191,9 +190,9 @@ func (d Dictionary) Search(word string) (string, error) {
 }
 ```
 
-In order to make this pass, we are using an interesting property of the map lookup. It can return 2 values. The second value is a boolean which indicates if the key was found successfully.
+Để test pass, chúng ta dùng thuộc tính thú vị của map lookup. Nó có thể trả về 2 giá trị. Giá trị thứ hai là boolean báo hiệu key có được tìm thấy không.
 
-This property allows us to differentiate between a word that doesn't exist and a word that just doesn't have a definition.
+Thuộc tính này cho phép chúng ta phân biệt giữa từ không tồn tại và từ không có định nghĩa.
 
 ## Refactor
 
@@ -210,7 +209,7 @@ func (d Dictionary) Search(word string) (string, error) {
 }
 ```
 
-We can get rid of the magic error in our `Search` function by extracting it into a variable. This will also allow us to have a better test.
+Chúng ta có thể loại bỏ magic error trong hàm `Search` bằng cách trích xuất nó thành biến. Điều này cũng cho phép test tốt hơn.
 
 ```go
 t.Run("unknown word", func(t *testing.T) {
@@ -231,11 +230,11 @@ func assertError(t testing.TB, got, want error) {
 }
 ```
 
-By creating a new helper we were able to simplify our test, and start using our `ErrNotFound` variable so our test doesn't fail if we change the error text in the future.
+Bằng cách tạo helper mới, chúng ta đơn giản hóa test và bắt đầu dùng biến `ErrNotFound` để test không fail nếu chúng ta thay đổi văn bản lỗi sau này.
 
-## Write the test first
+## Viết test trước tiên
 
-We have a great way to search the dictionary. However, we have no way to add new words to our dictionary.
+Chúng ta có cách tốt để tìm kiếm trong từ điển. Tuy nhiên, chúng ta không có cách nào thêm từ mới.
 
 ```go
 func TestAdd(t *testing.T) {
@@ -252,18 +251,18 @@ func TestAdd(t *testing.T) {
 }
 ```
 
-In this test, we are utilizing our `Search` function to make the validation of the dictionary a little easier.
+Trong test này, chúng ta dùng hàm `Search` để validate từ điển dễ hơn.
 
-## Write the minimal amount of code for the test to run and check output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-In `dictionary.go`
+Trong `dictionary.go`
 
 ```go
 func (d Dictionary) Add(word, definition string) {
 }
 ```
 
-Your test should now fail
+Test của bạn sẽ thất bại
 
 ```
 dictionary_test.go:31: should find added word: could not find the word you were looking for
@@ -277,41 +276,41 @@ func (d Dictionary) Add(word, definition string) {
 }
 ```
 
-Adding to a map is also similar to an array. You just need to specify a key and set it equal to a value.
+Thêm vào map cũng giống như array. Chỉ cần chỉ định key và đặt nó bằng value.
 
-### Pointers, copies, et al
+### Pointers, copies, v.v.
 
-An interesting property of maps is that you can modify them without passing as an address to it (e.g `&myMap`)
+Một thuộc tính thú vị của maps là bạn có thể sửa đổi chúng mà không cần truyền địa chỉ (ví dụ `&myMap`)
 
-This may make them _feel_ like a "reference type", [but as Dave Cheney describes](https://dave.cheney.net/2017/04/30/if-a-map-isnt-a-reference-variable-what-is-it) they are not.
+Điều này có thể khiến chúng _cảm thấy_ như "kiểu tham chiếu", [nhưng như Dave Cheney mô tả](https://dave.cheney.net/2017/04/30/if-a-map-isnt-a-reference-variable-what-is-it), chúng không phải vậy.
 
-> A map value is a pointer to a runtime.hmap structure.
+> Giá trị map là pointer đến cấu trúc runtime.hmap.
 
-So when you pass a map to a function/method, you are indeed copying it, but just the pointer part, not the underlying data structure that contains the data.
+Vì vậy khi bạn truyền map vào hàm/method, bạn đang sao chép nó, nhưng chỉ phần pointer, không phải cấu trúc dữ liệu bên dưới chứa data.
 
-A gotcha with maps is that they can be a `nil` value. A `nil` map behaves like an empty map when reading, but attempts to write to a `nil` map will cause a runtime panic. You can read more about maps [here](https://blog.golang.org/go-maps-in-action).
+Điều đáng chú ý với maps là chúng có thể là giá trị `nil`. Map `nil` hoạt động như map rỗng khi đọc, nhưng cố ghi vào map `nil` sẽ gây ra runtime panic. Bạn có thể đọc thêm về maps [tại đây](https://blog.golang.org/go-maps-in-action).
 
-Therefore, you should never initialize a nil map variable:
+Do đó, bạn không bao giờ nên khởi tạo biến map nil:
 
 ```go
 var m map[string]string
 ```
 
-Instead, you can initialize an empty map or use the `make` keyword to create a map for you:
+Thay vào đó, có thể khởi tạo map rỗng hoặc dùng từ khóa `make` để tạo map:
 
 ```go
 var dictionary = map[string]string{}
 
-// OR
+// HOẶC
 
 var dictionary = make(map[string]string)
 ```
 
-Both approaches create an empty `hash map` and point `dictionary` at it. Which ensures that you will never get a runtime panic.
+Cả hai cách đều tạo `hash map` rỗng và trỏ `dictionary` vào nó, đảm bảo bạn không bao giờ gặp runtime panic.
 
 ## Refactor
 
-There isn't much to refactor in our implementation but the test could use a little simplification.
+Không có nhiều thứ cần refactor trong implementation nhưng test có thể đơn giản hóa một chút.
 
 ```go
 func TestAdd(t *testing.T) {
@@ -335,13 +334,13 @@ func assertDefinition(t testing.TB, dictionary Dictionary, word, definition stri
 }
 ```
 
-We made variables for word and definition, and moved the definition assertion into its own helper function.
+Chúng ta tạo biến cho word và definition, và chuyển assertion definition sang hàm helper riêng.
 
-Our `Add` is looking good. Except, we didn't consider what happens when the value we are trying to add already exists!
+`Add` của chúng ta trông tốt. Ngoại trừ, chúng ta không xem xét điều gì xảy ra khi value chúng ta cố thêm đã tồn tại!
 
-Map will not throw an error if the value already exists. Instead, they will go ahead and overwrite the value with the newly provided value. This can be convenient in practice, but makes our function name less than accurate. `Add` should not modify existing values. It should only add new words to our dictionary.
+Map không throw lỗi nếu value đã tồn tại. Thay vào đó, chúng sẽ ghi đè value bằng value mới được cung cấp. Điều này có thể tiện lợi trong thực tế, nhưng khiến tên hàm kém chính xác. `Add` không nên sửa đổi các giá trị đã có. Nó chỉ nên thêm từ mới vào từ điển.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 func TestAdd(t *testing.T) {
@@ -368,20 +367,20 @@ func TestAdd(t *testing.T) {
 }
 ```
 
-For this test, we modified `Add` to return an error, which we are validating against a new error variable, `ErrWordExists`. We also modified the previous test to check for a `nil` error.
+Trong test này, chúng ta sửa đổi `Add` để trả về lỗi, mà chúng ta validate dựa trên biến lỗi mới, `ErrWordExists`. Chúng ta cũng sửa test trước để kiểm tra lỗi `nil`.
 
-## Try to run test
+## Thử chạy test
 
-The compiler will fail because we are not returning a value for `Add`.
+Compiler sẽ thất bại vì chúng ta không trả về value cho `Add`.
 
 ```
 ./dictionary_test.go:30:13: dictionary.Add(word, definition) used as value
 ./dictionary_test.go:41:13: dictionary.Add(word, "new test") used as value
 ```
 
-## Write the minimal amount of code for the test to run and check the output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-In `dictionary.go`
+Trong `dictionary.go`
 
 ```go
 var (
@@ -395,7 +394,7 @@ func (d Dictionary) Add(word, definition string) error {
 }
 ```
 
-Now we get two more errors. We are still modifying the value, and returning a `nil` error.
+Bây giờ chúng ta nhận được thêm hai lỗi. Chúng ta vẫn đang sửa đổi value và trả về lỗi `nil`.
 
 ```
 dictionary_test.go:43: got error '%!q(<nil>)' want 'cannot add word because it already exists'
@@ -421,11 +420,11 @@ func (d Dictionary) Add(word, definition string) error {
 }
 ```
 
-Here we are using a `switch` statement to match on the error. Having a `switch` like this provides an extra safety net, in case `Search` returns an error other than `ErrNotFound`.
+Ở đây chúng ta dùng câu lệnh `switch` để match trên lỗi. Có `switch` như này cung cấp mạng lưới an toàn thêm, phòng trường hợp `Search` trả về lỗi khác ngoài `ErrNotFound`.
 
 ## Refactor
 
-We don't have too much to refactor, but as our error usage grows we can make a few modifications.
+Chúng ta không có nhiều thứ cần refactor, nhưng khi error usage phát triển, chúng ta có thể thực hiện một vài sửa đổi.
 
 ```go
 const (
@@ -440,11 +439,11 @@ func (e DictionaryErr) Error() string {
 }
 ```
 
-We made the errors constant; this required us to create our own `DictionaryErr` type which implements the `error` interface. You can read more about the details in [this excellent article by Dave Cheney](https://dave.cheney.net/2016/04/07/constant-errors). Simply put, it makes the errors more reusable and immutable.
+Chúng ta tạo errors là constants; điều này yêu cầu tạo kiểu `DictionaryErr` riêng implement interface `error`. Bạn có thể đọc thêm trong [bài viết xuất sắc của Dave Cheney](https://dave.cheney.net/2016/04/07/constant-errors). Nói ngắn gọn, nó làm errors có thể tái sử dụng và bất biến hơn.
 
-Next, let's create a function to `Update` the definition of a word.
+Tiếp theo, hãy tạo hàm `Update` để sửa đổi định nghĩa của một từ.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 func TestUpdate(t *testing.T) {
@@ -459,7 +458,7 @@ func TestUpdate(t *testing.T) {
 }
 ```
 
-`Update` is very closely related to `Add` and will be our next implementation.
+`Update` liên quan chặt chẽ đến `Add` và sẽ là implementation tiếp theo của chúng ta.
 
 ## Thử chạy test
 
@@ -467,15 +466,15 @@ func TestUpdate(t *testing.T) {
 ./dictionary_test.go:53:2: dictionary.Update undefined (type Dictionary has no field or method Update)
 ```
 
-## Write minimal amount of code for the test to run and check the failing test output
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-We already know how to deal with an error like this. We need to define our function.
+Chúng ta đã biết cách xử lý lỗi kiểu này. Cần định nghĩa hàm.
 
 ```go
 func (d Dictionary) Update(word, definition string) {}
 ```
 
-With that in place, we are able to see that we need to change the definition of the word.
+Với điều đó, chúng ta có thể thấy cần thay đổi định nghĩa của từ.
 
 ```
 dictionary_test.go:55: got 'this is just a test' want 'new definition'
@@ -483,7 +482,7 @@ dictionary_test.go:55: got 'this is just a test' want 'new definition'
 
 ## Viết đủ code để test chạy thành công
 
-We already saw how to do this when we fixed the issue with `Add`. So let's implement something really similar to `Add`.
+Chúng ta đã thấy cách làm điều này khi sửa vấn đề với `Add`. Hãy implement tương tự như `Add`.
 
 ```go
 func (d Dictionary) Update(word, definition string) {
@@ -491,9 +490,9 @@ func (d Dictionary) Update(word, definition string) {
 }
 ```
 
-There is no refactoring we need to do on this since it was a simple change. However, we now have the same issue as with `Add`. If we pass in a new word, `Update` will add it to the dictionary.
+Không cần refactor vì đây là thay đổi đơn giản. Tuy nhiên, bây giờ chúng ta có vấn đề tương tự như `Add`. Nếu truyền vào từ mới, `Update` sẽ thêm nó vào từ điển.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 t.Run("existing word", func(t *testing.T) {
@@ -519,7 +518,7 @@ t.Run("new word", func(t *testing.T) {
 })
 ```
 
-We added yet another error type for when the word does not exist. We also modified `Update` to return an `error` value.
+Chúng ta thêm loại lỗi mới khi từ không tồn tại. Chúng ta cũng sửa đổi `Update` để trả về giá trị `error`.
 
 ## Thử chạy test
 
@@ -529,7 +528,7 @@ We added yet another error type for when the word does not exist. We also modifi
 ./dictionary_test.go:66:23: undefined: ErrWordDoesNotExist
 ```
 
-We get 3 errors this time, but we know how to deal with these.
+Chúng ta nhận 3 lỗi lần này, nhưng chúng ta biết cách xử lý chúng.
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
@@ -546,9 +545,9 @@ func (d Dictionary) Update(word, definition string) error {
 }
 ```
 
-We added our own error type and are returning a `nil` error.
+Chúng ta thêm kiểu lỗi riêng và trả về lỗi `nil`.
 
-With these changes, we now get a very clear error:
+Với những thay đổi này, chúng ta nhận lỗi rõ ràng:
 
 ```
 dictionary_test.go:66: got error '%!q(<nil>)' want 'cannot update word because it does not exist'
@@ -573,19 +572,19 @@ func (d Dictionary) Update(word, definition string) error {
 }
 ```
 
-This function looks almost identical to `Add` except we switched when we update the `dictionary` and when we return an error.
+Hàm này trông gần giống `Add` ngoại trừ chúng ta đổi khi nào cập nhật `dictionary` và khi nào trả về lỗi.
 
-### Chú ý on declaring a new error for Update
+### Lưu ý về khai báo lỗi mới cho Update
 
-We could reuse `ErrNotFound` and not add a new error. However, it is often better to have a precise error for when an update fails.
+Chúng ta có thể tái sử dụng `ErrNotFound` và không thêm lỗi mới. Tuy nhiên, thường tốt hơn là có lỗi chính xác khi update fail.
 
-Having specific errors gives you more information about what went wrong. Here is an example in a web app:
+Có errors cụ thể cung cấp thêm thông tin về những gì đã xảy ra. Đây là ví dụ trong web app:
 
-> You can redirect the user when `ErrNotFound` is encountered, but display an error message when `ErrWordDoesNotExist` is encountered.
+> Bạn có thể redirect người dùng khi gặp `ErrNotFound`, nhưng hiển thị thông báo lỗi khi gặp `ErrWordDoesNotExist`.
 
-Next, let's create a function to `Delete` a word in the dictionary.
+Tiếp theo, hãy tạo hàm `Delete` từ trong từ điển.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 func TestDelete(t *testing.T) {
@@ -599,11 +598,11 @@ func TestDelete(t *testing.T) {
 }
 ```
 
-Our test creates a `Dictionary` with a word and then checks if the word has been removed.
+Test của chúng ta tạo `Dictionary` với một từ rồi kiểm tra từ đó đã bị xóa.
 
-## Try to run the test
+## Thử chạy test
 
-By running `go test` we get:
+Bằng cách chạy `go test`:
 
 ```
 ./dictionary_test.go:74:6: dictionary.Delete undefined (type Dictionary has no field or method Delete)
@@ -617,7 +616,7 @@ func (d Dictionary) Delete(word string) {
 }
 ```
 
-After we add this, the test tells us we are not deleting the word.
+Sau khi thêm điều này, test cho biết chúng ta không xóa từ.
 
 ```
 dictionary_test.go:78: got error '%!q(<nil>)' want 'could not find the word you were looking for'
@@ -631,10 +630,11 @@ func (d Dictionary) Delete(word string) {
 }
 ```
 
-Go has a built-in function `delete` that works on maps. It takes two arguments and returns nothing. The first argument is the map and the second is the key to be removed.
+Go có hàm built-in `delete` hoạt động trên maps. Nó nhận hai đối số và không trả về gì. Đối số đầu tiên là map và đối số thứ hai là key cần xóa.
 
 ## Refactor
-There isn't much to refactor, but we can implement the same logic from `Update` to handle cases where word doesn't exist.
+
+Không có nhiều thứ cần refactor, nhưng chúng ta có thể implement logic tương tự từ `Update` để xử lý trường hợp từ không tồn tại.
 
 ```go
 func TestDelete(t *testing.T) {
@@ -662,9 +662,9 @@ func TestDelete(t *testing.T) {
 }
 ```
 
-## Try to run test
+## Thử chạy test
 
-The compiler will fail because we are not returning a value for `Delete`.
+Compiler sẽ thất bại vì chúng ta không trả về value cho `Delete`.
 
 ```
 ./dictionary_test.go:77:10: dictionary.Delete(word) (no value) used as value
@@ -690,17 +690,17 @@ func (d Dictionary) Delete(word string) error {
 }
 ```
 
-We are again using a switch statement to match on the error when we attempt to delete a word that doesn't exist. 
+Chúng ta dùng switch statement để match trên lỗi khi cố xóa từ không tồn tại.
 
 ## Tổng kết
 
-In this section, we covered a lot. We made a full CRUD (Create, Read, Update and Delete) API for our dictionary. Throughout the process we learned how to:
+Trong phần này, chúng ta đã học nhiều thứ. Chúng ta đã tạo API CRUD (Create, Read, Update và Delete) đầy đủ cho từ điển. Trong suốt quá trình, chúng ta học được cách:
 
-* Create maps
-* Search for items in maps
-* Add new items to maps
-* Update items in maps
-* Delete items from a map
-* Learned more about errors
-  * How to create errors that are constants
-  * Writing error wrappers
+* Tạo maps
+* Tìm kiếm các mục trong maps
+* Thêm mục mới vào maps
+* Cập nhật mục trong maps
+* Xóa mục khỏi map
+* Tìm hiểu thêm về errors
+  * Cách tạo errors là constants
+  * Viết error wrappers
