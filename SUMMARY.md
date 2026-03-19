@@ -37,7 +37,7 @@
 
 * [Intro](app-intro.md)
 * [HTTP server](http-server.md)
-* [JSON, routing and embedding](json.md)
+* [JSON, định tuyến và nhúng kiểu](json.md)
 * [IO and sorting](io.md)
 * [Command line & package structure](command-line.md)
 * [Time](time.md)

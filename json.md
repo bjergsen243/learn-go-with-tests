@@ -1,12 +1,12 @@
-# JSON, routing & embedding
+# JSON, định tuyến (routing) & nhúng (embedding)
 
-**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/json)**
+**[Tất cả mã nguồn của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/json)**
 
-[In the previous chapter](http-server.md) we created a web server to store how many games players have won.
+[Trong chương trước](http-server.md), chúng ta đã tạo một máy chủ web để lưu trữ số trận thắng của các người chơi.
 
-Our product owner has a new requirement; to have a new endpoint called `/league` which returns a list of all players stored. She would like this to be returned as JSON.
+Chủ sở hữu sản phẩm của chúng ta có một yêu cầu mới: tạo một điểm cuối (endpoint) mới gọi là `/league`, trả về danh sách tất cả các người chơi đã được lưu trữ. Cô ấy muốn danh sách này được trả về dưới dạng JSON.
 
-## Here is the code we have so far
+## Đây là mã nguồn chúng ta đã có cho đến giờ
 
 ```go
 // server.go
@@ -73,7 +73,6 @@ func (i *InMemoryPlayerStore) RecordWin(name string) {
 func (i *InMemoryPlayerStore) GetPlayerScore(name string) int {
 	return i.store[name]
 }
-
 ```
 
 ```go
@@ -91,16 +90,16 @@ func main() {
 }
 ```
 
-You can find the corresponding tests in the link at the top of the chapter.
+Bạn có thể tìm thấy các bản kiểm thử tương ứng trong liên kết ở đầu chương.
 
-We'll start by making the league table endpoint.
+Chúng ta sẽ bắt đầu bằng việc tạo endpoint cho bảng xếp hạng.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-We'll extend the existing suite as we have some useful test functions and a fake `PlayerStore` to use.
+Chúng ta sẽ mở rộng bộ kiểm thử hiện có vì chúng ta đã có một số hàm kiểm thử hữu ích và một `PlayerStore` giả để sử dụng.
 
 ```go
-//server_test.go
+// server_test.go
 func TestLeague(t *testing.T) {
 	store := StubPlayerStore{}
 	server := &PlayerServer{&store}
@@ -116,9 +115,9 @@ func TestLeague(t *testing.T) {
 }
 ```
 
-Before worrying about actual scores and JSON we will try and keep the changes small with the plan to iterate toward our goal. The simplest start is to check we can hit `/league` and get an `OK` back.
+Trước khi lo lắng về điểm số thực tế và JSON, chúng ta sẽ cố gắng duy trì các thay đổi nhỏ với kế hoạch lặp lại dần dần hướng tới mục tiêu của mình. Bắt đầu đơn giản nhất là kiểm tra xem chúng ta có thể truy cập `/league` và nhận lại mã `OK`.
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
     --- FAIL: TestLeague/it_returns_200_on_/league (0.00s)
@@ -128,22 +127,22 @@ FAIL	playerstore	0.221s
 FAIL
 ```
 
-Our `PlayerServer` returns a `404 Not Found`, as if we were trying to get the wins for an unknown player. Looking at how `server.go` implements `ServeHTTP`, we realize that it always assumes to be called with a URL pointing to a specific player:
+`PlayerServer` của chúng ta trả về `404 Not Found`, như thể chúng ta đang cố gắng lấy số trận thắng cho một người chơi không xác định. Nhìn vào cách `server.go` triển khai `ServeHTTP`, chúng ta nhận ra rằng nó luôn giả định được gọi với một URL trỏ đến một người chơi cụ thể:
 
 ```go
 player := strings.TrimPrefix(r.URL.Path, "/players/")
 ```
 
-In the previous chapter, we mentioned this was a fairly naive way of doing our routing. Our test informs us correctly that we need a concept how to deal with different request paths.
+Trong chương trước, chúng ta đã đề cập rằng đây là một cách định tuyến khá ngây thơ. Bản kiểm thử của chúng ta thông báo chính xác rằng chúng ta cần một khái niệm về cách xử lý các đường dẫn yêu cầu khác nhau.
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-Go has a built-in routing mechanism called [`ServeMux`](https://golang.org/pkg/net/http/#ServeMux) (request multiplexer) which lets you attach `http.Handler`s to particular request paths.
+Go có một cơ chế định tuyến tích hợp sẵn gọi là [`ServeMux`](https://golang.org/pkg/net/http/#ServeMux) (bộ dồn kênh yêu cầu) cho phép bạn gắn các `http.Handler` vào các đường dẫn yêu cầu cụ thể.
 
-Let's commit some sins and get the tests passing in the quickest way we can, knowing we can refactor it with safety once we know the tests are passing.
+Hãy tạm chấp nhận một số giải pháp "tội lỗi" và làm cho các bản kiểm thử vượt qua theo cách nhanh nhất có thể, biết rằng chúng ta có thể tái cấu trúc nó một cách an toàn khi biết các bản kiểm thử đã vượt qua.
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	router := http.NewServeMux()
@@ -167,19 +166,19 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-- When the request starts we create a router and then we tell it for `x` path use `y` handler.
-- So for our new endpoint, we use `http.HandlerFunc` and an _anonymous function_ to `w.WriteHeader(http.StatusOK)` when `/league` is requested to make our new test pass.
-- For the `/players/` route we just cut and paste our code into another `http.HandlerFunc`.
-- Finally, we handle the request that came in by calling our new router's `ServeHTTP` (notice how `ServeMux` is _also_ an `http.Handler`?)
+- Khi yêu cầu bắt đầu, chúng ta tạo một router và sau đó chỉ định cho đường dẫn `x` sử dụng handler `y`.
+- Vì vậy, đối với endpoint mới của chúng ta, chúng ta sử dụng `http.HandlerFunc` và một *hàm ẩn danh* (anonymous function) để thực hiện `w.WriteHeader(http.StatusOK)` khi `/league` được yêu cầu để giúp bản kiểm thử mới của chúng ta vượt qua.
+- Đối với route `/players/`, chúng ta chỉ việc cắt và dán mã nguồn cũ vào một `http.HandlerFunc` khác.
+- Cuối cùng, chúng ta xử lý yêu cầu đến bằng cách gọi `ServeHTTP` của router mới (hãy chú ý rằng `ServeMux` cũng *là* một `http.Handler`).
 
-The tests should now pass.
+Các bản kiểm thử bây giờ sẽ vượt qua.
 
-## Refactor
+## Tái cấu trúc (Refactor)
 
-`ServeHTTP` is looking quite big, we can separate things out a bit by refactoring our handlers into separate methods.
+`ServeHTTP` trông khá đồ sộ, chúng ta có thể tách biệt mọi thứ bằng cách tái cấu trúc các handler của mình thành các phương thức riêng biệt.
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	router := http.NewServeMux()
@@ -205,10 +204,10 @@ func (p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-It's quite odd (and inefficient) to be setting up a router as a request comes in and then calling it. What we ideally want to do is have some kind of `NewPlayerServer` function which will take our dependencies and do the one-time setup of creating the router. Each request can then just use that one instance of the router.
+Thật kỳ lạ (và kém hiệu quả) khi phải thiết lập một router mỗi khi một yêu cầu đến và sau đó gọi nó. Những gì chúng ta thực sự muốn là có một loại hàm `NewPlayerServer` nhận các phụ thuộc của mình và thực hiện thiết lập router một lần duy nhất. Sau đó mỗi yêu cầu chỉ cần sử dụng phiên bản router đó.
 
 ```go
-//server.go
+// server.go
 type PlayerServer struct {
 	store  PlayerStore
 	router *http.ServeMux
@@ -231,13 +230,13 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-- `PlayerServer` now needs to store a router.
-- We have moved the routing creation out of `ServeHTTP` and into our `NewPlayerServer` so this only has to be done once, not per request.
-- You will need to update all the test and production code where we used to do `PlayerServer{&store}` with `NewPlayerServer(&store)`.
+- `PlayerServer` bây giờ cần lưu trữ một router.
+- Chúng ta đã di chuyển việc tạo router ra khỏi `ServeHTTP` và đưa vào `NewPlayerServer` để việc này chỉ phải thực hiện một lần, thay vì cho mỗi yêu cầu.
+- Bạn sẽ cần cập nhật tất cả các mã nguồn kiểm thử và mã nguồn thực tế ở những nơi chúng ta đã sử dụng `PlayerServer{&store}` thành `NewPlayerServer(&store)`.
 
-### One final refactor
+### Một bước tái cấu trúc cuối cùng
 
-Try changing the code to the following.
+Hãy thử thay đổi mã nguồn thành như sau:
 
 ```go
 type PlayerServer struct {
@@ -260,25 +259,25 @@ func NewPlayerServer(store PlayerStore) *PlayerServer {
 }
 ```
 
-Then replace `server := &PlayerServer{&store}` with `server := NewPlayerServer(&store)` in `server_test.go`, `server_integration_test.go`, and `main.go`.
+Sau đó thay thế `server := &PlayerServer{&store}` thành `server := NewPlayerServer(&store)` trong `server_test.go`, `server_integration_test.go`, và `main.go`.
 
-Finally make sure you **delete** `func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request)` as it is no longer needed!
+Cuối cùng hãy đảm bảo bạn **xóa** `func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request)` vì nó không còn cần thiết nữa!
 
-## Embedding
+## Nhúng (Embedding)
 
-We changed the second property of `PlayerServer`, removing the named property `router http.ServeMux` and replaced it with `http.Handler`; this is called _embedding_.
+Chúng ta đã thay đổi thuộc tính thứ hai của `PlayerServer`, loại bỏ thuộc tính có tên `router http.ServeMux` và thay thế nó bằng `http.Handler`; điều này được gọi là *nhúng* (embedding).
 
-> Go does not provide the typical, type-driven notion of subclassing, but it does have the ability to “borrow” pieces of an implementation by embedding types within a struct or interface.
+> Go không cung cấp khái niệm lớp con (subclassing) điển hình dựa trên kiểu, nhưng nó có khả năng "mượn" các phần của một triển khai bằng cách nhúng các kiểu vào trong một struct hoặc interface.
 
-[Effective Go - Embedding](https://golang.org/doc/effective_go.html#embedding)
+[Go hiệu quả - Nhúng](https://golang.org/doc/effective_go.html#embedding)
 
-What this means is that our `PlayerServer` now has all the methods that `http.Handler` has, which is just `ServeHTTP`.
+Điều này có nghĩa là `PlayerServer` của chúng ta bây giờ có tất cả các phương thức mà `http.Handler` có, trong trường hợp này chỉ là `ServeHTTP`.
 
-To "fill in" the `http.Handler` we assign it to the `router` we create in `NewPlayerServer`. We can do this because `http.ServeMux` has the method `ServeHTTP`.
+Để "lấp đầy" `http.Handler`, chúng ta gán nó cho `router` mà chúng ta tạo trong `NewPlayerServer`. Chúng ta có thể làm điều này vì `http.ServeMux` có phương thức `ServeHTTP`.
 
-This lets us remove our own `ServeHTTP` method, as we are already exposing one via the embedded type.
+Điều này cho phép chúng ta xóa phương thức `ServeHTTP` của chính mình, vì chúng ta đã cung cấp một phương thức thông qua kiểu được nhúng.
 
-Embedding is a very interesting language feature. You can use it with interfaces to compose new interfaces.
+Nhúng là một tính năng ngôn ngữ rất thú vị. Bạn có thể sử dụng nó với các interface để hợp thành các interface mới.
 
 ```go
 type Animal interface {
@@ -287,21 +286,21 @@ type Animal interface {
 }
 ```
 
-And you can use it with concrete types too, not just interfaces. As you'd expect if you embed a concrete type you'll have access to all its public methods and fields.
+Và bạn cũng có thể sử dụng nó với các kiểu cụ thể (concrete types), không chỉ với các interface. Đúng như mong đợi, nếu bạn nhúng một kiểu cụ thể, bạn sẽ có quyền truy cập vào tất cả các phương thức và trường công khai (public) của nó.
 
-### Any downsides?
+### Có nhược điểm nào không?
 
-You must be careful with embedding types because you will expose all public methods and fields of the type you embed. In our case, it is ok because we embedded just the _interface_ that we wanted to expose (`http.Handler`).
+Bạn phải cẩn thận với việc nhúng các kiểu vì bạn sẽ để lộ tất cả các phương thức và trường công khai của kiểu mà bạn nhúng. Trong trường hợp của chúng ta, điều đó ổn vì chúng ta chỉ nhúng *interface* mà chúng ta muốn để lộ (`http.Handler`).
 
-If we had been lazy and embedded `http.ServeMux` instead (the concrete type) it would still work _but_ users of `PlayerServer` would be able to add new routes to our server because `Handle(path, handler)` would be public.
+Nếu chúng ta lười biếng và nhúng `http.ServeMux` thay thế (kiểu cụ thể), nó vẫn hoạt động *nhưng* người dùng `PlayerServer` sẽ có thể thêm các route mới vào máy chủ của chúng ta vì `Handle(path, handler)` sẽ ở chế độ công khai.
 
-**When embedding types, really think about what impact that has on your public API.**
+**Khi nhúng các kiểu, hãy thực sự nghĩ về tác động của nó đối với API công khai của bạn.**
 
-It is a _very_ common mistake to misuse embedding and end up polluting your APIs and exposing the internals of your type.
+Một sai lầm *rất* phổ biến là lạm dụng việc nhúng và cuối cùng làm hỏng các API của bạn cũng như làm lộ các chi tiết nội bộ bên trong kiểu của bạn.
 
-Now we've restructured our application we can easily add new routes and have the start of the `/league` endpoint. We now need to make it return some useful information.
+Bây giờ chúng ta đã cấu trúc lại ứng dụng của mình, chúng ta có thể dễ dàng thêm các route mới và bắt đầu với điểm cuối `/league`. Bây giờ chúng ta cần làm cho nó trả về một số thông tin hữu ích.
 
-We should return some JSON that looks something like this.
+Chúng ta nên trả về một số dữ liệu JSON trông giống như thế này:
 
 ```json
 [
@@ -316,12 +315,12 @@ We should return some JSON that looks something like this.
 ]
 ```
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-We'll start by trying to parse the response into something meaningful.
+Chúng ta sẽ bắt đầu bằng việc cố gắng phân tích phản hồi thành thứ gì đó có ý nghĩa.
 
 ```go
-//server_test.go
+// server_test.go
 func TestLeague(t *testing.T) {
 	store := StubPlayerStore{}
 	server := NewPlayerServer(&store)
@@ -345,46 +344,46 @@ func TestLeague(t *testing.T) {
 }
 ```
 
-### Why not test the JSON string?
+### Tại sao không kiểm tra chuỗi JSON?
 
-You could argue a simpler initial step would be just to assert that the response body has a particular JSON string.
+Bạn có thể tranh luận rằng bước ban đầu đơn giản hơn sẽ chỉ là khẳng định rằng thân phản hồi có một chuỗi JSON cụ thể.
 
-In my experience tests that assert against JSON strings have the following problems.
+Theo kinh nghiệm của tôi, các bản kiểm thử khẳng định với các chuỗi JSON có các vấn đề sau:
 
-- *Brittleness*. If you change the data-model your tests will fail.
-- *Hard to debug*. It can be tricky to understand what the actual problem is when comparing two JSON strings.
-- *Poor intention*. Whilst the output should be JSON, what's really important is exactly what the data is, rather than how it's encoded.
-- *Re-testing the standard library*. There is no need to test how the standard library outputs JSON, it is already tested. Don't test other people's code.
+- *Tính giòn (Brittleness)*. Nếu bạn thay đổi mô hình dữ liệu, các bản kiểm thử của bạn sẽ thất bại.
+- *Khó gỡ lỗi (Hard to debug)*. Có thể khó hiểu vấn đề thực sự là gì khi so sánh hai chuỗi JSON.
+- *Ý định kém (Poor intention)*. Mặc dù đầu ra phải là JSON, điều thực sự quan trọng là chính xác dữ liệu đó là gì, thay vì cách nó được mã hóa.
+- *Kiểm thử lại thư viện tiêu chuẩn*. Không cần thiết phải kiểm thử cách thư viện tiêu chuẩn xuất ra JSON, nó đã được kiểm thử rồi. Đừng kiểm thử mã nguồn của người khác.
 
-Instead, we should look to parse the JSON into data structures that are relevant for us to test with.
+Thay vào đó, chúng ta nên cân nhắc việc phân tích JSON thành các cấu trúc dữ liệu phù hợp để chúng ta kiểm thử.
 
-### Data modelling
+### Mô hình hóa dữ liệu (Data modelling)
 
-Given the JSON data model, it looks like we need an array of `Player` with some fields so we have created a new type to capture this.
+Dựa trên mô hình dữ liệu JSON, có vẻ như chúng ta cần một mảng gồm các `Player` với một số trường, vì vậy chúng ta đã tạo một kiểu mới để nắm bắt điều này.
 
 ```go
-//server.go
+// server.go
 type Player struct {
 	Name string
 	Wins int
 }
 ```
 
-### JSON decoding
+### Giải mã JSON (JSON decoding)
 
 ```go
-//server_test.go
+// server_test.go
 var got []Player
 err := json.NewDecoder(response.Body).Decode(&got)
 ```
 
-To parse JSON into our data model we create a `Decoder` from `encoding/json` package and then call its `Decode` method. To create a `Decoder` it needs an `io.Reader` to read from which in our case is our response spy's `Body`.
+Để phân tích JSON thành mô hình dữ liệu của mình, chúng ta tạo một `Decoder` từ gói `encoding/json` và sau đó gọi phương thức `Decode` của nó. Để tạo một `Decoder`, nó cần một `io.Reader` để đọc từ đó, trong trường hợp của chúng ta là trường `Body` của bản ghi phản hồi (response spy).
 
-`Decode` takes the address of the thing we are trying to decode into, which is why we declare an empty slice of `Player` the line before.
+`Decode` nhận địa chỉ của thứ mà chúng ta đang cố gắng giải mã vào, đó là lý do tại sao chúng ta khai báo một lát cắt (slice) trống của `Player` ở dòng trước đó.
 
-Parsing JSON can fail so `Decode` can return an `error`. There's no point continuing the test if that fails so we check for the error and stop the test with `t.Fatalf` if it happens. Notice that we print the response body along with the error as it's important for someone running the test to see what string cannot be parsed.
+Việc phân tích JSON có thể thất bại nên `Decode` có thể trả về một `error`. Không có lý do gì để tiếp tục bản kiểm thử nếu việc đó thất bại, vì vậy chúng ta kiểm tra lỗi và dừng bản kiểm thử bằng `t.Fatalf` nếu nó xảy ra. Lưu ý rằng chúng ta in thân phản hồi cùng với lỗi vì điều quan trọng là người chạy bản kiểm thử phải thấy chuỗi nào không thể phân tích được.
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 === RUN   TestLeague/it_returns_200_on_/league
@@ -392,12 +391,12 @@ Parsing JSON can fail so `Decode` can return an `error`. There's no point contin
         server_test.go:107: Unable to parse response from server '' into slice of Player, 'unexpected end of JSON input'
 ```
 
-Our endpoint currently does not return a body so it cannot be parsed into JSON.
+Điểm cuối của chúng ta hiện không trả về thân phản hồi nên nó không thể được phân tích thành JSON.
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 	leagueTable := []Player{
 		{"Chris", 20},
@@ -409,23 +408,23 @@ func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The test now passes.
+Các bản kiểm thử bây giờ đã vượt qua.
 
-### Encoding and Decoding
+### Mã hóa (Encoding) và Giải mã (Decoding)
 
-Notice the lovely symmetry in the standard library.
+HÃy chú ý sự đối xứng đáng yêu trong thư viện tiêu chuẩn.
 
-- To create an `Encoder` you need an `io.Writer` which is what `http.ResponseWriter` implements.
-- To create a `Decoder` you need an `io.Reader` which the `Body` field of our response spy implements.
+- Để tạo một `Encoder`, bạn cần một `io.Writer`, chính là những gì `http.ResponseWriter` triển khai.
+- Để tạo một `Decoder`, bạn cần một `io.Reader`, chính là những gì trường `Body` của bản ghi phản hồi (response spy) triển khai.
 
-Throughout this book, we have used `io.Writer` and this is another demonstration of its prevalence in the standard library and how a lot of libraries easily work with it.
+Xuyên suốt cuốn sách này, chúng ta đã sử dụng `io.Writer` và đây là một minh chứng khác cho sự phổ biến của nó trong thư viện tiêu chuẩn và cách nhiều thư viện dễ dàng làm việc với nó.
 
-## Refactor
+## Tái cấu trúc
 
-It would be nice to introduce a separation of concern between our handler and getting the `leagueTable` as we know we're going to not hard-code that very soon.
+Sẽ rất tốt nếu giới thiệu một sự tách biệt các mối quan tâm (separation of concern) giữa handler của chúng ta và việc lấy `leagueTable`, vì chúng ta biết rằng chúng ta sẽ không mã hóa cứng việc đó lâu nữa đâu.
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(p.getLeagueTable())
 	w.WriteHeader(http.StatusOK)
@@ -438,16 +437,16 @@ func (p *PlayerServer) getLeagueTable() []Player {
 }
 ```
 
-Next, we'll want to extend our test so that we can control exactly what data we want back.
+Tiếp theo, chúng ta muốn mở rộng bản kiểm thử của mình để có thể kiểm soát chính xác dữ liệu nào chúng ta muốn nhận lại.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-We can update the test to assert that the league table contains some players that we will stub in our store.
+Chúng ta có thể cập nhật bản kiểm thử để khẳng định rằng bảng xếp hạng chứa một số người chơi mà chúng ta sẽ tạo stub trong store của mình.
 
-Update `StubPlayerStore` to let it store a league, which is just a slice of `Player`. We'll store our expected data in there.
+Cập nhật `StubPlayerStore` để cho phép nó lưu trữ một bảng xếp hạng, vốn chỉ là một lát cắt của các `Player`. Chúng ta sẽ lưu trữ dữ liệu mong đợi của mình ở đó.
 
 ```go
-//server_test.go
+// server_test.go
 type StubPlayerStore struct {
 	scores   map[string]int
 	winCalls []string
@@ -455,10 +454,10 @@ type StubPlayerStore struct {
 }
 ```
 
-Next, update our current test by putting some players in the league property of our stub and assert they get returned from our server.
+Tiếp theo, cập nhật bản kiểm thử hiện tại của chúng ta bằng cách đưa một số người chơi vào thuộc tính league của stub và khẳng định họ được trả về từ máy chủ của chúng ta.
 
 ```go
-//server_test.go
+// server_test.go
 func TestLeague(t *testing.T) {
 
 	t.Run("it returns the league table as JSON", func(t *testing.T) {
@@ -493,18 +492,18 @@ func TestLeague(t *testing.T) {
 }
 ```
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 ./server_test.go:33:3: too few values in struct initializer
 ./server_test.go:70:3: too few values in struct initializer
 ```
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
+## Viết lượng mã nguồn tối thiểu để bản kiểm thử chạy và kiểm tra kết quả lỗi
 
-You'll need to update the other tests as we have a new field in `StubPlayerStore`; set it to nil for the other tests.
+Bạn sẽ cần cập nhật các bản kiểm thử khác vì chúng ta có một trường mới trong `StubPlayerStore`; hãy đặt nó thành `nil` cho các bản kiểm thử khác.
 
-Try running the tests again and you should get
+Thử chạy lại các bản kiểm thử và bạn sẽ nhận được:
 
 ```
 === RUN   TestLeague/it_returns_the_league_table_as_JSON
@@ -512,12 +511,12 @@ Try running the tests again and you should get
         server_test.go:124: got [{Chris 20}] want [{Cleo 32} {Chris 20} {Tiest 14}]
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-We know the data is in our `StubPlayerStore` and we've abstracted that away into an interface `PlayerStore`. We need to update this so anyone passing us in a `PlayerStore` can provide us with the data for leagues.
+Chúng ta biết dữ liệu nằm trong `StubPlayerStore` và chúng ta đã trừu tượng hóa nó vào một interface `PlayerStore`. Chúng ta cần cập nhật cái này để bất kỳ ai truyền cho chúng ta một `PlayerStore` đều có thể cung cấp cho chúng ta dữ liệu cho các bảng xếp hạng.
 
 ```go
-//server.go
+// server.go
 type PlayerStore interface {
 	GetPlayerScore(name string) int
 	RecordWin(name string)
@@ -525,17 +524,17 @@ type PlayerStore interface {
 }
 ```
 
-Now we can update our handler code to call that rather than returning a hard-coded list. Delete our method `getLeagueTable()` and then update `leagueHandler` to call `GetLeague()`.
+Bây giờ chúng ta có thể cập nhật mã nguồn handler của mình để gọi phương thức đó thay vì trả về một danh sách được mã hóa cứng. Xóa phương thức `getLeagueTable()` của chúng ta và sau đó cập nhật `leagueHandler` để gọi `GetLeague()`.
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(p.store.GetLeague())
 	w.WriteHeader(http.StatusOK)
 }
 ```
 
-Try and run the tests.
+Thử và chạy các bản kiểm thử.
 
 ```
 # github.com/quii/learn-go-with-tests/json-and-io/v4
@@ -551,47 +550,47 @@ Try and run the tests.
     *StubPlayerStore does not implement PlayerStore (missing GetLeague method)
 ```
 
-The compiler is complaining because `InMemoryPlayerStore` and `StubPlayerStore` do not have the new method we added to our interface.
+Trình biên dịch đang phàn nàn vì `InMemoryPlayerStore` và `StubPlayerStore` không có phương thức mới mà chúng ta đã thêm vào interface của mình.
 
-For `StubPlayerStore` it's pretty easy, just return the `league` field we added earlier.
+Đối với `StubPlayerStore`, nó khá dễ dàng, chỉ cần trả về trường `league` mà chúng ta đã thêm trước đó.
 
 ```go
-//server_test.go
+// server_test.go
 func (s *StubPlayerStore) GetLeague() []Player {
 	return s.league
 }
 ```
 
-Here's a reminder of how `InMemoryStore` is implemented.
+Dưới đây là lời nhắc về cách `InMemoryStore` được triển khai:
 
 ```go
-//in_memory_player_store.go
+// in_memory_player_store.go
 type InMemoryPlayerStore struct {
 	store map[string]int
 }
 ```
 
-Whilst it would be pretty straightforward to implement `GetLeague` "properly" by iterating over the map remember we are just trying to _write the minimal amount of code to make the tests pass_.
+Mặc dù sẽ khá đơn giản để thực hiện `GetLeague` một cách "đúng đắn" bằng cách lặp qua bản đồ, hãy nhớ rằng chúng ta chỉ đang cố gắng *viết lượng mã nguồn tối thiểu để làm cho các bản kiểm thử vượt qua*.
 
-So let's just get the compiler happy for now and live with the uncomfortable feeling of an incomplete implementation in our `InMemoryStore`.
+Vì vậy, hãy tạm thời làm cho trình biên dịch hài lòng và chấp nhận cảm giác khó chịu về một sự triển khai chưa hoàn chỉnh trong `InMemoryStore` của chúng ta.
 
 ```go
-//in_memory_player_store.go
+// in_memory_player_store.go
 func (i *InMemoryPlayerStore) GetLeague() []Player {
 	return nil
 }
 ```
 
-What this is really telling us is that _later_ we're going to want to test this but let's park that for now.
+Điều mà điều này thực sự đang nói với chúng ta là *sau này* chúng ta sẽ muốn kiểm thử cái này nhưng hãy tạm gác nó lại.
 
-Try and run the tests, the compiler should pass and the tests should be passing!
+Thử chạy các bản kiểm thử, trình biên dịch sẽ thông qua và các bản kiểm thử cũng sẽ vượt qua!
 
-## Refactor
+## Tái cấu trúc
 
-The test code does not convey our intent very well and has a lot of boilerplate we can refactor away.
+Mã nguồn kiểm thử không truyền đạt tốt lắm ý định của chúng ta và có rất nhiều mã nguồn lặp đi lặp lại (boilerplate) mà chúng ta có thể tái cấu trúc.
 
 ```go
-//server_test.go
+// server_test.go
 t.Run("it returns the league table as JSON", func(t *testing.T) {
 	wantedLeague := []Player{
 		{"Cleo", 32},
@@ -613,10 +612,10 @@ t.Run("it returns the league table as JSON", func(t *testing.T) {
 })
 ```
 
-Here are the new helpers
+Dưới đây là các helper mới:
 
 ```go
-//server_test.go
+// server_test.go
 func getLeagueFromResponse(t testing.TB, body io.Reader) (league []Player) {
 	t.Helper()
 	err := json.NewDecoder(body).Decode(&league)
@@ -641,20 +640,20 @@ func newLeagueRequest() *http.Request {
 }
 ```
 
-One final thing we need to do for our server to work is make sure we return a `content-type` header in the response so machines can recognise we are returning `JSON`.
+Một điều cuối cùng chúng ta cần làm để máy chủ hoạt động là đảm bảo chúng ta trả về một header `content-type` trong phản hồi để các máy móc có thể nhận biết chúng ta đang trả về `JSON`.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-Add this assertion to the existing test
+Thêm khẳng định này vào bản kiểm thử hiện có của bạn:
 
 ```go
-//server_test.go
+// server_test.go
 if response.Result().Header.Get("content-type") != "application/json" {
 	t.Errorf("response did not have content-type of application/json, got %v", response.Result().Header)
 }
 ```
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 === RUN   TestLeague/it_returns_the_league_table_as_JSON
@@ -662,26 +661,26 @@ if response.Result().Header.Get("content-type") != "application/json" {
         server_test.go:124: response did not have content-type of application/json, got map[Content-Type:[text/plain; charset=utf-8]]
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-Update `leagueHandler`
+Cập nhập `leagueHandler`:
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(p.store.GetLeague())
 }
 ```
 
-The test should pass.
+Bản kiểm thử bây giờ sẽ vượt qua.
 
-## Refactor
+## Tái cấu trúc
 
-Create a constant for "application/json" and use it in `leagueHandler`
+Tạo một hằng số cho "application/json" và sử dụng nó trong `leagueHandler`.
 
 ```go
-//server.go
+// server.go
 const jsonContentType = "application/json"
 
 func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
@@ -690,10 +689,10 @@ func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Then add a helper for `assertContentType`.
+Sau đó thêm một helper cho `assertContentType`.
 
 ```go
-//server_test.go
+// server_test.go
 func assertContentType(t testing.TB, response *httptest.ResponseRecorder, want string) {
 	t.Helper()
 	if response.Result().Header.Get("content-type") != want {
@@ -702,23 +701,23 @@ func assertContentType(t testing.TB, response *httptest.ResponseRecorder, want s
 }
 ```
 
-Use it in the test.
+Sử dụng nó trong bản kiểm thử:
 
 ```go
-//server_test.go
+// server_test.go
 assertContentType(t, response, jsonContentType)
 ```
 
-Now that we have sorted out `PlayerServer` for now we can turn our attention to `InMemoryPlayerStore` because right now if we tried to demo this to the product owner `/league` will not work.
+Bây giờ chúng ta đã tạm thời xử lý xong `PlayerServer`, chúng ta có thể chuyển sự chú ý sang `InMemoryPlayerStore` vì hiện tại nếu chúng ta thử demo cái này cho chủ sở hữu sản phẩm thì `/league` sẽ không hoạt động.
 
-The quickest way for us to get some confidence is to add to our integration test, we can hit the new endpoint and check we get back the correct response from `/league`.
+Cách nhanh nhất để chúng ta có một sự tin cậy là thêm một bản kiểm thử tích hợp (integration test), chúng ta có thể truy cập endpoint mới và kiểm tra xem chúng ta có nhận được phản hồi chính xác từ `/league` hay không.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-We can use `t.Run` to break up this test a bit and we can reuse the helpers from our server tests - again showing the importance of refactoring tests.
+Chúng ta có thể sử dụng `t.Run` để phân nhỏ bản kiểm thử này ra một chút và chúng ta có thể sử dụng lại các helper từ các bản kiểm thử server của mình - một lần nữa cho thấy tầm quan trọng của việc tái cấu trúc các bản kiểm thử.
 
 ```go
-//server_integration_test.go
+// server_integration_test.go
 func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 	store := NewInMemoryPlayerStore()
 	server := NewPlayerServer(store)
@@ -750,7 +749,7 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 }
 ```
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 === RUN   TestRecordingWinsAndRetrievingThem/get_league
@@ -758,12 +757,12 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
         server_integration_test.go:35: got [] want [{Pepper 3}]
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-`InMemoryPlayerStore` is returning `nil` when you call `GetLeague()` so we'll need to fix that.
+`InMemoryPlayerStore` đang trả về `nil` khi bạn gọi `GetLeague()` nên chúng ta cần phải sửa chữa nó.
 
 ```go
-//in_memory_player_store.go
+// in_memory_player_store.go
 func (i *InMemoryPlayerStore) GetLeague() []Player {
 	var league []Player
 	for name, wins := range i.store {
@@ -773,16 +772,17 @@ func (i *InMemoryPlayerStore) GetLeague() []Player {
 }
 ```
 
-All we need to do is iterate over the map and convert each key/value to a `Player`.
+Tất cả những gì chúng ta cần làm là lặp qua bản đồ và chuyển đổi từng key/value thành một `Player`.
 
-The test should now pass.
+Bản kiểm thử bây giờ sẽ vượt qua.
 
 ## Tổng kết
 
-We've continued to safely iterate on our program using TDD, making it support new endpoints in a maintainable way with a router and it can now return JSON for our consumers. In the next chapter, we will cover persisting the data and sorting our league.
+Chúng ta đã tiếp tục lặp lại chương trình của mình một cách an toàn bằng TDD, làm cho nó hỗ trợ các endpoint mới theo cách dễ bảo trì với một router và giờ đây nó có thể trả về JSON cho những người dùng của mình. Trong chương tiếp theo, chúng ta sẽ đề cập đến việc lưu trữ dữ liệu bền vững (persisting) và sắp xếp bảng xếp hạng của mình.
 
-What we've covered:
+Những gì chúng ta đã đề cập:
 
-- **Routing**. The standard library offers you an easy to use type to do routing. It fully embraces the `http.Handler` interface in that you assign routes to `Handler`s and the router itself is also a `Handler`. It does not have some features you might expect though such as path variables (e.g `/users/{id}`). You can easily parse this information yourself but you might want to consider looking at other routing libraries if it becomes a burden. Most of the popular ones stick to the standard library's philosophy of also implementing `http.Handler`.
-- **Type embedding**. We touched a little on this technique but you can [learn more about it from Effective Go](https://golang.org/doc/effective_go.html#embedding). If there is one thing you should take away from this is that it can be extremely useful but _always thinking about your public API, only expose what's appropriate_.
-- **JSON deserializing and serializing**. The standard library makes it very trivial to serialise and deserialise your data. It is also open to configuration and you can customise how these data transformations work if necessary.
+- **Định tuyến (Routing)**. Thư viện tiêu chuẩn cung cấp cho bạn một kiểu dễ sử dụng để thực hiện việc định tuyến. Nó hoàn toàn đi theo interface `http.Handler` trong đó bạn gán các route cho các `Handler` và chính router cũng là một `Handler`. Tuy nhiên, nó không có một số tính năng mà bạn có thể mong đợi như các biến đường dẫn (ví dụ `/users/{id}`). Bạn có thể dễ dàng tự phân tích thông tin này nhưng bạn có thể muốn cân nhắc việc xem qua các thư viện định tuyến khác nếu việc đó trở thành gánh nặng. Hầu hết các thư viện phổ biến đều tuân theo triết lý của thư viện tiêu chuẩn là cũng thực hiện `http.Handler`.
+- **Nhúng kiểu (Type embedding)**. Chúng ta đã chạm một chút đến kỹ thuật này nhưng bạn có thể [tìm hiểu thêm về nó từ Go hiệu quả](https://golang.org/doc/effective_go.html#embedding). Nếu có một điều bạn nên rút ra từ việc này thì đó là nó có thể cực kỳ hữu ích nhưng *luôn phải suy nghĩ về API công khai của bạn, chỉ để lộ những gì phù hợp*.
+- **Giải mã và mã hóa JSON**. Thư viện tiêu chuẩn làm cho việc thực hiện tuần tự hóa (serialize) và giải mã tuần tự (deserialize) dữ liệu của bạn trở nên rất dễ dàng. Nó cũng cho phép cấu hình và bạn có thể tùy chỉnh cách các chuyển đổi dữ liệu này hoạt động nếu cần thiết.
+
