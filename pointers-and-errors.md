@@ -2,15 +2,15 @@
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/pointers)**
 
-We learned about structs in the last section which let us capture a number of values related around a concept.
+Chúng ta đã học về structs ở phần trước, cho phép nhóm các giá trị liên quan đến một khái niệm.
 
-At some point you may wish to use structs to manage state, exposing methods to let users change the state in a way that you can control.
+Đôi khi bạn có thể muốn dùng structs để quản lý state, cung cấp methods để người dùng thay đổi state theo cách bạn có thể kiểm soát.
 
-**Fintech loves Go** and uhhh bitcoins? So let's show what an amazing banking system we can make.
+**Fintech yêu thích Go** và... Bitcoin nữa! Vậy hãy xây dựng một hệ thống ngân hàng tuyệt vời.
 
-Let's make a `Wallet` struct which lets us deposit `Bitcoin`.
+Hãy tạo struct `Wallet` cho phép chúng ta nạp `Bitcoin`.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 func TestWallet(t *testing.T) {
@@ -28,30 +28,30 @@ func TestWallet(t *testing.T) {
 }
 ```
 
-In the [previous example](./structs-methods-and-interfaces.md) we accessed fields directly with the field name, however in our _very secure wallet_ we don't want to expose our inner state to the rest of the world. We want to control access via methods.
+Trong [ví dụ trước](./structs-methods-and-interfaces.md) chúng ta truy cập các trường trực tiếp bằng tên trường, nhưng trong _ví trực tuyến bảo mật cao_ của chúng ta, chúng ta không muốn lộ state nội bộ ra bên ngoài. Chúng ta muốn kiểm soát truy cập qua methods.
 
-## Try to run the test
+## Thử chạy test
 
 `./wallet_test.go:7:12: undefined: Wallet`
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-The compiler doesn't know what a `Wallet` is so let's tell it.
+Compiler không biết `Wallet` là gì nên hãy khai báo nó.
 
 ```go
 type Wallet struct{}
 ```
 
-Now we've made our wallet, try and run the test again
+Bây giờ hãy thử chạy lại test:
 
 ```
 ./wallet_test.go:9:8: wallet.Deposit undefined (type Wallet has no field or method Deposit)
 ./wallet_test.go:11:15: wallet.Balance undefined (type Wallet has no field or method Balance)
 ```
 
-We need to define these methods.
+Chúng ta cần định nghĩa các methods này.
 
-Remember to only do enough to make the tests run. We need to make sure our test fails correctly with a clear error message.
+Nhớ chỉ làm đủ để chạy test. Chúng ta cần đảm bảo test fail đúng cách với thông báo lỗi rõ ràng.
 
 ```go
 func (w Wallet) Deposit(amount int) {
@@ -63,15 +63,15 @@ func (w Wallet) Balance() int {
 }
 ```
 
-If this syntax is unfamiliar go back and read the structs section.
+Nếu cú pháp này chưa quen, hãy quay lại đọc phần structs.
 
-The tests should now compile and run
+Test giờ sẽ biên dịch và chạy
 
 `wallet_test.go:15: got 0 want 10`
 
 ## Viết đủ code để test chạy thành công
 
-We will need some kind of _balance_ variable in our struct to store the state
+Chúng ta cần một loại biến _balance_ trong struct để lưu state
 
 ```go
 type Wallet struct {
@@ -79,11 +79,11 @@ type Wallet struct {
 }
 ```
 
-In Go if a symbol (variables, types, functions et al) starts with a lowercase symbol then it is private _outside the package it's defined in_.
+Trong Go, nếu một symbol (biến, kiểu, hàm,...) bắt đầu bằng chữ cái viết thường, thì nó là private _bên ngoài package định nghĩa nó_.
 
-In our case we want our methods to be able to manipulate this value, but no one else.
+Trong trường hợp này, chúng ta muốn các methods có thể thao tác giá trị này, nhưng không ai khác được phép.
 
-Remember we can access the internal `balance` field in the struct using the "receiver" variable.
+Nhớ rằng chúng ta có thể truy cập trường `balance` nội bộ của struct qua biến "receiver".
 
 ```go
 func (w Wallet) Deposit(amount int) {
@@ -95,22 +95,21 @@ func (w Wallet) Balance() int {
 }
 ```
 
-With our career in fintech secured, run the test suite and bask in the passing test
+Với sự nghiệp trong fintech được đảm bảo, hãy chạy test suite và tận hưởng test pass
 
 `wallet_test.go:15: got 0 want 10`
 
-### That's not quite right
+### Không đúng rồi
 
-Well this is confusing, our code looks like it should work.
-We add the new amount onto our balance and then the balance method should return the current state of it.
+À, khó hiểu quá, code trông có vẻ đúng. Chúng ta thêm số tiền mới vào số dư rồi method balance sẽ trả về trạng thái hiện tại của nó.
 
-In Go, **when you call a function or a method the arguments are** _**copied**_.
+In Go, **khi bạn gọi function hoặc method, các đối số được** _**sao chép**_.
 
-When calling `func (w Wallet) Deposit(amount int)` the `w` is a copy of whatever we called the method from.
+Khi gọi `func (w Wallet) Deposit(amount int)`, `w` là bản sao của bất cứ thứ gì chúng ta gọi method từ đó.
 
-Without getting too computer-sciency, when you create a value - like a wallet, it is stored somewhere in memory. You can find out what the _address_ of that bit of memory with `&myVal`.
+Không cần quá học thuật, khi bạn tạo một giá trị — như một wallet, nó được lưu ở đâu đó trong bộ nhớ. Bạn có thể tìm _địa chỉ_ của bộ nhớ đó với `&myVal`.
 
-Experiment by adding some prints to your code
+Hãy thử nghiệm bằng cách thêm một vài lệnh in vào code:
 
 ```go
 func TestWallet(t *testing.T) {
@@ -138,20 +137,18 @@ func (w Wallet) Deposit(amount int) {
 }
 ```
 
-The `%p` placeholder prints memory addresses in base 16 notation with leading `0x`s and the `\n` escape character prints a new line.
-Note that we get the pointer (memory address) of something by placing an `&` character at the beginning of the symbol.
+`%p` in địa chỉ bộ nhớ ở hệ hexadecimal với tiền tố `0x` và `\n` in dòng mới. Chú ý rằng chúng ta lấy con trỏ (địa chỉ bộ nhớ) của thứ gì đó bằng cách đặt ký tự `&` ở đầu symbol.
 
-Now re-run the test
+Bây giờ chạy lại test:
 
 ```text
 address of balance in Deposit is 0xc420012268
 address of balance in test is 0xc420012260
 ```
 
-You can see that the addresses of the two balances are different. So when we change the value of the balance inside the code, we are working on a copy of what came from the test. Therefore the balance in the test is unchanged.
+Bạn có thể thấy địa chỉ của hai balance khác nhau. Vì vậy khi chúng ta thay đổi giá trị balance trong code, chúng ta đang làm việc trên _bản sao_ của giá trị từ test. Do đó balance trong test không thay đổi.
 
-We can fix this with _pointers_. [Pointers](https://gobyexample.com/pointers) let us _point_ to some values and then let us change them.
-So rather than taking a copy of the whole Wallet, we instead take a pointer to that wallet so that we can change the original values within it.
+Chúng ta có thể sửa bằng _pointers_. [Pointers](https://gobyexample.com/pointers) cho phép chúng ta _trỏ_ đến một số giá trị và sau đó thay đổi chúng. Thay vì sao chép toàn bộ Wallet, chúng ta lấy con trỏ đến wallet đó để có thể thay đổi các giá trị gốc trong đó.
 
 ```go
 func (w *Wallet) Deposit(amount int) {
@@ -163,11 +160,11 @@ func (w *Wallet) Balance() int {
 }
 ```
 
-The difference is the receiver type is `*Wallet` rather than `Wallet` which you can read as "a pointer to a wallet".
+Sự khác biệt là kiểu receiver là `*Wallet` thay vì `Wallet`, có thể đọc là "con trỏ đến wallet".
 
-Try and re-run the tests and they should pass.
+Thử chạy lại test và chúng sẽ pass.
 
-Now you might wonder, why did they pass? We didn't dereference the pointer in the function, like so:
+Bây giờ bạn có thể thắc mắc tại sao chúng pass? Chúng ta không dereference pointer trong hàm, như:
 
 ```go
 func (w *Wallet) Balance() int {
@@ -175,20 +172,19 @@ func (w *Wallet) Balance() int {
 }
 ```
 
-and seemingly addressed the object directly. In fact, the code above using `(*w)` is absolutely valid. However, the makers of Go deemed this notation cumbersome, so the language permits us to write `w.balance`, without an explicit dereference.
-These pointers to structs even have their own name: _struct pointers_ and they are [automatically dereferenced](https://golang.org/ref/spec#Method_values).
+và dường như truy cập trực tiếp vào đối tượng. Thực ra, code trên dùng `(*w)` hoàn toàn hợp lệ. Tuy nhiên, người tạo ra Go cho rằng ký hiệu này phiền toái, nên ngôn ngữ cho phép chúng ta viết `w.balance` mà không cần dereference tường minh. Các con trỏ đến struct thậm chí có tên riêng: _struct pointers_ và chúng được [dereference tự động](https://golang.org/ref/spec#Method_values).
 
-Technically you do not need to change `Balance` to use a pointer receiver as taking a copy of the balance is fine. However, by convention you should keep your method receiver types the same for consistency.
+Về mặt kỹ thuật, bạn không cần đổi `Balance` để dùng pointer receiver vì sao chép balance là ổn. Tuy nhiên, theo quy ước, nên giữ kiểu receiver của methods nhất quán.
 
 ## Refactor
 
-We said we were making a Bitcoin wallet but we have not mentioned them so far. We've been using `int` because they're a good type for counting things!
+Chúng ta nói sẽ tạo Bitcoin wallet nhưng chưa đề cập đến chúng cho đến nay. Chúng ta đang dùng `int` vì chúng là kiểu tốt để đếm!
 
-It seems a bit overkill to create a `struct` for this. `int` is fine in terms of the way it works but it's not descriptive.
+Có vẻ hơi quá khi tạo `struct` cho bitcoin. `int` ổn về cách hoạt động của nó, nhưng không mô tả được ý nghĩa.
 
-Go lets you create new types from existing ones.
+Go cho phép bạn tạo các kiểu mới từ các kiểu đã có.
 
-The syntax is `type MyName OriginalType`
+Cú pháp là `type MyName OriginalType`
 
 ```go
 type Bitcoin int
@@ -223,11 +219,11 @@ func TestWallet(t *testing.T) {
 }
 ```
 
-To make `Bitcoin` you just use the syntax `Bitcoin(999)`.
+Để tạo `Bitcoin`, chỉ cần dùng cú pháp `Bitcoin(999)`.
 
-By doing this we're making a new type and we can declare _methods_ on them. This can be very useful when you want to add some domain specific functionality on top of existing types.
+Bằng cách này, chúng ta tạo kiểu mới và có thể khai báo _methods_ trên chúng. Điều này có thể rất hữu ích khi bạn muốn thêm một số chức năng miền cụ thể lên các kiểu đã có.
 
-Let's implement [Stringer](https://golang.org/pkg/fmt/#Stringer) on Bitcoin
+Hãy implement [Stringer](https://golang.org/pkg/fmt/#Stringer) trên Bitcoin:
 
 ```go
 type Stringer interface {
@@ -235,7 +231,7 @@ type Stringer interface {
 }
 ```
 
-This interface is defined in the `fmt` package and lets you define how your type is printed when used with the `%s` format string in prints.
+Interface này được định nghĩa trong package `fmt` và cho phép bạn định nghĩa cách kiểu của mình được in khi dùng với chuỗi format `%s` trong các lệnh print.
 
 ```go
 func (b Bitcoin) String() string {
@@ -243,9 +239,9 @@ func (b Bitcoin) String() string {
 }
 ```
 
-As you can see, the syntax for creating a method on a type declaration is the same as it is on a struct.
+Như bạn thấy, cú pháp tạo method trên khai báo kiểu giống với struct.
 
-Next we need to update our test format strings so they will use `String()` instead.
+Tiếp theo chúng ta cần cập nhật các format string trong test để dùng `String()`:
 
 ```go
 	if got != want {
@@ -253,17 +249,17 @@ Next we need to update our test format strings so they will use `String()` inste
 	}
 ```
 
-To see this in action, deliberately break the test so we can see it
+Để thấy điều này hoạt động, hãy cố tình làm test fail:
 
 `wallet_test.go:18: got 10 BTC want 20 BTC`
 
-This makes it clearer what's going on in our test.
+Điều này làm rõ hơn những gì đang xảy ra trong test.
 
-The next requirement is for a `Withdraw` function.
+Yêu cầu tiếp theo là hàm `Withdraw`.
 
-## Write the test first
+## Viết test trước tiên
 
-Pretty much the opposite of `Deposit()`
+Về cơ bản ngược lại với `Deposit()`
 
 ```go
 func TestWallet(t *testing.T) {
@@ -298,7 +294,7 @@ func TestWallet(t *testing.T) {
 }
 ```
 
-## Try to run the test
+## Thử chạy test
 
 `./wallet_test.go:26:9: wallet.Withdraw undefined (type Wallet has no field or method Withdraw)`
 
@@ -322,7 +318,7 @@ func (w *Wallet) Withdraw(amount Bitcoin) {
 
 ## Refactor
 
-There's some duplication in our tests, lets refactor that out.
+Có một số sự trùng lặp trong test, hãy refactor chúng.
 
 ```go
 func TestWallet(t *testing.T) {
@@ -351,15 +347,15 @@ func TestWallet(t *testing.T) {
 }
 ```
 
-What should happen if you try to `Withdraw` more than is left in the account? For now, our requirement is to assume there is not an overdraft facility.
+Điều gì sẽ xảy ra nếu bạn cố `Withdraw` nhiều hơn số tiền còn lại trong tài khoản? Hiện tại, yêu cầu là giả định không có tiện ích thấu chi.
 
-How do we signal a problem when using `Withdraw`?
+Làm sao chúng ta báo hiệu vấn đề khi dùng `Withdraw`?
 
-In Go, if you want to indicate an error it is idiomatic for your function to return an `err` for the caller to check and act on.
+Trong Go, nếu bạn muốn chỉ ra lỗi, thông lệ là hàm của bạn trả về `err` để người gọi kiểm tra và xử lý.
 
-Let's try this out in a test.
+Hãy thử trong test.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 t.Run("withdraw insufficient funds", func(t *testing.T) {
@@ -375,19 +371,19 @@ t.Run("withdraw insufficient funds", func(t *testing.T) {
 })
 ```
 
-We want `Withdraw` to return an error _if_ you try to take out more than you have and the balance should stay the same.
+Chúng ta muốn `Withdraw` trả về lỗi _nếu_ bạn cố rút nhiều hơn số tiền có và balance phải giữ nguyên.
 
-We then check an error has returned by failing the test if it is `nil`.
+Sau đó chúng ta kiểm tra lỗi đã được trả về bằng cách fail test nếu nó là `nil`.
 
-`nil` is synonymous with `null` from other programming languages. Errors can be `nil` because the return type of `Withdraw` will be `error`, which is an interface. If you see a function that takes arguments or returns values that are interfaces, they can be nillable.
+`nil` tương đương với `null` trong các ngôn ngữ khác. Errors có thể là `nil` vì kiểu trả về của `Withdraw` sẽ là `error`, là một interface. Nếu bạn thấy hàm nhận đối số hoặc trả về giá trị là interfaces, chúng có thể là nil.
 
-Like `null` if you try to access a value that is `nil` it will throw a **runtime panic**. This is bad! You should make sure that you check for nils.
+Giống `null`, nếu bạn truy cập vào giá trị `nil`, nó sẽ gây ra **runtime panic**. Điều này tệ! Bạn phải đảm bảo kiểm tra nil.
 
 ## Thử chạy test
 
 `./wallet_test.go:31:25: wallet.Withdraw(Bitcoin(100)) used as value`
 
-The wording is perhaps a little unclear, but our previous intent with `Withdraw` was just to call it, it will never return a value. To make this compile we will need to change it so it has a return type.
+Cách diễn đạt có thể hơi khó hiểu, nhưng ý định trước đây với `Withdraw` là chỉ gọi nó, không bao giờ trả về giá trị. Để biên dịch được, chúng ta sẽ cần thay đổi nó để có kiểu trả về.
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
@@ -398,7 +394,7 @@ func (w *Wallet) Withdraw(amount Bitcoin) error {
 }
 ```
 
-Again, it is very important to just write enough code to satisfy the compiler. We correct our `Withdraw` method to return `error` and for now we have to return _something_ so let's just return `nil`.
+Một lần nữa, điều quan trọng là chỉ viết đủ code để thỏa mãn compiler. Chúng ta sửa method `Withdraw` để trả về `error` và hiện tại phải trả về _thứ gì đó_ nên hãy trả về `nil`.
 
 ## Viết đủ code để test chạy thành công
 
@@ -414,13 +410,13 @@ func (w *Wallet) Withdraw(amount Bitcoin) error {
 }
 ```
 
-Remember to import `errors` into your code.
+Nhớ import `errors` vào code.
 
-`errors.New` creates a new `error` with a message of your choosing.
+`errors.New` tạo `error` mới với thông báo bạn chọn.
 
 ## Refactor
 
-Let's make a quick test helper for our error check to improve the test's readability
+Hãy tạo test helper nhanh để kiểm tra lỗi và cải thiện khả năng đọc của test:
 
 ```go
 assertError := func(t testing.TB, err error) {
@@ -431,7 +427,7 @@ assertError := func(t testing.TB, err error) {
 }
 ```
 
-And in our test
+Và trong test:
 
 ```go
 t.Run("withdraw insufficient funds", func(t *testing.T) {
@@ -444,13 +440,13 @@ t.Run("withdraw insufficient funds", func(t *testing.T) {
 })
 ```
 
-Hopefully when returning an error of "oh no" you were thinking that we _might_ iterate on that because it doesn't seem that useful to return.
+Hy vọng khi trả về lỗi "oh no", bạn đang suy nghĩ rằng chúng ta _có thể_ cần lặp lại điều đó vì nó không có vẻ hữu ích.
 
-Assuming that the error ultimately gets returned to the user, let's update our test to assert on some kind of error message rather than just the existence of an error.
+Giả sử lỗi cuối cùng được trả về cho người dùng, hãy cập nhật test để assert về một thông báo lỗi cụ thể thay vì chỉ sự tồn tại của lỗi.
 
-## Write the test first
+## Viết test trước tiên
 
-Update our helper for a `string` to compare against.
+Cập nhật helper với `string` để so sánh.
 
 ```go
 assertError := func(t testing.TB, got error, want string) {
@@ -466,9 +462,9 @@ assertError := func(t testing.TB, got error, want string) {
 }
 ```
 
-As you can see `Error`s can be converted to a string with the `.Error()` method, which we do in order to compare it with the string we want. We are also making sure that the error is not `nil` to ensure we don't call `.Error()` on `nil`.
+Như bạn thấy, `Error`s có thể được chuyển thành string bằng method `.Error()`, chúng ta dùng để so sánh với string mong đợi. Chúng ta cũng đảm bảo lỗi không phải `nil` để tránh gọi `.Error()` trên `nil`.
 
-And then update the caller
+Và cập nhật caller:
 
 ```go
 t.Run("withdraw insufficient funds", func(t *testing.T) {
@@ -481,9 +477,9 @@ t.Run("withdraw insufficient funds", func(t *testing.T) {
 })
 ```
 
-We've introduced `t.Fatal` which will stop the test if it is called. This is because we don't want to make any more assertions on the error returned if there isn't one around. Without this the test would carry on to the next step and panic because of a nil pointer.
+Chúng ta đã giới thiệu `t.Fatal` sẽ dừng test nếu được gọi. Điều này vì chúng ta không muốn tiếp tục assert về lỗi trả về nếu không có. Không có điều này, test sẽ tiếp tục bước tiếp theo và panic vì pointer nil.
 
-## Try to run the test
+## Thử chạy test
 
 `wallet_test.go:61: got err 'oh no' want 'cannot withdraw, insufficient funds'`
 
@@ -503,11 +499,11 @@ func (w *Wallet) Withdraw(amount Bitcoin) error {
 
 ## Refactor
 
-We have duplication of the error message in both the test code and the `Withdraw` code.
+Chúng ta có sự trùng lặp thông báo lỗi trong cả code test và code `Withdraw`.
 
-It would be really annoying for the test to fail if someone wanted to re-word the error and it's just too much detail for our test. We don't _really_ care what the exact wording is, just that some kind of meaningful error around withdrawing is returned given a certain condition.
+Sẽ rất phiền nếu test fail chỉ vì ai đó muốn đổi từ ngữ lỗi và nó quá chi tiết cho test của chúng ta. Chúng ta không _thực sự_ quan tâm đến từ ngữ chính xác, chỉ cần một loại lỗi có ý nghĩa về rút tiền được trả về trong điều kiện nhất định.
 
-In Go, errors are values, so we can refactor it out into a variable and have a single source of truth for it.
+Trong Go, errors là values, nên chúng ta có thể refactor nó thành biến và có một nguồn sự thật duy nhất.
 
 ```go
 var ErrInsufficientFunds = errors.New("cannot withdraw, insufficient funds")
@@ -523,11 +519,11 @@ func (w *Wallet) Withdraw(amount Bitcoin) error {
 }
 ```
 
-The `var` keyword allows us to define values global to the package.
+Từ khóa `var` cho phép định nghĩa giá trị global cho package.
 
-This is a positive change in itself because now our `Withdraw` function looks very clear.
+Đây là thay đổi tích cực vì bây giờ hàm `Withdraw` của chúng ta trông rõ ràng hơn.
 
-Next we can refactor our test code to use this value instead of specific strings.
+Tiếp theo chúng ta có thể refactor code test để dùng giá trị này thay vì các chuỗi cụ thể.
 
 ```go
 func TestWallet(t *testing.T) {
@@ -574,29 +570,29 @@ func assertError(t testing.TB, got, want error) {
 }
 ```
 
-And now the test is easier to follow too.
+Và giờ test dễ theo dõi hơn.
 
-I have moved the helpers out of the main test function just so when someone opens up a file they can start reading our assertions first, rather than some helpers.
+Tôi đã đưa các helpers ra ngoài hàm test chính để khi ai đó mở file, họ có thể đọc assertions của chúng ta trước, chứ không phải một số helpers.
 
-Another useful property of tests is that they help us understand the _real_ usage of our code so we can make sympathetic code. We can see here that a developer can simply call our code and do an equals check to `ErrInsufficientFunds` and act accordingly.
+Một tính chất hữu ích khác của tests là chúng giúp chúng ta hiểu _cách dùng thực tế_ của code. Chúng ta có thể thấy ở đây rằng developer có thể đơn giản gọi code của chúng ta và thực hiện so sánh bằng `ErrInsufficientFunds` rồi xử lý tương ứng.
 
-### Unchecked errors
+### Errors chưa được kiểm tra
 
-Whilst the Go compiler helps you a lot, sometimes there are things you can still miss and error handling can sometimes be tricky.
+Dù compiler Go giúp bạn rất nhiều, đôi khi vẫn có những thứ bạn bỏ lỡ và xử lý lỗi đôi khi có thể phức tạp.
 
-There is one scenario we have not tested. To find it, run the following in a terminal to install `errcheck`, one of many linters available for Go.
+Có một tình huống chúng ta chưa test. Để tìm nó, chạy lệnh sau trong terminal để cài `errcheck`, một trong nhiều linter có sẵn cho Go.
 
 `go install github.com/kisielk/errcheck@latest`
 
-Then, inside the directory with your code run `errcheck .`
+Sau đó, trong thư mục có code của bạn, chạy `errcheck .`
 
-You should get something like
+Bạn sẽ thấy:
 
 `wallet_test.go:17:18: wallet.Withdraw(Bitcoin(10))`
 
-What this is telling us is that we have not checked the error being returned on that line of code. That line of code on my computer corresponds to our normal withdraw scenario because we have not checked that if the `Withdraw` is successful that an error is _not_ returned.
+Điều này cho biết chúng ta chưa kiểm tra lỗi được trả về trên dòng code đó. Dòng code đó trong máy tôi tương ứng với kịch bản withdraw bình thường của chúng ta vì chúng ta chưa kiểm tra xem nếu `Withdraw` thành công thì lỗi có _không_ được trả về.
 
-Here is the final test code that accounts for this.
+Đây là code test cuối cùng xử lý điều này.
 
 ```go
 func TestWallet(t *testing.T) {
@@ -657,25 +653,25 @@ func assertError(t testing.TB, got error, want error) {
 
 ### Pointers
 
-* Go copies values when you pass them to functions/methods, so if you're writing a function that needs to mutate state you'll need it to take a pointer to the thing you want to change.
-* The fact that Go takes a copy of values is useful a lot of the time but sometimes you won't want your system to make a copy of something, in which case you need to pass a reference. Examples include referencing very large data structures or things where only one instance is necessary \(like database connection pools\).
+* Go sao chép values khi bạn truyền chúng vào functions/methods, vì vậy nếu bạn viết function cần mutate state, bạn cần nó nhận pointer đến thứ bạn muốn thay đổi.
+* Việc Go sao chép values hữu ích nhiều lần nhưng đôi khi bạn không muốn hệ thống sao chép thứ gì đó, trong trường hợp đó bạn cần truyền reference. Ví dụ bao gồm tham chiếu đến các cấu trúc dữ liệu rất lớn hoặc những thứ mà chỉ cần một instance \(như connection pool của database\).
 
 ### nil
 
-* Pointers can be nil
-* When a function returns a pointer to something, you need to make sure you check if it's nil or you might raise a runtime exception - the compiler won't help you here.
-* Useful for when you want to describe a value that could be missing
+* Pointers có thể là nil
+* Khi hàm trả về pointer đến thứ gì đó, bạn cần đảm bảo kiểm tra nếu nó là nil hoặc bạn có thể gây ra runtime exception — compiler không giúp bạn ở đây.
+* Hữu ích khi bạn muốn mô tả giá trị có thể bị thiếu
 
 ### Errors
 
-* Errors are the way to signify failure when calling a function/method.
-* By listening to our tests we concluded that checking for a string in an error would result in a flaky test. So we refactored our implementation to use a meaningful value instead and this resulted in easier to test code and concluded this would be easier for users of our API too.
-* This is not the end of the story with error handling, you can do more sophisticated things but this is just an intro. Later sections will cover more strategies.
-* [Don’t just check errors, handle them gracefully](https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully)
+* Errors là cách để báo hiệu thất bại khi gọi function/method.
+* Bằng cách lắng nghe test của chúng ta, chúng ta kết luận rằng kiểm tra chuỗi trong error sẽ dẫn đến test không ổn định. Vì vậy chúng ta refactor implementation để dùng giá trị có ý nghĩa thay thế và điều này dẫn đến code dễ test hơn và kết luận điều này sẽ dễ hơn cho người dùng API của chúng ta.
+* Đây không phải là hết câu chuyện về xử lý lỗi, bạn có thể làm những thứ phức tạp hơn nhưng đây chỉ là giới thiệu. Các phần sau sẽ đề cập thêm các chiến lược.
+* [Đừng chỉ kiểm tra errors, hãy xử lý chúng một cách khéo léo](https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully)
 
-### Create new types from existing ones
+### Tạo kiểu mới từ kiểu đã có
 
-* Useful for adding more domain specific meaning to values
-* Can let you implement interfaces
+* Hữu ích để thêm ý nghĩa miền cụ thể hơn cho values
+* Có thể cho phép implement interfaces
 
-Pointers and errors are a big part of writing Go that you need to get comfortable with. Thankfully the compiler will _usually_ help you out if you do something wrong, just take your time and read the error.
+Pointers và errors là phần lớn trong việc viết Go mà bạn cần phải quen. Rất may, compiler thường _sẽ_ giúp bạn nếu bạn làm gì đó sai, chỉ cần dành thời gian đọc lỗi.
