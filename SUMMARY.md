@@ -21,7 +21,7 @@
 * [Context](context.md)
 * [Giới thiệu về property based tests](roman-numerals.md)
 * [Toán học](math.md)
-* [Reading files](reading-files.md)
+* [Đọc file](reading-files.md)
 * [Templating](html-templates.md)
 * [Generics](generics.md)
 * [Revisiting arrays and slices with generics](revisiting-arrays-and-slices-with-generics.md)

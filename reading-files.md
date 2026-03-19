@@ -1,15 +1,15 @@
-# Reading files
+# Đọc file (Reading files)
 
 - **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/reading-files)**
-- [Here is a video of me working through the problem and taking questions from the Twitch stream](https://www.youtube.com/watch?v=nXts4dEJnkU)
+- [Đây là video tôi đang giải quyết bài toán và trả lời các câu hỏi từ Twitch stream](https://www.youtube.com/watch?v=nXts4dEJnkU)
 
-In this chapter we're going to learn how to read some files, get some data out of them, and do something useful.
+Trong chương này, chúng ta sẽ học cách đọc một số file, trích xuất dữ liệu từ chúng và thực hiện điều gì đó hữu ích.
 
-Pretend you're working with your friend to create some blog software. The idea is an author will write their posts in markdown, with some metadata at the top of the file. On startup, the web server will read a folder to create some `Post`s, and then a separate `NewHandler` function will use those `Post`s as a datasource for the blog's webserver.
+Giả sử bạn đang làm việc với một người bạn để tạo một phần mềm blog. Ý tưởng là tác giả sẽ viết các bài đăng của họ bằng markdown, với một số siêu dữ liệu (metadata) ở đầu file. Khi khởi động, web server sẽ đọc một thư mục để tạo ra các `Post`, và sau đó một hàm `NewHandler` riêng biệt sẽ sử dụng các `Post` đó làm nguồn dữ liệu cho web server của blog.
 
-We've been asked to create the package that converts a given folder of blog post files into a collection of `Post`s.
+Chúng ta được yêu cầu tạo package chuyển đổi một thư mục chứa các file bài đăng blog thành một tập hợp các `Post`.
 
-### Example data
+### Dữ liệu mẫu
 
 hello world.md
 ```markdown
@@ -22,7 +22,7 @@ Hello world!
 The body of posts starts after the `---`
 ```
 
-### Expected data
+### Dữ liệu mong chờ
 
 ```go
 type Post struct {
@@ -31,73 +31,72 @@ type Post struct {
 }
 ```
 
-## Iterative, test-driven development
+## Phát triển theo hướng kiểm thử, lặp lại (Iterative, TDD)
 
-We'll take an iterative approach where we're always taking simple, safe steps toward our goal.
+Chúng ta sẽ thực hiện theo phương pháp lặp lại, luôn thực hiện các bước đơn giản, an toàn hướng tới mục tiêu của mình.
 
-This requires us to break up our work, but we should be careful not to fall into the trap of taking a ["bottom up"](https://en.wikipedia.org/wiki/Top-down_and_bottom-up_design) approach.
+Điều này đòi hỏi chúng ta phải chia nhỏ công việc, nhưng chúng ta nên cẩn thận để không rơi vào cái bẫy thực hiện phương pháp ["từ dưới lên" (bottom up)](https://en.wikipedia.org/wiki/Top-down_and_bottom-up_design).
 
-We should not trust our over-active imaginations when we start work. We could be tempted into making some kind of abstraction that is only validated once we stick everything together, such as some kind of `BlogPostFileParser`.
+Chúng ta không nên tin vào trí tưởng tượng quá mức của mình khi bắt đầu công việc. Chúng ta có thể bị cám dỗ tạo ra một loại trừu tượng nào đó mà chỉ được kiểm chứng sau khi chúng ta gắn kết mọi thứ lại với nhau, chẳng hạn như một loại `BlogPostFileParser` nào đó.
 
-This is _not_ iterative and is missing out on the tight feedback loops that TDD is supposed to bring us.
+Điều này *không* mang tính lặp lại và đang bỏ lỡ các vòng lặp phản hồi chặt chẽ mà TDD mang lại cho chúng ta.
 
-Kent Beck says:
+Kent Beck nói:
 
-> Optimism is an occupational hazard of programming. Feedback is the treatment.
+> Sự lạc quan là một mối nguy hiểm nghề nghiệp của lập trình viên. Phản hồi chính là phương pháp điều trị.
 
-Instead, our approach should strive to be as close to delivering _real_ consumer value as quickly as possible (often called a "happy path"). Once we have delivered a small amount of consumer value end-to-end, further iteration of the rest of the requirements is usually straightforward.
+Thay vào đó, cách tiếp cận của chúng ta nên cố gắng đạt được việc mang lại giá trị *thực* cho người tiêu dùng càng nhanh càng tốt (thường được gọi là "happy path"). Một khi chúng ta đã mang lại một phần nhỏ giá trị cho người tiêu dùng từ đầu đến cuối (end-to-end), việc lặp lại tiếp theo cho các yêu cầu còn lại thường sẽ đơn giản.
 
-## Thinking about the kind of test we want to see
+## Suy nghĩ về loại test mà chúng ta muốn thấy
 
-Let's remind ourselves of our mindset and goals when starting:
+Hãy tự nhắc nhở bản thân về tư duy và mục tiêu của chúng ta khi bắt đầu:
 
-- **Write the test we want to see**. Think about how we'd like to use the code we're going to write from a consumer's point of view.
-- Focus on _what_ and _why_, but don't get distracted by _how_.
+- **Viết bản kiểm thử mà chúng ta muốn thấy**. Hãy nghĩ về cách chúng ta muốn sử dụng mã nguồn mà mình chuẩn bị viết từ quan điểm của người tiêu dùng.
+- Tập trung vào *cái gì* và *tại sao*, nhưng đừng bị phân tâm bởi *làm thế nào*.
 
-Our package needs to offer a function that can be pointed at a folder, and return us some posts.
+Package của chúng ta cần cung cấp một hàm có thể trỏ vào một thư mục và trả về cho chúng ta một số bài đăng.
 
 ```go
 var posts []blogposts.Post
 posts = blogposts.NewPostsFromFS("some-folder")
 ```
 
-To write a test around this, we'd need some kind of test folder with some example posts in it. _There's nothing terribly wrong with this_, but you are making some trade-offs:
+Để viết một bản kiểm thử xung quanh việc này, chúng ta cần một loại thư mục kiểm thử với một số bài đăng mẫu trong đó. *Cũng không có gì quá sai trái với điều này*, nhưng bạn đang thực hiện một số đánh đổi:
 
-- for each test you may need to create new files to test a particular behaviour
-- some behaviour will be challenging to test, such as failing to load files
-- the tests will run a little slower because they will need to access the file system
+- đối với mỗi bản kiểm thử, bạn có thể cần tạo các file mới để kiểm thử một hành vi cụ thể
+- một số hành vi sẽ khó kiểm thử, chẳng hạn như lỗi khi tải file
+- các bản kiểm thử sẽ chạy chậm hơn một chút vì chúng cần truy cập vào hệ thống file
 
-We're also unnecessarily coupling ourselves to a specific implementation of the file system.
+Chúng ta cũng đang ràng buộc bản thân một cách không cần thiết vào một triển khai cụ thể của hệ thống file.
 
-### File system abstractions introduced in Go 1.16
+### Trừu tượng hóa hệ thống file được giới thiệu trong Go 1.16
 
-Go 1.16 introduced an abstraction for file systems; the [io/fs](https://golang.org/pkg/io/fs/) package.
+Go 1.16 đã giới thiệu một sự trừu tượng hóa cho hệ thống file; package [io/fs](https://golang.org/pkg/io/fs/).
 
-> Package fs defines basic interfaces to a file system. A file system can be provided by the host operating system but also by other packages.
+> Package fs định nghĩa các interface cơ bản cho một hệ thống file. Một hệ thống file có thể được cung cấp bởi hệ điều hành máy chủ nhưng cũng có thể được cung cấp bởi các package khác.
 
-This lets us loosen our coupling to a specific file system, which will then let us inject different implementations according to our needs.
+Điều này cho phép chúng ta nới lỏng sự ràng buộc của mình vào một hệ thống file cụ thể, từ đó cho phép chúng ta truyền (inject) các triển khai khác nhau tùy theo nhu cầu của mình.
 
-> [On the producer side of the interface, the new embed.FS type implements fs.FS, as does zip.Reader. The new os.DirFS function provides an implementation of fs.FS backed by a tree of operating system files.](https://golang.org/doc/go1.16#fs)
+> [Về phía nhà cung cấp của interface, kiểu embed.FS mới triển khai fs.FS, tương tự như zip.Reader. Hàm os.DirFS mới cung cấp một triển khai của fs.FS được hỗ trợ bởi một cây các file hệ điều hành.](https://golang.org/doc/go1.16#fs)
 
-If we use this interface, users of our package have a number of options baked-in to the standard library to use. Learning to leverage interfaces defined in Go's standard library (e.g. `io.fs`, [`io.Reader`](https://golang.org/pkg/io/#Reader), [`io.Writer`](https://golang.org/pkg/io/#Writer)), is vital to writing loosely coupled packages. These packages can then be re-used in contexts different to those you imagined, with minimal fuss from your consumers.
+Nếu chúng ta sử dụng interface này, người dùng package của chúng ta có một số tùy chọn được tích hợp sẵn trong thư viện tiêu chuẩn để sử dụng. Học cách tận dụng các interface được định nghĩa trong thư viện tiêu chuẩn của Go (ví dụ: `io.fs`, [`io.Reader`](https://golang.org/pkg/io/#Reader), [`io.Writer`](https://golang.org/pkg/io/#Writer)), là điều quan trọng để viết các package có độ ràng buộc thấp (loosely coupled). Các package này sau đó có thể được tái sử dụng trong các ngữ cảnh khác với những gì bạn tưởng tượng ban đầu, với sự phiền hà tối thiểu từ người tiêu dùng của bạn.
 
-In our case, maybe our consumer wants the posts to be embedded into the Go binary rather than files in a "real" filesystem? Either way, _our code doesn't need to care_.
+Trong trường hợp của chúng ta, có lẽ người tiêu dùng muốn các bài đăng được nhúng vào file nhị phân Go thay vì các file trong một hệ thống file "thật"? Dù thế nào đi nữa, *mã nguồn của chúng ta không cần phải quan tâm*.
 
-For our tests, the package [testing/fstest](https://golang.org/pkg/testing/fstest/) offers us an implementation of [io/FS](https://golang.org/pkg/io/fs/#FS) to use, similar to the tools we're familiar with in [net/http/httptest](https://golang.org/pkg/net/http/httptest/).
+Đối với các bản kiểm thử của chúng ta, package [testing/fstest](https://golang.org/pkg/testing/fstest/) cung cấp cho chúng ta một triển khai của [io/FS](https://golang.org/pkg/io/fs/#FS) để sử dụng, tương tự như các công cụ mà chúng ta đã quen thuộc trong [net/http/httptest](https://golang.org/pkg/net/http/httptest/).
 
-Given this information, the following feels like a better approach,
+Với những thông tin này, cách tiếp cận sau đây có vẻ tốt hơn:
 
 ```go
 var posts []blogposts.Post
 posts = blogposts.NewPostsFromFS(someFS)
 ```
 
+## Viết test trước tiên
 
-## Write the test first
+Chúng ta nên giữ phạm vi nhỏ gọn và hữu ích nhất có thể. Nếu chúng ta chứng minh được rằng mình có thể đọc tất cả các file trong một thư mục, đó sẽ là một khởi đầu tốt. Điều này sẽ cho chúng ta sự tự tin vào phần mềm mình đang viết. Chúng ta có thể kiểm tra xem số lượng `[]Post` được trả về có giống với số lượng file trong hệ thống file giả của chúng ta hay không.
 
-We should keep scope as small and useful as possible. If we prove that we can read all the files in a directory, that will be a good start.  This will give us confidence in the software we're writing.  We can check that the count of `[]Post` returned is the same as the number of files in our fake file system.
-
-Create a new project to work through this chapter.
+Tạo một dự án mới để thực hành chương này.
 
 - `mkdir blogposts`
 - `cd blogposts`
@@ -124,28 +123,27 @@ func TestNewBlogPosts(t *testing.T) {
 		t.Errorf("got %d posts, wanted %d posts", len(posts), len(fs))
 	}
 }
-
 ```
 
-Notice that the package of our test is `blogposts_test`. Remember, when TDD is practiced well we take a _consumer-driven_ approach: we don't want to test internal details because _consumers_ don't care about them. By appending `_test` to our intended package name, we only access exported members from our package - just like a real user of our package.
+Lưu ý rằng package của bản kiểm thử là `blogposts_test`. Hãy nhớ rằng, khi TDD được thực hành tốt, chúng ta thực hiện theo phương pháp *hướng người tiêu dùng* (consumer-driven): chúng ta không muốn kiểm thử các chi tiết nội bộ vì *người tiêu dùng* không quan tâm đến chúng. Bằng cách thêm `_test` vào tên package dự định của mình, chúng ta chỉ truy cập vào các thành viên được xuất (exported) từ package của mình - giống như một người dùng thực sự của package.
 
-We've imported [`testing/fstest`](https://golang.org/pkg/testing/fstest/) which gives us access to the [`fstest.MapFS`](https://golang.org/pkg/testing/fstest/#MapFS) type. Our fake file system will pass `fstest.MapFS` to our package.
+Chúng ta đã import [`testing/fstest`](https://golang.org/pkg/testing/fstest/) cung cấp quyền truy cập vào kiểu [`fstest.MapFS`](https://golang.org/pkg/testing/fstest/#MapFS). Hệ thống file giả của chúng ta sẽ truyền `fstest.MapFS` vào package của chúng ta.
 
-> A MapFS is a simple in-memory file system for use in tests, represented as a map from path names (arguments to Open) to information about the files or directories they represent.
+> MapFS là một hệ thống file đơn giản trong bộ nhớ để sử dụng trong các bản kiểm thử, được đại diện dưới dạng một map từ tên đường dẫn (các đối số cho Open) đến thông tin về các file hoặc thư mục mà chúng đại diện.
 
-This feels simpler than maintaining a folder of test files, and it will execute quicker.
+Điều này có vẻ đơn giản hơn việc duy trì một thư mục chứa các file kiểm thử, và nó sẽ thực thi nhanh hơn.
 
-Finally, we codified the usage of our API from a consumer's point of view, then checked if it creates the correct number of posts.
+Cuối cùng, chúng ta đã hệ thống hóa việc sử dụng API của mình từ góc nhìn của người tiêu dùng, sau đó kiểm tra xem nó có tạo ra số lượng bài đăng chính xác hay không.
 
-## Try to run the test
+## Thử chạy test
 
 ```
 ./blogpost_test.go:15:12: undefined: blogposts
 ```
 
-## Write the minimal amount of code for the test to run and _check the failing test output_
+## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-The package doesn't exist. Create a new file `blogposts.go` and put `package blogposts` inside it. You'll need to then import that package into your tests. For me, the imports now look like:
+Package không tồn tại. Tạo một file mới `blogposts.go` và đặt `package blogposts` vào bên trong. Sau đó, bạn sẽ cần import package đó vào các bản kiểm thử của mình. Đối với tôi, các bản import bây giờ trông như thế này:
 
 ```go
 import (
@@ -155,13 +153,13 @@ import (
 )
 ```
 
-Now the tests won't compile because our new package does not have a `NewPostsFromFS` function, that returns some kind of collection.
+Bây giờ các bản kiểm thử sẽ không biên dịch được vì package mới của chúng ta không có hàm `NewPostsFromFS` trả về một loại tập hợp nào đó.
 
 ```
 ./blogpost_test.go:16:12: undefined: blogposts.NewPostsFromFS
 ```
 
-This forces us to make the skeleton of our function to make the test run. Remember not to overthink the code at this point; we're only trying to get a running test, and to make sure it fails as we'd expect. If we skip this step we may skip over assumptions and, write a test which is not useful.
+Điều này buộc chúng ta phải tạo bộ khung cho hàm của mình để bản kiểm thử có thể chạy. Hãy nhớ đừng quá suy nghĩ về mã nguồn tại thời điểm này; chúng ta chỉ đang cố gắng có một bản kiểm thử đang chạy, và để đảm bảo nó thất bại như chúng ta mong đợi. Nếu chúng ta bỏ qua bước này, chúng ta có thể bỏ qua các giả định và viết một bản kiểm thử không hữu ích.
 
 ```go
 package blogposts
@@ -176,7 +174,7 @@ func NewPostsFromFS(fileSystem fstest.MapFS) []Post {
 }
 ```
 
-The test should now correctly fail
+Bản kiểm thử bây giờ sẽ thất bại một cách chính xác:
 
 ```
 === RUN   TestNewBlogPosts
@@ -185,7 +183,7 @@ The test should now correctly fail
 
 ## Viết đủ code để test chạy thành công
 
-We _could_ ["slime"](https://deniseyu.github.io/leveling-up-tdd/) this to make it pass:
+Chúng ta *có thể* sử dụng ["slime"](https://deniseyu.github.io/leveling-up-tdd/) để làm cho nó vượt qua:
 
 ```go
 func NewPostsFromFS(fileSystem fstest.MapFS) []Post {
@@ -193,13 +191,13 @@ func NewPostsFromFS(fileSystem fstest.MapFS) []Post {
 }
 ```
 
-But, as Denise Yu wrote:
+Nhưng, như Denise Yu đã viết:
 
->Sliming is useful for giving a “skeleton” to your object. Designing an interface and executing logic are two concerns, and sliming tests strategically lets you focus on one at a time.
+> Sliming rất hữu ích để tạo "bộ khung" cho đối tượng của bạn. Thiết kế một interface và thực thi logic là hai mối quan tâm khác nhau, và việc kiểm thử slime một cách chiến thuật cho phép bạn tập trung vào từng thứ một.
 
-We already have our structure. So, what do we do instead?
+Chúng ta đã có cấu trúc của mình. Vậy, chúng ta làm gì thay thế?
 
-As we've cut scope, all we need to do is read the directory and create a post for each file we encounter. We don't have to worry about opening files and parsing them just yet.
+Vì chúng ta đã thu hẹp phạm vi, tất cả những gì chúng ta cần làm là đọc thư mục và tạo một bài đăng cho mỗi file mà chúng ta gặp. Chúng ta chưa phải lo lắng về việc mở các file và phân tích chúng.
 
 ```go
 func NewPostsFromFS(fileSystem fstest.MapFS) []Post {
@@ -212,15 +210,15 @@ func NewPostsFromFS(fileSystem fstest.MapFS) []Post {
 }
 ```
 
-[`fs.ReadDir`](https://golang.org/pkg/io/fs/#ReadDir) reads a directory inside a given `fs.FS` returning [`[]DirEntry`](https://golang.org/pkg/io/fs/#DirEntry).
+[`fs.ReadDir`](https://golang.org/pkg/io/fs/#ReadDir) đọc một thư mục bên trong một `fs.FS` nhất định và trả về [`[]DirEntry`](https://golang.org/pkg/io/fs/#DirEntry).
 
-Already our idealised view of the world has been foiled because errors can happen, but remember now our focus is _making the test pass_, not changing design, so we'll ignore the error for now.
+Ngay lập tức, cái nhìn lý tưởng hóa của chúng ta về thế giới đã bị cản trở vì các lỗi có thể xảy ra, nhưng hãy nhớ bây giờ trọng tâm của chúng ta là *làm cho bản kiểm thử vượt qua*, không phải thay đổi thiết kế, vì vậy chúng ta sẽ tạm bỏ qua lỗi lúc này.
 
-The rest of the code is straightforward: iterate over the entries, create a `Post` for each one and, return the slice.
+Phần còn lại của mã nguồn khá đơn giản: lặp lại qua các mục nhập (entries), tạo một `Post` cho mỗi mục và trả về slice.
 
 ## Refactor
 
-Even though our tests are passing, we can't use our new package outside of this context, because it is coupled to a concrete implementation `fstest.MapFS`. But, it doesn't have to be. Change the argument to our `NewPostsFromFS` function to accept the interface from the standard library.
+Mặc dù các bản kiểm thử của chúng ta đang vượt qua, chúng ta không thể sử dụng package mới này bên ngoài ngữ cảnh này, bởi vì nó bị ràng buộc vào một triển khai cụ thể `fstest.MapFS`. Nhưng, nó không nhất thiết phải như vậy. Hãy thay đổi đối số cho hàm `NewPostsFromFS` của chúng ta để chấp nhận interface từ thư viện tiêu chuẩn.
 
 ```go
 func NewPostsFromFS(fileSystem fs.FS) []Post {
@@ -233,11 +231,11 @@ func NewPostsFromFS(fileSystem fs.FS) []Post {
 }
 ```
 
-Re-run the tests: everything should be working.
+Chạy lại các bản kiểm thử: mọi thứ sẽ hoạt động.
 
-### Error handling
+### Xử lý lỗi
 
-We parked error handling earlier when we focused on making the happy-path work. Before continuing to iterate on the functionality, we should acknowledge that errors can happen when working with files. Beyond reading the directory, we can run into problems when we open individual files. Let's change our API (via our tests first, naturally) so that it can return an `error`.
+Chúng ta đã tạm gác phần xử lý lỗi trước đó khi tập trung vào việc làm cho happy-path hoạt động. Trước khi tiếp tục lặp lại các chức năng, chúng ta nên thừa nhận rằng các lỗi có thể xảy ra khi làm việc với các file. Ngoài việc đọc thư mục, chúng ta có thể gặp sự cố khi mở từng file riêng lẻ. Hãy thay đổi API của chúng ta (thông qua các bản kiểm thử trước, đương nhiên) để nó có thể trả về một `error`.
 
 ```go
 func TestNewBlogPosts(t *testing.T) {
@@ -258,7 +256,7 @@ func TestNewBlogPosts(t *testing.T) {
 }
 ```
 
-Run the test: it should complain about the wrong number of return values. Fixing the code is straightforward.
+Chạy bản kiểm thử: nó sẽ phàn nàn về số lượng giá trị trả về sai. Việc sửa mã nguồn khá đơn giản.
 
 ```go
 func NewPostsFromFS(fileSystem fs.FS) ([]Post, error) {
@@ -274,7 +272,7 @@ func NewPostsFromFS(fileSystem fs.FS) ([]Post, error) {
 }
 ```
 
-This will make the test pass. The TDD practitioner in you might be annoyed we didn't see a failing test before writing the code to propagate the error from `fs.ReadDir`. To do this "properly", we'd need a new test where we inject a failing `fs.FS` test-double to make `fs.ReadDir` return an `error`.
+Điều này sẽ làm cho bản kiểm thử vượt qua. Người thực hành TDD trong bạn có thể thấy khó chịu vì chúng ta không thấy một bản kiểm thử thất bại trước khi viết mã nguồn để lan truyền lỗi từ `fs.ReadDir`. Để làm điều này "đúng đắn", chúng ta sẽ cần một bản kiểm thử mới nơi chúng ta truyền vào một `fs.FS` giả (test-double) bị lỗi để làm cho `fs.ReadDir` trả về một `error`.
 
 ```go
 type StubFailingFS struct {
@@ -285,21 +283,22 @@ func (s StubFailingFS) Open(name string) (fs.File, error) {
 }
 ```
 ```go
-// later
+// sau đó
 _, err := blogposts.NewPostsFromFS(StubFailingFS{})
 ```
 
-This should give you confidence in our approach. The interface we're using has one method, which makes creating test-doubles to test different scenarios trivial.
+Điều này sẽ mang lại cho bạn sự tự tin vào cách tiếp cận của chúng ta. Interface mà chúng ta đang sử dụng chỉ có một phương thức, điều này làm cho việc tạo các test-double để kiểm thử các kịch bản khác nhau trở nên dễ dàng.
 
-In some cases, testing error handling is the pragmatic thing to do but, in our case, we're not doing anything _interesting_ with the error, we're just propagating it, so it's not worth the hassle of writing a new test.
+Trong một số trường hợp, kiểm thử việc xử lý lỗi là điều thực tế nên làm, nhưng trong trường hợp của chúng ta, chúng ta không làm bất cứ điều gì *thú vị* với lỗi đó, chúng ta chỉ lan truyền nó, vì vậy việc viết một bản kiểm thử mới là không đáng công sức.
 
-Logically, our next iterations will be around expanding our `Post` type so that it has some useful data.
+Về logic, các lần lặp lại tiếp theo của chúng ta sẽ xoay quanh việc mở rộng kiểu `Post` để nó có một số dữ liệu hữu ích.
 
-## Write the test first
+## Viết test trước tiên
 
-We'll start with the first line in the proposed blog post schema, the title field.
+Chúng ta sẽ bắt đầu với dòng đầu tiên trong sơ đồ bài đăng blog dự kiến, trường tiêu đề (title).
 
-We need to change the contents of the test files so they match what was specified, and then we can make an assertion that it is parsed correctly.
+Chúng ta cần thay đổi nội dung của các file kiểm thử sao cho chúng khớp với những gì đã chỉ định, sau đó chúng ta có thể thực hiện một xác nhận (assertion) rằng nó được phân tích chính xác.
+
 ```go
 func TestNewBlogPosts(t *testing.T) {
 	fs := fstest.MapFS{
@@ -307,7 +306,7 @@ func TestNewBlogPosts(t *testing.T) {
 		"hello-world2.md": {Data: []byte("Title: Post 2")},
 	}
 
-	// rest of test code cut for brevity
+	// phần còn lại của mã kiểm thử được lược bỏ cho ngắn gọn
 	got := posts[0]
 	want := blogposts.Post{Title: "Post 1"}
 
@@ -317,14 +316,14 @@ func TestNewBlogPosts(t *testing.T) {
 }
 ```
 
-## Try to run the test
+## Thử chạy test
 ```
 ./blogpost_test.go:58:26: unknown field 'Title' in struct literal of type blogposts.Post
 ```
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-Add the new field to our `Post` type so that the test will run
+Thêm trường mới vào kiểu `Post` của chúng ta để bản kiểm thử có thể chạy
 
 ```go
 type Post struct {
@@ -332,7 +331,7 @@ type Post struct {
 }
 ```
 
-Re-run the test, and you should get a clear, failing test
+Chạy lại bản kiểm thử, và bạn sẽ nhận được một kết quả thất bại rõ ràng
 
 ```
 === RUN   TestNewBlogPosts
@@ -342,7 +341,7 @@ Re-run the test, and you should get a clear, failing test
 
 ## Viết đủ code để test chạy thành công
 
-We'll need to open each file and then extract the title
+Chúng ta sẽ cần mở từng file và sau đó trích xuất tiêu đề
 
 ```go
 func NewPostsFromFS(fileSystem fs.FS) ([]Post, error) {
@@ -354,7 +353,7 @@ func NewPostsFromFS(fileSystem fs.FS) ([]Post, error) {
 	for _, f := range dir {
 		post, err := getPost(fileSystem, f)
 		if err != nil {
-			return nil, err //todo: needs clarification, should we totally fail if one file fails? or just ignore?
+			return nil, err //todo: cần làm rõ, chúng ta nên hoàn toàn thất bại nếu một file bị lỗi? hay chỉ bỏ qua?
 		}
 		posts = append(posts, post)
 	}
@@ -378,17 +377,17 @@ func getPost(fileSystem fs.FS, f fs.DirEntry) (Post, error) {
 }
 ```
 
-Remember our focus at this point is not to write elegant code, it's just to get to a point where we have working software.
+Lưu ý rằng trọng tâm của chúng ta tại thời điểm này không phải là viết mã nguồn đẹp đẽ, mà chỉ là đạt được một điểm mà chúng ta có phần mềm hoạt động.
 
-Even though this feels like a small increment forward it still required us to write a fair amount of code and make some assumptions in respect to error handling. This would be a point where you should talk to your colleagues and decide the best approach.
+Mặc dù điều này mang lại cảm giác là một bước tiến nhỏ nhưng nó vẫn yêu cầu chúng ta viết một lượng mã nguồn đáng kể và đưa ra một số giả định về cách xử lý lỗi. Đây sẽ là thời điểm bạn nên nói chuyện với đồng nghiệp của mình và quyết định cách tiếp cận tốt nhất.
 
-The iterative approach has given us fast feedback that our understanding of the requirements is incomplete.
+Cách tiếp cận lặp lại đã mang lại cho chúng ta những phản hồi nhanh chóng rằng hiểu biết của chúng ta về các yêu cầu là chưa đầy đủ.
 
-`fs.FS` gives us a way of opening a file within it by name with its `Open` method. From there we read the data from the file and, for now, we do not need any sophisticated parsing, just cutting out the `Title: ` text by slicing the string.
+`fs.FS` cung cấp cho chúng ta một cách để mở một file bên trong nó theo tên bằng phương thức `Open`. Từ đó, chúng ta đọc dữ liệu từ file và hiện tại, chúng ta không cần bất kỳ phân tích phức tạp nào, chỉ cần cắt bỏ phần văn bản `Title: ` bằng cách cắt (slicing) chuỗi.
 
 ## Refactor
 
-Separating the 'opening file code' from the 'parsing file contents code' will make the code simpler to understand and work with.
+Việc tách đoạn 'mã mở file' khỏi đoạn 'mã phân tích nội dung file' sẽ làm cho mã nguồn trở nên đơn giản hơn để hiểu và làm việc.
 
 ```go
 func getPost(fileSystem fs.FS, f fs.DirEntry) (Post, error) {
@@ -411,11 +410,11 @@ func newPost(postFile fs.File) (Post, error) {
 }
 ```
 
-When you refactor out new functions or methods, take care and think about the arguments. You're designing here, and are free to think deeply about what is appropriate because you have passing tests. Think about coupling and cohesion. In this case you should ask yourself:
+Khi bạn tách ra các hàm hoặc phương thức mới, hãy cẩn thận và suy nghĩ về các đối số. Bạn đang thiết kế ở đây, và bạn có một sự tự do để suy nghĩ sâu sắc về những gì là phù hợp vì bạn có các bản kiểm thử đã vượt qua. Hãy nghĩ về sự ràng buộc (coupling) và sự gắn kết (cohesion). Trong trường hợp này, bạn nên tự hỏi bản thân:
 
-> Does `newPost` have to be coupled to an `fs.File` ? Do we use all the methods and data from this type? What do we _really_ need?
+> `newPost` có phải bị ràng buộc vào một `fs.File` không? Chúng ta có sử dụng tất cả các phương thức và dữ liệu từ kiểu này không? Chúng ta *thực sự* cần cái gì?
 
-In our case we only use it as an argument to `io.ReadAll` which needs an `io.Reader`. So we should loosen the coupling in our function and ask for an `io.Reader`.
+Trong trường hợp của chúng ta, chúng ta chỉ sử dụng nó làm đối số cho `io.ReadAll`, nơi cần một `io.Reader`. Vì vậy, chúng ta nên nới lỏng sự ràng buộc trong hàm của mình và yêu cầu một `io.Reader`.
 
 ```go
 func newPost(postFile io.Reader) (Post, error) {
@@ -429,7 +428,7 @@ func newPost(postFile io.Reader) (Post, error) {
 }
 ```
 
-You can make a similar argument for our `getPost` function, which takes an `fs.DirEntry` argument but simply calls `Name()` to get the file name. We don't need all that; let's decouple from that type and pass the file name through as a string. Here's the fully refactored code:
+Bạn có thể đưa ra một lập luận tương tự cho hàm `getPost`, hàm này nhận vào một đối số `fs.DirEntry` nhưng chỉ gọi `Name()` để lấy tên file. Chúng ta không cần tất cả những thứ đó; hãy tách rời khỏi kiểu dữ liệu đó và truyền tên file qua dưới dạng một chuỗi. Đây là mã nguồn đã được tái cấu trúc hoàn chỉnh:
 
 ```go
 func NewPostsFromFS(fileSystem fs.FS) ([]Post, error) {
@@ -441,7 +440,7 @@ func NewPostsFromFS(fileSystem fs.FS) ([]Post, error) {
 	for _, f := range dir {
 		post, err := getPost(fileSystem, f.Name())
 		if err != nil {
-			return nil, err //todo: needs clarification, should we totally fail if one file fails? or just ignore?
+			return nil, err //todo: cần làm rõ, chúng ta nên hoàn toàn thất bại nếu một file bị lỗi? hay chỉ bỏ qua?
 		}
 		posts = append(posts, post)
 	}
@@ -468,11 +467,11 @@ func newPost(postFile io.Reader) (Post, error) {
 }
 ```
 
-From now on, most of our efforts can be neatly contained within `newPost`. The concerns of opening and iterating over files are done, and now we can focus on extracting the data for our `Post` type. Whilst not technically necessary, files are a nice way to logically group related things together, so I moved the `Post` type and `newPost` into a new `post.go` file.
+Từ giờ trở đi, hầu hết các nỗ lực của chúng ta có thể được gói gọn trong `newPost`. Mối quan tâm về việc mở và lặp lại qua các file đã hoàn tất, và bây giờ chúng ta có thể tập trung vào việc trích xuất dữ liệu cho kiểu `Post` của mình. Mặc dù về mặt kỹ thuật là không bắt buộc, các file là một cách tốt để nhóm các thứ liên quan lại với nhau một cách logic, vì vậy tôi đã di chuyển kiểu `Post` và `newPost` sang một file `post.go` mới.
 
 ### Test helper
 
-We should take care of our tests too. We're going to be making assertions on `Posts` a lot, so we should write some code to help with that
+Chúng ta cũng nên chăm sóc các bản kiểm thử của mình. Chúng ta sẽ thực hiện nhiều xác nhận trên `Post`, vì vậy chúng ta nên viết một số mã nguồn để trợ giúp việc đó
 
 ```go
 func assertPost(t *testing.T, got blogposts.Post, want blogposts.Post) {
@@ -487,9 +486,9 @@ func assertPost(t *testing.T, got blogposts.Post, want blogposts.Post) {
 assertPost(t, posts[0], blogposts.Post{Title: "Post 1"})
 ```
 
-## Write the test first
+## Viết test trước tiên
 
-Let's extend our test further to extract the next line from the file, the description. Up until making it pass should now feel comfortable and familiar.
+Hãy mở rộng bản kiểm thử hơn nữa để trích xuất dòng tiếp theo từ file, phần mô tả (description). Cho đến khi làm cho nó vượt qua, mọi thứ lúc này sẽ mang lại cảm giác thoải mái và quen thuộc.
 
 ```go
 func TestNewBlogPosts(t *testing.T) {
@@ -505,7 +504,7 @@ Description: Description 2`
 		"hello-world2.md": {Data: []byte(secondBody)},
 	}
 
-	// rest of test code cut for brevity
+	// phần còn lại của mã kiểm thử được lược bỏ cho ngắn gọn
 	assertPost(t, posts[0], blogposts.Post{
 		Title:       "Post 1",
 		Description: "Description 1",
@@ -514,7 +513,7 @@ Description: Description 2`
 }
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 ./blogpost_test.go:47:58: unknown field 'Description' in struct literal of type blogposts.Post
@@ -522,7 +521,7 @@ Description: Description 2`
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-Add the new field to `Post`.
+Thêm trường mới vào `Post`.
 
 ```go
 type Post struct {
@@ -531,7 +530,7 @@ type Post struct {
 }
 ```
 
-The tests should now compile, and fail.
+Bản kiểm thử lúc này có thể biên dịch được, và thất bại.
 
 ```
 === RUN   TestNewBlogPosts
@@ -541,9 +540,9 @@ The tests should now compile, and fail.
 
 ## Viết đủ code để test chạy thành công
 
-The standard library has a handy library for helping you scan through data, line by line; [`bufio.Scanner`](https://golang.org/pkg/bufio/#Scanner)
+Thư viện tiêu chuẩn có một gói tiện lợi giúp bạn quét qua dữ liệu, từng dòng một: [`bufio.Scanner`](https://golang.org/pkg/bufio/#Scanner).
 
-> Scanner provides a convenient interface for reading data such as a file of newline-delimited lines of text.
+> Scanner cung cấp một interface thuận tiện để đọc dữ liệu như một file chứa các dòng văn bản được phân tách bằng dấu xuống dòng.
 
 ```go
 func newPost(postFile io.Reader) (Post, error) {
@@ -559,15 +558,15 @@ func newPost(postFile io.Reader) (Post, error) {
 }
 ```
 
-Handily, it also takes an `io.Reader` to read through (thank you again, loose-coupling), we don't need to change our function arguments.
+Thật tiện lợi, nó cũng nhận một `io.Reader` để đọc qua (cảm ơn một lần nữa sự ràng buộc lỏng lẻo), chúng ta không cần thay đổi các đối số của hàm.
 
-Call `Scan` to read a line, and then extract the data using `Text`.
+Gọi `Scan` để đọc một dòng, sau đó trích xuất dữ liệu bằng `Text`.
 
-This function could never return an `error`. It would be tempting at this point to remove it from the return type, but we know we'll have to handle invalid file structures later so, we may as well leave it.
+Hàm này có thể không bao giờ trả về `error`. Sẽ là rất cám dỗ nếu lúc này xóa nó khỏi các kiểu trả về, nhưng chúng ta biết rằng sau này mình sẽ phải xử lý các cấu trúc file không hợp lệ, vì vậy chúng ta có thể để nguyên như vậy.
 
 ## Refactor
 
-We have repetition around scanning a line and then reading the text. We know we're going to do this operation at least one more time, it's a simple refactor to DRY up so let's start with that.
+Chúng ta có sự lặp lại xung quanh việc quét một dòng và sau đó đọc văn bản. Chúng ta biết mình sẽ thực hiện thao tác này ít nhất một lần nữa, đây là một lần tái cấu trúc đơn giản để DRY mã nguồn, hãy bắt đầu với điều đó.
 
 ```go
 func newPost(postFile io.Reader) (Post, error) {
@@ -585,9 +584,9 @@ func newPost(postFile io.Reader) (Post, error) {
 }
 ```
 
-This has barely saved any lines of code, but that's rarely the point of refactoring. What I'm trying to do here is just separating the _what_ from the _how_ of reading lines to make the code a little more declarative to the reader.
+Điều này hầu như không tiết kiệm được dòng mã nào, nhưng đó hiếm khi là mục tiêu của việc tái cấu trúc. Những gì tôi đang cố gắng làm ở đây chỉ là tách biệt phần *cái gì* khỏi phần *làm thế nào* của việc đọc các dòng để làm cho mã nguồn mang tính mô tả (declarative) hơn một chút đối với người đọc.
 
-Whilst the magic numbers of 7 and 13 get the job done, they're not awfully descriptive.
+Mặc dù các con số ma thuật 7 và 13 có thể hoàn thành công việc, nhưng chúng không thực sự mang tính mô tả.
 
 ```go
 const (
@@ -610,7 +609,7 @@ func newPost(postFile io.Reader) (Post, error) {
 }
 ```
 
-Now that I'm staring at the code with my creative refactoring mind, I'd like to try making our readLine function take care of removing the tag. There's also a more readable way of trimming a prefix from a string with the function `strings.TrimPrefix`.
+Bây giờ khi tôi đang nhìn vào mã nguồn với tư duy tái cấu trúc sáng tạo, tôi muốn thử làm cho hàm `readLine` của mình đảm nhận việc loại bỏ thẻ. Cũng có một cách dễ đọc hơn để cắt bỏ tiền tố khỏi một chuỗi bằng hàm `strings.TrimPrefix`.
 
 ```go
 func newPost(postBody io.Reader) (Post, error) {
@@ -628,11 +627,11 @@ func newPost(postBody io.Reader) (Post, error) {
 }
 ```
 
-You may or may not like this idea, but I do. The point is in the refactoring state we are free to play with the internal details, and you can keep running your tests to check things still behave correctly. We can always go back to previous states if we're not happy. The TDD approach gives us this license to frequently experiment with ideas, so we have more shots at writing great code.
+Bạn có thể thích ý tưởng này hoặc không, nhưng tôi thì thích. Vấn đề là ở giai đoạn tái cấu trúc, chúng ta được tự do chơi đùa với các chi tiết bên trong, và bạn có thể tiếp tục chạy các bản kiểm thử để kiểm tra xem mọi thứ vẫn hoạt động chính xác hay không. Chúng ta luôn có thể quay lại các trạng thái trước đó nếu không hài lòng. Cách tiếp cận TDD mang lại cho chúng ta quyền được thường xuyên thử nghiệm các ý tưởng, nhờ đó có nhiều cơ hội hơn để viết được mã nguồn tuyệt vời.
 
-The next requirement is extracting the post's tags. If you're following along, I'd recommend trying to implement it yourself before reading on. You should now have a good, iterative rhythm and feel confident to extract the next line and parse out the data.
+Yêu cầu tiếp theo là trích xuất các thẻ (tags) của bài đăng. Nếu bạn đang theo dõi, tôi khuyên bạn nên tự mình triển khai nó trước khi đọc tiếp. Bây giờ bạn đã có một nhịp độ lặp lại tốt và cảm thấy tự tin để trích xuất dòng tiếp theo và phân tích dữ liệu.
 
-For brevity, I will not go through the TDD steps, but here's the test with tags added.
+Để ngắn gọn, tôi sẽ không đi qua các bước TDD, nhưng đây là bản kiểm thử với các thẻ được thêm vào.
 
 ```go
 func TestNewBlogPosts(t *testing.T) {
@@ -645,7 +644,7 @@ Description: Description 2
 Tags: rust, borrow-checker`
 	)
 
-	// rest of test code cut for brevity
+	// phần còn lại của mã kiểm thử được lược bỏ cho ngắn gọn
 	assertPost(t, posts[0], blogposts.Post{
 		Title:       "Post 1",
 		Description: "Description 1",
@@ -654,7 +653,7 @@ Tags: rust, borrow-checker`
 }
 ```
 
-You're only cheating yourself if you just copy and paste what I write. To make sure we're all on the same page, here's my code which includes extracting the tags.
+Bạn sẽ chỉ đang tự lừa dối mình nếu chỉ sao chép và dán những gì tôi viết. Để đảm bảo tất cả chúng ta đều chung một quan điểm, đây là mã nguồn bao gồm việc trích xuất các thẻ.
 
 ```go
 const (
@@ -679,11 +678,11 @@ func newPost(postBody io.Reader) (Post, error) {
 }
 ```
 
-Hopefully no surprises here. We were able to re-use `readMetaLine` to get the next line for the tags and then split them up using `strings.Split`.
+Hy vọng không có gì bất ngờ ở đây. Chúng ta đã có thể tái sử dụng `readMetaLine` để lấy dòng tiếp theo cho các thẻ và sau đó chia chúng bằng `strings.Split`.
 
-The last iteration on our happy path is to extract the body.
+Lần lặp lại cuối cùng trên happy-path của chúng ta là trích xuất phần nội dung (body).
 
-Here's a reminder of the proposed file format.
+Đây là lời nhắc nhở về định dạng file được đề xuất.
 
 ```markdown
 Title: Hello, TDD world!
@@ -695,11 +694,11 @@ Hello world!
 The body of posts starts after the `---`
 ```
 
-We've read the first 3 lines already. We then need to read one more line, discard it and then the remainder of the file contains the post's body.
+Chúng ta đã đọc xong 3 dòng đầu tiên. Sau đó chúng ta cần đọc thêm một dòng nữa, bỏ qua nó và phần còn lại của file sẽ chứa nội dung bài đăng.
 
-## Write the test first
+## Viết test trước tiên
 
-Change the test data to have the separator, and a body with a few newlines to check we grab all the content.
+Thay đổi dữ liệu kiểm thử để có dấu phân cách, và một phần nội dung với một vài dòng mới để kiểm tra xem chúng ta có lấy được tất cả nội dung không.
 
 ```go
 	const (
@@ -719,7 +718,7 @@ M`
 	)
 ```
 
-Add to our assertion like the others
+Thêm vào xác nhận của chúng ta giống như các phần khác
 
 ```go
 	assertPost(t, posts[0], blogposts.Post{
@@ -731,17 +730,17 @@ World`,
 	})
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 ./blogpost_test.go:60:3: unknown field 'Body' in struct literal of type blogposts.Post
 ```
 
-As we'd expect.
+Như chúng ta mong đợi.
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-Add `Body` to `Post` and the test should fail.
+Thêm `Body` vào `Post` và bản kiểm thử sẽ thất bại.
 
 ```
 === RUN   TestNewBlogPosts
@@ -751,8 +750,8 @@ Add `Body` to `Post` and the test should fail.
 
 ## Viết đủ code để test chạy thành công
 
-1. Scan the next line to ignore the `---` separator.
-2. Keep scanning until there's nothing left to scan.
+1. Quét dòng tiếp theo để bỏ qua dấu phân cách `---`.
+2. Tiếp tục quét cho đến khi không còn gì để quét.
 
 ```go
 func newPost(postBody io.Reader) (Post, error) {
@@ -767,7 +766,7 @@ func newPost(postBody io.Reader) (Post, error) {
 	description := readMetaLine(descriptionSeparator)
 	tags := strings.Split(readMetaLine(tagsSeparator), ", ")
 
-	scanner.Scan() // ignore a line
+	scanner.Scan() // bỏ qua một dòng
 
 	buf := bytes.Buffer{}
 	for scanner.Scan() {
@@ -784,13 +783,13 @@ func newPost(postBody io.Reader) (Post, error) {
 }
 ```
 
-- `scanner.Scan()` returns a `bool` which indicates whether there's more data to scan, so we can use that with a `for` loop to keep reading through the data until the end.
-- After every `Scan()` we write the data into the buffer using `fmt.Fprintln`. We use the version that adds a newline because the scanner removes the newlines from each line, but we need to maintain them.
-- Because of the above, we need to trim the final newline, so we don't have a trailing one.
+- `scanner.Scan()` trả về một giá trị `bool` cho biết liệu còn dữ liệu để quét hay không, vì vậy chúng ta có thể sử dụng giá trị đó với một vòng lặp `for` để tiếp tục đọc qua dữ liệu cho đến khi kết thúc.
+- Sau mỗi bản `Scan()`, chúng ta ghi dữ liệu vào buffer bằng `fmt.Fprintln`. Chúng ta sử dụng phiên bản thêm một dòng mới vì scanner loại bỏ các dòng mới khỏi mỗi dòng, nhưng chúng ta cần duy trì chúng.
+- Vì lý do trên, chúng ta cần cắt bỏ ký tự xuống dòng cuối cùng, để không gặp phải ký tự dư thừa ở cuối.
 
 ## Refactor
 
-Encapsulating the idea of getting the rest of the data into a function will help future readers quickly understand _what_ is happening in `newPost`, without having to concern themselves with implementation specifics.
+Việc đóng gói ý tưởng lấy phần dữ liệu còn lại vào một hàm sẽ giúp những người đọc trong tương lai nhanh chóng hiểu *cái gì* đang xảy ra trong `newPost`, mà không cần phải bận tâm đến các chi tiết thực thi cụ thể.
 
 ```go
 func newPost(postBody io.Reader) (Post, error) {
@@ -810,7 +809,7 @@ func newPost(postBody io.Reader) (Post, error) {
 }
 
 func readBody(scanner *bufio.Scanner) string {
-	scanner.Scan() // ignore a line
+	scanner.Scan() // bỏ qua một dòng
 	buf := bytes.Buffer{}
 	for scanner.Scan() {
 		fmt.Fprintln(&buf, scanner.Text())
@@ -819,28 +818,28 @@ func readBody(scanner *bufio.Scanner) string {
 }
 ```
 
-## Iterating further
+## Tiếp tục lặp lại
 
-We've made our "steel thread" of functionality, taking the shortest route to get to our happy path, but clearly there's some distance to go before it is production ready.
+Chúng ta đã tạo ra "sợi dây thép" cho chức năng của mình, đi con đường ngắn nhất để đến được happy-path, nhưng rõ ràng vẫn còn một chặng đường trước khi nó sẵn sàng để đi vào sản xuất.
 
-We haven't handled:
+Chúng ta vẫn chưa xử lý:
 
-- when the file's format is not correct
-- the file is not a `.md`
-- what if the order of the metadata fields is different? Should that be allowed? Should we be able to handle it?
+- khi định dạng của file không đúng
+- file không phải là `.md`
+- điều gì sẽ xảy ra nếu thứ tự của các trường metadata khác nhau? Điều đó có nên được phép không? Chúng ta có nên xử lý nó không?
 
-Crucially though, we have working software, and we have defined our interface. The above are just further iterations, more tests to write and drive our behaviour. To support any of the above we shouldn't have to change our _design_, just implementation details.
+Tuy nhiên, quan trọng nhất là chúng ta có phần mềm hoạt động, và chúng ta đã định nghĩa interface của mình. Những điều trên chỉ là các lần lặp lại tiếp theo, thêm nhiều bản kiểm thử hơn để viết và thúc đẩy hành vi của chúng ta. Để hỗ trợ bất kỳ hành vi nào ở trên, chúng ta không cần phải thay đổi *thiết kế*, chỉ cần các chi tiết thực thi.
 
-Keeping focused on the goal means we made the important decisions, and validated them against the desired behaviour, rather than getting bogged down on matters that won't affect the overall design.
+Việc tập trung vào mục tiêu có nghĩa là chúng ta đã đưa ra các quyết định quan trọng, và xác nhận chúng dựa trên hành vi mong muốn, thay vì bị sa lầy vào những vấn đề không ảnh hưởng đến thiết kế tổng thể.
 
 ## Tổng kết
 
-`fs.FS`, and the other changes in Go 1.16 give us some elegant ways of reading data from file systems and testing them simply.
+`fs.FS`, và những thay đổi khác trong Go 1.16 mang lại cho chúng ta một số cách trang nhã để đọc dữ liệu từ hệ thống file và kiểm thử chúng một cách đơn giản.
 
-If you wish to try out the code "for real":
+Nếu bạn muốn thử nghiệm mã nguồn "thật":
 
-- Create a `cmd` folder within the project, add a `main.go` file
-- Add the following code
+- Tạo một thư mục `cmd` bên trong dự án, thêm một file `main.go`
+- Thêm mã nguồn sau
 
 ```go
 import (
@@ -858,35 +857,35 @@ func main() {
 }
 ```
 
-- Add some markdown files into a `posts` folder and run the program!
+- Thêm một số file markdown vào thư mục `posts` và chạy chương trình!
 
-Notice the symmetry between the production code
+Lưu ý sự đối xứng giữa mã nguồn sản xuất
 
 ```go
 posts, err := blogposts.NewPostsFromFS(os.DirFS("posts"))
 ```
 
-And the tests
+Và các bản kiểm thử
 
 ```go
 posts, err := blogposts.NewPostsFromFS(fs)
 ```
 
-This is when consumer-driven, top-down TDD _feels correct_.
+Đây là khi phương pháp TDD hướng người tiêu dùng, từ trên xuống dưới (top-down) *cảm thấy đúng đắn*.
 
-A user of our package can look at our tests and quickly get up to speed with what it's supposed to do and how to use it. As maintainers, we can be _confident our tests are useful because they're from a consumer's point of view_. We're not testing implementation details or other incidental details, so we can be reasonably confident that our tests will help us, rather than hinder us when refactoring.
+Người dùng package của chúng ta có thể nhìn vào các bản kiểm thử của chúng ta và nhanh chóng nắm bắt được nó phải làm gì và cách sử dụng nó như thế nào. Với tư cách là những người bảo trì, chúng ta có thể *tự tin rằng các bản kiểm thử của mình là hữu ích vì chúng được đứng từ quan điểm của người tiêu dùng*. Chúng ta không kiểm thử các chi tiết thực thi hoặc các chi tiết phụ khác, vì vậy chúng ta có thể tin tưởng một cách hợp lý rằng các bản kiểm thử của mình sẽ giúp ích, thay vì cản trở chúng ta khi tái cấu trúc.
 
-By relying on good software engineering practices like  [**dependency injection**](dependency-injection.md) our code is simple to test and re-use.
+Bằng cách dựa trên các thực hành kỹ thuật phần mềm tốt như [**Dependency Injection**](dependency-injection.md), mã nguồn của chúng ta trở nên đơn giản để kiểm thử và tái sử dụng.
 
-When you're creating packages, even if they're only internal to your project, prefer a top-down consumer driven approach. This will stop you over-imagining designs and making abstractions you may not even need and will help ensure the tests you write are useful.
+Khi bạn tạo các package, ngay cả khi chúng chỉ là nội bộ trong dự án của bạn, hãy ưu tiên cách tiếp cận hướng người tiêu dùng từ trên xuống dưới. Điều này sẽ ngăn bạn tưởng tượng quá mức các thiết kế và tạo ra các sự trừu tượng có thể bạn thậm chí không cần, và sẽ giúp đảm bảo các bản kiểm thử bạn viết là hữu ích.
 
-The iterative approach kept every step small, and the continuous feedback helped us uncover unclear requirements possibly sooner than with other, more ad-hoc approaches.
+Cách tiếp cận lặp lại giữ cho mỗi bước đều nhỏ, và các phản hồi liên tục đã giúp chúng ta phát hiện ra những yêu cầu chưa rõ ràng có lẽ sớm hơn so với các phương pháp khác mang tính tùy hứng hơn.
 
-### Writing?
+### Ghi file?
 
-It's important to note that these new features only have operations for _reading_ files. If your work needs to do writing, you'll need to look elsewhere. Remember to keep thinking about what the standard library offers currently, if you're writing data you should probably look into leveraging existing interfaces such as `io.Writer` to keep your code loosely-coupled and re-usable.
+Điều quan trọng cần lưu ý là các tính năng mới này chỉ có các hoạt động để *đọc* file. Nếu công việc của bạn cần thực hiện việc ghi, bạn sẽ cần tìm giải pháp khác. Hãy nhớ luôn suy nghĩ về những gì thư viện tiêu chuẩn hiện đang cung cấp, nếu bạn đang ghi dữ liệu, bạn có lẽ nên xem xét việc tận dụng các interface hiện có như `io.Writer` để giữ cho mã nguồn của mình được ràng buộc lỏng lẻo và có thể tái sử dụng.
 
-### Further reading
+### Đọc thêm
 
-- This was a light intro to `io/fs`. [Ben Congdon has done an excellent write-up](https://benjamincongdon.me/blog/2021/01/21/A-Tour-of-Go-116s-iofs-package/) which was a lot of help for writing this chapter.
-- [Discussion on the file system interfaces](https://github.com/golang/go/issues/41190)
+- Đây là lời giới thiệu nhẹ nhàng về `io/fs`. [Ben Congdon đã thực hiện một bài viết xuất sắc](https://benjamincongdon.me/blog/2021/01/21/A-Tour-of-Go-116s-iofs-package/), bài viết này đã giúp ích rất nhiều cho việc viết chương này.
+- [Thảo luận về các interface hệ thống file](https://github.com/golang/go/issues/41190)
