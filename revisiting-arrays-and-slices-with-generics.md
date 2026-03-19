@@ -1,11 +1,11 @@
-# Revisiting arrays and slices with generics
+# Xem lại mảng và lát cắt với generics
 
-**[The code for this chapter is a continuation from Arrays and Slices, found here](https://github.com/quii/learn-go-with-tests/tree/main/arrays)**
+**[Mã nguồn của chương này là sự tiếp nối từ chương Mảng và lát cắt, tìm thấy tại đây](https://github.com/quii/learn-go-with-tests/tree/main/arrays)**
 
-Take a look at both `SumAll` and `SumAllTails` that we wrote in [arrays and slices](arrays-and-slices.md). If you don't have your version please copy the code from the [arrays and slices](arrays-and-slices.md) chapter along with the tests.
+Hãy xem lại cả `SumAll` và `SumAllTails` mà chúng ta đã viết trong chương [mảng và lát cắt](arrays-and-slices.md). Nếu bạn không có phiên bản của mình, vui lòng sao chép mã nguồn từ chương [mảng và lát cắt](arrays-and-slices.md) cùng với các bản kiểm thử.
 
 ```go
-// Sum calculates the total from a slice of numbers.
+// Sum tính tổng của một lát cắt số.
 func Sum(numbers []int) int {
 	var sum int
 	for _, number := range numbers {
@@ -14,7 +14,7 @@ func Sum(numbers []int) int {
 	return sum
 }
 
-// SumAllTails calculates the sums of all but the first number given a collection of slices.
+// SumAllTails tính tổng của tất cả trừ số đầu tiên cho mỗi lát cắt được cung cấp.
 func SumAllTails(numbersToSum ...[]int) []int {
 	var sums []int
 	for _, numbers := range numbersToSum {
@@ -30,49 +30,49 @@ func SumAllTails(numbersToSum ...[]int) []int {
 }
 ```
 
-Do you see a recurring pattern?
+Bạn có thấy một mẫu hình lặp lại không?
 
-- Create some kind of "initial" result value.
-- Iterate over the collection, applying some kind of operation (or function) to the result and the next item in the slice, setting a new value for the result
-- Return the result.
+- Tạo một loại giá trị kết quả "ban đầu".
+- Lặp qua tập hợp, áp dụng một loại thao tác (hoặc hàm) nào đó cho kết quả và mục tiếp theo trong lát cắt, thiết lập một giá trị mới cho kết quả.
+- Trả về kết quả.
 
-This idea is commonly talked about in functional programming circles, often times called 'reduce' or [fold](https://en.wikipedia.org/wiki/Fold_(higher-order_function)).
+Ý tưởng này thường được thảo luận trong các cộng đồng lập trình chức năng (functional programming), thường được gọi là 'reduce' hoặc [fold](https://en.wikipedia.org/wiki/Fold_(higher-order_function)).
 
-> In functional programming, fold (also termed reduce, accumulate, aggregate, compress, or inject) refers to a family of higher-order functions that analyze a recursive data structure and through use of a given combining operation, recombine the results of recursively processing its constituent parts, building up a return value. Typically, a fold is presented with a combining function, a top node of a data structure, and possibly some default values to be used under certain conditions. The fold then proceeds to combine elements of the data structure's hierarchy, using the function in a systematic way.
+> Trong lập trình chức năng, fold (còn được gọi là reduce, accumulate, aggregate, compress, hoặc inject) đề cập đến một họ các hàm bậc cao (higher-order functions) phân tích một cấu trúc dữ liệu đệ quy và thông qua việc sử dụng một thao tác kết hợp nhất định, kết hợp lại kết quả của việc xử lý đệ quy các thành phần cấu tạo của nó, xây dựng nên một giá trị trả về. Thông thường, một fold được cung cấp một hàm kết hợp, một nút trên cùng của một cấu trúc dữ liệu và có thể là một số giá trị mặc định được sử dụng trong các điều kiện nhất định. Sau đó, fold tiến hành kết hợp các phần tử của phân cấp cấu trúc dữ liệu, sử dụng hàm theo một cách có hệ thống.
 
-Go has always had higher-order functions, and as of version 1.18 it also has [generics](./generics.md), so it is now possible to define some of these functions discussed in our wider field. There's no point burying your head in the sand, this is a very common abstraction outside the Go ecosystem and it'll be beneficial to understand it.
+Go luôn có các hàm bậc cao, và kể từ phiên bản 1.18, nó cũng có [generics](./generics.md), vì vậy hiện nay chúng ta có thể định nghĩa một số hàm này đã được thảo luận rộng rãi trong lĩnh vực của chúng ta. Không có lý do gì để trốn tránh, đây là một sự trừu tượng hóa rất phổ biến bên ngoài hệ sinh thái Go và việc hiểu nó sẽ mang lại lợi ích.
 
-Now, I know some of you are probably cringing at this.
+Bây giờ, tôi biết một số bạn có lẽ đang cảm thấy e ngại về điều này.
 
-> Go is supposed to be simple
+> Go vốn dĩ nên đơn giản
 
-**Don't conflate easiness, with simplicity**. Doing loops and copy-pasting code is easy, but it's not necessarily simple. For more on simple vs easy, watch [Rich Hickey's masterpiece of a talk - Simple Made Easy](https://www.youtube.com/watch?v=SxdOUGdseq4).
+**Đừng nhầm lẫn giữa sự dễ dàng với sự đơn giản**. Việc sử dụng các vòng lặp và sao chép-dán mã nguồn là dễ dàng, nhưng nó không nhất thiết là đơn giản. Để biết thêm về đơn giản so với dễ dàng, hãy xem bài nói chuyện kiệt tác của Rich Hickey - [Simple Made Easy](https://www.youtube.com/watch?v=SxdOUGdseq4).
 
-**Don't conflate unfamiliarity, with complexity**. Fold/reduce may initially sound scary and computer-sciencey but all it really is, is an abstraction over a very common operation. Taking a collection, and combining it into one item. When you step back, you'll realise you probably do this _a lot_.
+**Đừng nhầm lẫn giữa sự xa lạ với sự phức tạp**. Fold/reduce ban đầu nghe có vẻ đáng sợ và mang tính khoa học máy tính nhưng thực chất nó chỉ là một sự trừu tượng hóa cho một thao tác rất phổ biến: Lấy một tập hợp và kết hợp nó thành một mục duy nhất. Khi bạn lùi lại một bước, bạn sẽ nhận ra mình có lẽ thực thực hiện việc này *rất nhiều*.
 
-## A generic refactor
+## Tái cấu trúc bằng generic
 
-A mistake people often make with shiny new language features is they start by using them without having a concrete use-case. They rely on conjecture and guesswork to guide their efforts.
+Một sai lầm mà mọi người thường mắc phải với các tính năng ngôn ngữ mới sáng loáng là họ bắt đầu sử dụng chúng mà không có một trường hợp sử dụng cụ thể. Họ dựa vào phỏng đoán và sự võ đoán để dẫn dắt nỗ lực của mình.
 
-Thankfully we've written our "useful" functions and have tests around them, so now we are free to experiment with ideas in the refactoring stage of TDD and know that whatever we're trying, has a verification of its value via our unit tests.
+May mắn thay, chúng ta đã viết các hàm "hữu ích" của mình và có các bản kiểm thử bao quanh chúng, vì vậy bây giờ chúng ta tự do thử nghiệm các ý tưởng trong giai đoạn tái cấu trúc của TDD và biết rằng bất cứ điều gì chúng ta đang thử đều có sự xác nhận giá trị của nó thông qua các bản kiểm thử đơn vị của chúng ta.
 
-Using generics as a tool for simplifying code via the refactoring step is far more likely to guide you to useful improvements, rather than premature abstractions.
+Sử dụng generics như một công cụ để đơn giản hóa mã nguồn thông qua bước tái cấu trúc có nhiều khả năng dẫn dắt bạn đến những cải tiến hữu ích, thay vì những sự trừu tượng hóa vội vàng.
 
-We are safe to try things out, re-run our tests, if we like the change we can commit. If not, just revert the change. This freedom to experiment is one of the truly huge values of TDD.
+Chúng ta an tâm để thử nghiệm mọi thứ, chạy lại các bản kiểm thử, nếu chúng ta thích thay đổi đó, chúng ta có thể commit. Nếu không, chỉ cần hoàn tác thay đổi. Sự tự do thử nghiệm này là một trong những giá trị thực sự to lớn của TDD.
 
-You should be familiar with the generics syntax [from the previous chapter](generics.md), try and write your own `Reduce` function and use it inside `Sum` and `SumAllTails`.
+Bạn nên làm quen với cú pháp generics [từ chương trước](generics.md), hãy thử viết hàm `Reduce` của riêng bạn và sử dụng nó bên trong `Sum` và `SumAllTails`.
 
-### Hints
+### Gợi ý
 
-If you think about the arguments to your function first, it'll give you a very small set of valid solutions
-  - The array you want to reduce
-  - Some kind of combining function
+Nếu bạn nghĩ về các đối số cho hàm của mình trước tiên, nó sẽ cung cấp cho bạn một tập hợp rất nhỏ các giải pháp hợp lệ:
+  - Mảng bạn muốn reduce
+  - Một loại hàm kết hợp nào đó
 
-"Reduce" is an incredibly well documented pattern, there's no need to re-invent the wheel. [Read the wiki, in particular the lists section](https://en.wikipedia.org/wiki/Fold_(higher-order_function)), it should prompt you for another argument you'll need.
+"Reduce" là một mẫu hình được ghi chép cực kỳ đầy đủ, không cần phải phát minh lại bánh xe. [Đọc wiki, đặc biệt là phần danh sách (lists)](https://en.wikipedia.org/wiki/Fold_(higher-order_function)), nó sẽ gợi ý cho bạn một đối số khác mà bạn sẽ cần.
 
-> In practice, it is convenient and natural to have an initial value
+> Trong thực tế, việc có một giá trị ban đầu là thuận tiện và tự nhiên.
 
-### My first-pass of `Reduce`
+### Lần viết `Reduce` đầu tiên của tôi
 
 ```go
 func Reduce[A any](collection []A, f func(A, A) A, initialValue A) A {
@@ -84,20 +84,20 @@ func Reduce[A any](collection []A, f func(A, A) A, initialValue A) A {
 }
 ```
 
-Reduce captures the _essence_ of the pattern, it's a function that takes a collection, an accumulating function, an initial value, and returns a single value. There's no messy distractions around concrete types.
+Reduce nắm bắt được *bản chất* của mẫu hình, nó là một hàm nhận một tập hợp (collection), một hàm tích lũy (accumulating function), một giá trị ban đầu, và trả về một giá trị duy nhất. Không có những sự phân tâm lộn xộn xung quanh các kiểu dữ liệu cụ thể.
 
-If you understand generics syntax, you should have no problem understanding what this function does. By using the recognised term `Reduce`, programmers from other languages understand the intent too.
+Nếu bạn hiểu cú pháp generics, bạn sẽ không gặp khó khăn gì khi hiểu hàm này làm gì. Bằng cách sử dụng thuật ngữ đã được công nhận `Reduce`, các lập trình viên từ các ngôn ngữ khác cũng hiểu được ý định đó.
 
-### The usage
+### Cách sử dụng
 
 ```go
-// Sum calculates the total from a slice of numbers.
+// Sum tính tổng của một lát cắt số.
 func Sum(numbers []int) int {
 	add := func(acc, x int) int { return acc + x }
 	return Reduce(numbers, add, 0)
 }
 
-// SumAllTails calculates the sums of all but the first number given a collection of slices.
+// SumAllTails tính tổng của tất cả trừ số đầu tiên cho mỗi lát cắt được cung cấp.
 func SumAllTails(numbers ...[]int) []int {
 	sumTail := func(acc, x []int) []int {
 		if len(x) == 0 {
@@ -112,11 +112,11 @@ func SumAllTails(numbers ...[]int) []int {
 }
 ```
 
-`Sum` and `SumAllTails` now describe the behaviour of their computations as the functions declared on their first lines respectively. The act of running the computation on the collection is abstracted away in `Reduce`.
+`Sum` và `SumAllTails` giờ đây mô tả hành vi tính toán của chúng dưới dạng các hàm được khai báo tương ứng ở các dòng đầu tiên của chúng. Hành động chạy tính toán trên tập hợp được trừu tượng hóa trong `Reduce`.
 
-## Further applications of reduce
+## Các ứng dụng khác của reduce
 
-Using tests we can play around with our reduce function to see how re-usable it is. I have copied over our generic assertion functions from the previous chapter.
+Sử dụng các bản kiểm thử, chúng ta có thể chơi đùa với hàm reduce của mình để xem mức độ tái sử dụng của nó như thế nào. Tôi đã sao chép các hàm khẳng định generic (generic assertion functions) của chúng ta từ chương trước.
 
 ```go
 func TestReduce(t *testing.T) {
@@ -138,29 +138,29 @@ func TestReduce(t *testing.T) {
 }
 ```
 
-### The zero value
+### Giá trị zero (Zero value)
 
-In the multiplication example, we show the reason for having a default value as an argument to `Reduce`. If we relied on Go's default value of 0 for `int`, we'd multiply our initial value by 0, and then the following ones, so you'd only ever get 0. By setting it to 1, the first element in the slice will stay the same, and the rest will multiply by the next elements.
+Trong ví dụ về phép nhân, chúng ta thấy lý do của việc có một giá trị mặc định làm đối số cho `Reduce`. Nếu chúng ta dựa vào giá trị mặc định của Go là 0 cho kiểu `int`, chúng ta sẽ nhân giá trị ban đầu của mình với 0, và sau đó là những giá trị tiếp theo, vì vậy bạn sẽ chỉ luôn nhận được 0. Bằng cách đặt nó là 1, phần tử đầu tiên trong lát cắt sẽ giữ nguyên, và phần còn lại sẽ nhân với các phần tử tiếp theo.
 
-If you wish to sound clever with your nerd friends, you'd call this [The Identity Element](https://en.wikipedia.org/wiki/Identity_element).
+Nếu bạn muốn nghe có vẻ thông thái với những người bạn mọt sách của mình, bạn sẽ gọi đây là [Phần tử đơn vị (The Identity Element)](https://en.wikipedia.org/wiki/Identity_element).
 
-> In mathematics, an identity element, or neutral element, of a binary operation operating on a set is an element of the set which leaves unchanged every element of the set when the operation is applied.
+> Trong toán học, một phần tử đơn vị, hoặc phần tử trung hòa, của một phép toán nhị phân hoạt động trên một tập hợp là một phần tử của tập hợp mà giữ nguyên không đổi mọi phần tử của tập hợp khi phép toán được áp dụng.
 
-In addition, the identity element is 0.
+Trong phép cộng, phần tử đơn vị là 0.
 
 `1 + 0 = 1`
 
-With multiplication, it is 1.
+Với phép nhân, nó là 1.
 
 `1 * 1 = 1`
 
-## What if we wish to reduce into a different type from `A`?
+## Nếu chúng ta muốn reduce thành một kiểu khác với `A` thì sao?
 
-Suppose we had a list of transactions `Transaction` and we wanted a function that would take them, plus a name to figure out their bank balance.
+Giả sử chúng ta có một danh sách các giao dịch `Transaction` và chúng ta muốn một hàm nhận chúng, cộng với một cái tên để tìm ra số dư ngân hàng của họ.
 
-Let's follow the TDD process.
+Hãy tuân theo quy trình TDD.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 func TestBadBank(t *testing.T) {
@@ -183,7 +183,8 @@ func TestBadBank(t *testing.T) {
 }
 ```
 
-## Try to run the test
+## Thử chạy test
+
 ```
 # github.com/quii/learn-go-with-tests/arrays/v8 [github.com/quii/learn-go-with-tests/arrays/v8.test]
 ./bad_bank_test.go:6:20: undefined: Transaction
@@ -192,7 +193,7 @@ func TestBadBank(t *testing.T) {
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-We don't have our types or functions yet, add them to make the test run.
+Chúng ta chưa có các kiểu hoặc hàm của mình, hãy thêm chúng để bản kiểm thử có thể chạy được.
 
 ```go
 type Transaction struct {
@@ -206,7 +207,7 @@ func BalanceFor(transactions []Transaction, name string) float64 {
 }
 ```
 
-When you run the test you should see the following:
+Khi bạn chạy bản kiểm thử, bạn sẽ thấy kết quả như sau:
 
 ```
 === RUN   TestBadBank
@@ -216,9 +217,9 @@ When you run the test you should see the following:
 --- FAIL: TestBadBank (0.00s)
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-Let's write the code as if we didn't have a `Reduce` function first.
+Hãy viết mã nguồn như thể chúng ta chưa có hàm `Reduce` trước tiên.
 
 ```go
 func BalanceFor(transactions []Transaction, name string) float64 {
@@ -235,11 +236,11 @@ func BalanceFor(transactions []Transaction, name string) float64 {
 }
 ```
 
-## Refactor
+## Tái cấu trúc
 
-At this point, have some source control discipline and commit your work. We have working software, ready to challenge Monzo, Barclays, et al.
+Tại thời điểm này, hãy có kỷ luật về quản lý mã nguồn (source control) và commit công việc của bạn. Chúng ta có phần mềm đang hoạt động, sẵn sàng để thách thức Monzo, Barclays, v.v.
 
-Now our work is committed, we are free to play around with it, and try some different ideas out in the refactoring phase. To be fair, the code we have isn't exactly bad, but for the sake of this exercise, I want to demonstrate the same code using `Reduce`.
+Bây giờ công việc của chúng ta đã được commit, chúng ta có thể thoải mái thử nghiệm và thử một số ý tưởng khác nhau trong giai đoạn tái cấu trúc. Công bằng mà nói, mã nguồn chúng ta đang có không hẳn là tệ, nhưng vì mục đích của bài tập này, tôi muốn trình bày cùng một đoạn mã nguồn đó sử dụng `Reduce`.
 
 ```go
 func BalanceFor(transactions []Transaction, name string) float64 {
@@ -256,13 +257,13 @@ func BalanceFor(transactions []Transaction, name string) float64 {
 }
 ```
 
-But this won't compile.
+Nhưng đoạn mã này sẽ không biên dịch được.
 
 ```
 ./bad_bank.go:19:35: type func(acc float64, t Transaction) float64 of adjustBalance does not match inferred type func(Transaction, Transaction) Transaction for func(A, A) A
 ```
 
-The reason is we're trying to reduce to a _different_ type than the type of the collection. This sounds scary, but actually just requires us to adjust the type signature of `Reduce` to make it work. We won't have to change the function body, and we won't have to change any of our existing callers.
+Lý do là chúng ta đang cố gắng reduce thành một kiểu dữ liệu *khác* với kiểu dữ liệu của tập hợp. Điều này nghe có vẻ đáng sợ, nhưng thực ra chỉ yêu cầu chúng ta điều chỉnh chữ ký kiểu (type signature) của `Reduce` để làm cho nó hoạt động. Chúng ta sẽ không phải thay đổi thân hàm, và không phải thay đổi bất kỳ người gọi hiện tại nào của mình.
 
 ```go
 func Reduce[A, B any](collection []A, f func(B, A) B, initialValue B) B {
@@ -274,13 +275,13 @@ func Reduce[A, B any](collection []A, f func(B, A) B, initialValue B) B {
 }
 ```
 
-We've added a second type constraint which has allowed us to loosen the constraints on `Reduce`. This allows people to `Reduce` from a collection of `A` into a `B`. In our case from `Transaction` to `float64`.
+Chúng ta đã thêm một ràng buộc kiểu thứ hai cho phép chúng ta nới lỏng các ràng buộc đối với `Reduce`. Điều này cho phép mọi người có thể `Reduce` từ một tập hợp kiểu `A` thành một kiểu `B`. Trong trường hợp của chúng ta, từ `Transaction` thành `float64`.
 
-This makes `Reduce` more general-purpose and reusable, and still type-safe. If you try and run the tests again they should compile, and pass.
+Điều này làm cho `Reduce` có mục đích chung và có khả năng tái sử dụng cao hơn, và vẫn an toàn kiểu. Nếu bạn thử chạy lại các bản kiểm thử, chúng sẽ biên dịch và vượt qua.
 
-## Extending the bank
+## Mở rộng ngân hàng
 
-For fun, I wanted to improve the ergonomics of the bank code. I've omitted the TDD process for brevity.
+Cho vui, tôi muốn cải thiện tính tiện dụng của mã nguồn ngân hàng. Tôi đã lược bỏ quy trình TDD để cho ngắn gọn.
 
 ```go
 func TestBadBank(t *testing.T) {
@@ -305,7 +306,7 @@ func TestBadBank(t *testing.T) {
 }
 ```
 
-And here's the updated code
+Và đây là mã nguồn đã được cập nhật:
 
 ```go
 package main
@@ -344,26 +345,25 @@ func applyTransaction(a Account, transaction Transaction) Account {
 }
 ```
 
-I feel this really shows the power of using concepts like `Reduce`. The `NewBalanceFor` feels more _declarative_, describing _what_ happens, rather than _how_. Often when we're reading code, we're darting through lots of files, and we're trying to understand _what_ is happening, rather than _how_, and this style of code facilitates this well.
+Tôi cảm thấy điều này thực sự cho thấy sức mạnh của việc sử dụng các khái niệm như `Reduce`. Hàm `NewBalanceFor` mang lại cảm giác *tuyên ngôn (declarative)* hơn, mô tả *những gì* xảy ra, thay vì *như thế nào*. Thông thường khi chúng ta đọc mã nguồn, chúng ta lướt qua rất nhiều file, và chúng ta đang cố gắng hiểu *những gì* đang xảy ra hơn là *như thế nào*, và phong cách mã nguồn này tạo điều kiện thuận lợi cho việc đó.
 
-If I wish to dig in to the detail I can, and I can see the _business logic_ of `applyTransaction` without worrying about loops and mutating state; `Reduce` takes care of that separately.
+Nếu tôi muốn tìm hiểu sâu vào chi tiết, tôi có thể, và tôi có thể thấy *logic nghiệp vụ* của `applyTransaction` mà không cần lo lắng về các vòng lặp và thay đổi trạng thái (mutating state); `Reduce` thay mặt thực hiện việc đó một cách riêng biệt.
 
+### Fold/reduce khá phổ biến
 
-### Fold/reduce are pretty universal
+Khả năng là vô tận với `Reduce` (hoặc `Fold`). Nó là một mẫu hình phổ biến có lý do của nó, nó không chỉ dành cho số học hay nối chuỗi. Hãy thử một vài ứng dụng khác:
 
-The possibilities are endless™️ with `Reduce` (or `Fold`). It's a common pattern for a reason, it's not just for arithmetic or string concatenation. Try a few other applications.
-
-- Why not mix some `color.RGBA` into a single colour?
-- Total up the number of votes in a poll, or items in a shopping basket.
-- More or less anything involving processing a list.
+- Tại sao không trộn một số `color.RGBA` thành một màu duy nhất?
+- Tổng hợp số phiếu bầu trong một cuộc thăm dò, hoặc các mặt hàng trong giỏ hàng.
+- Bất cứ thứ gì liên quan đến việc xử lý một danh sách.
 
 ## Find
 
-Now that Go has generics, combining them with higher-order-functions, we can reduce a lot of boilerplate code within our projects, to help our systems be easier to understand and manage.
+Bây giờ Go đã có generics, kết hợp chúng với các hàm bậc cao, chúng ta có thể giảm bớt rất nhiều mã nguồn lặp đi lặp lại trong các dự án của mình, giúp hệ thống của chúng ta dễ hiểu và dễ quản lý hơn.
 
-No longer do you need to write specific `Find` functions for each type of collection you want to search, instead re-use or write a `Find` function. If you understood the `Reduce` function above, writing a `Find` function will be trivial.
+Bạn không còn cần phải viết các hàm `Find` cụ thể cho từng loại tập hợp mà bạn muốn tìm kiếm, thay vào đó hãy tái sử dụng hoặc viết một hàm `Find`. Nếu bạn đã hiểu hàm `Reduce` ở trên, việc viết một hàm `Find` sẽ trở nên cực kỳ đơn giản.
 
-Here's a test
+Đây là một bản kiểm thử:
 
 ```go
 func TestFind(t *testing.T) {
@@ -379,7 +379,7 @@ func TestFind(t *testing.T) {
 }
 ```
 
-And here's the implementation
+Và đây là triển khai:
 
 ```go
 func Find[A any](items []A, predicate func(A) bool) (value A, found bool) {
@@ -392,7 +392,7 @@ func Find[A any](items []A, predicate func(A) bool) (value A, found bool) {
 }
 ```
 
-Again, because it takes a generic type, we can re-use it in many ways
+Một lần nữa, vì nó nhận một kiểu dữ liệu generic, chúng ta có thể tái sử dụng nó theo nhiều cách.
 
 ```go
 type Person struct {
@@ -415,38 +415,39 @@ t.Run("Find the best programmer", func(t *testing.T) {
 })
 ```
 
-As you can see, this code is flawless.
+Như bạn thấy, mã nguồn này thật hoàn hảo.
 
 ## Tổng kết
 
-When done tastefully, higher-order functions like these will make your code simpler to read and maintain, but remember the rule of thumb:
+Khi được thực hiện một cách tinh tế, các hàm bậc cao như thế này sẽ làm cho mã nguồn của bạn đơn giản hơn để đọc và bảo trì, nhưng hãy nhớ quy tắc chung:
 
-Use the TDD process to drive out real, specific behaviour that you actually need, in the refactoring stage you then _might_ discover some useful abstractions to help tidy the code up.
+Sử dụng quy trình TDD để dẫn dắt các hành vi thực tế, cụ thể mà bạn thực sự cần, trong giai đoạn tái cấu trúc, sau đó bạn *có thể* khám phá ra một số sự trừu tượng hữu ích để giúp làm sạch mã nguồn.
 
-Practice combining TDD with good source control habits. Commit your work when your test is passing, _before_ trying to refactor. This way if you make a mess, you can easily get yourself back to your working state.
+Thực hành kết hợp TDD với các thói quen quản lý mã nguồn tốt. Commit công việc của bạn khi bản kiểm thử của bạn vượt qua, *trước khi* thử tái cấu trúc. Bằng cách này, nếu bạn làm mọi thứ rối tung lên, bạn có thể dễ dàng quay lại trạng thái hoạt động của mình.
 
-### Names matter
+### Tên gọi rất quan trọng
 
-Make an effort to do some research outside of Go, so you don't re-invent patterns that already exist with an already established name.
+Hãy cố gắng nghiên cứu bên ngoài hệ sinh thái Go, để bạn không phát minh lại các mẫu hình vốn đã tồn tại với một cái tên đã được thiết lập sẵn.
 
-Writing a function takes a collection of `A` and converts them to `B`? Don't call it `Convert`, that's [`Map`](https://en.wikipedia.org/wiki/Map_(higher-order_function)). Using the "proper" name for these items will reduce the cognitive burden for others and make it more search engine friendly to learn more.
+Viết một hàm nhận một tập hợp các đối tượng kiểu `A` và chuyển đổi chúng sang kiểu `B`? Đừng gọi nó là `Convert`, đó là [`Map`](https://en.wikipedia.org/wiki/Map_(higher-order_function)). Sử dụng cái tên "thực thụ" cho các hạng mục này sẽ giảm bớt gánh nặng nhận thức cho người khác và giúp việc tìm kiếm trên các công cụ tìm kiếm để tìm hiểu thêm trở nên dễ dàng hơn.
 
-### This doesn't feel idiomatic?
+### Điều này có cảm thấy không giống phong cách Go (idiomatic)?
 
-Try to have an open-mind.
+Hãy cố gắng giữ một tâm trí cởi mở.
 
-Whilst the idioms of Go won't, and shouldn't _radically_ change due to generics being released, the idioms _will_ change - due to the language changing! This should not be a controversial point.
+Mặc dù các phong cách Go sẽ không và không nên thay đổi một cách *triệt để* do generics được phát hành, nhưng các phong cách này *sẽ* thay đổi - do ngôn ngữ thay đổi! Đây không phải là một quan điểm gây tranh cãi.
 
-Saying
+Việc nói rằng:
 
-> This is not idiomatic
+> Điều này không giống phong cách Go
 
-Without any more detail, is not an actionable, or useful thing to say. Especially when discussing new language features.
+Mà không có thêm bất kỳ chi tiết nào, thì không phải là một điều hữu ích hay có thể thực hiện được. Đặc biệt là khi thảo luận về các tính năng ngôn ngữ mới.
 
-Discuss with your colleagues patterns and style of code based on their merits rather than dogma. So long as you have well-designed tests, you'll always be able to refactor and shift things as you understand what works well for you, and your team.
+Hãy thảo luận với các đồng nghiệp của bạn về các mẫu hình và phong cách mã nguồn dựa trên các giá trị của chúng thay vì giáo điều. Miễn là bạn có các bản kiểm thử được thiết kế tốt, bạn sẽ luôn có thể tái cấu trúc và thay đổi mọi thứ khi bạn hiểu điều gì hoạt động tốt cho bạn và nhóm của mình.
 
-### Resources
+### Tài liệu tham khảo
 
-Fold is a real fundamental in computer science. Here's some interesting resources if you wish to dig more into it
+Fold là một khái niệm rất cơ bản trong khoa học máy tính. Đây là một số tài liệu thú vị nếu bạn muốn tìm hiểu sâu hơn về nó:
 - [Wikipedia: Fold](https://en.wikipedia.org/wiki/Fold)
 - [A tutorial on the universality and expressiveness of fold](http://www.cs.nott.ac.uk/~pszgmh/fold.pdf)
+

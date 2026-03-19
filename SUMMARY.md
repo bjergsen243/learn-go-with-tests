@@ -24,7 +24,7 @@
 * [Đọc file](reading-files.md)
 * [HTML Templates](html-templates.md)
 * [Generics](generics.md)
-* [Revisiting arrays and slices with generics](revisiting-arrays-and-slices-with-generics.md)
+* [Xem lại mảng và lát cắt với generics](revisiting-arrays-and-slices-with-generics.md)
 
 ## Kiểm thử
 
