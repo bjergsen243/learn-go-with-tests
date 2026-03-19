@@ -1,20 +1,20 @@
 # Generics
 
-**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/generics)**
+**[Tất cả mã nguồn của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/generics)**
 
-This chapter will give you an introduction to generics, dispel reservations you may have about them, and give you an idea how to simplify some of your code in the future. After reading this you'll know how to write:
+Chương này sẽ cung cấp cho bạn phần giới thiệu về generics, xua tan những e ngại mà bạn có thể có về chúng, và cho bạn ý tưởng về cách đơn giản hóa một số mã nguồn của mình trong tương lai. Sau khi đọc chương này, bạn sẽ biết cách viết:
 
-- A function that takes generic arguments
-- A generic data-structure
+- Một hàm nhận các đối số generic (tham số hóa kiểu)
+- Một cấu trúc dữ liệu generic
 
 
-## Our own test helpers (`AssertEqual`, `AssertNotEqual`)
+## Các hàm hỗ trợ kiểm thử của riêng chúng ta (`AssertEqual`, `AssertNotEqual`)
 
-To explore generics we'll write some test helpers.
+Để khám phá generics, chúng ta sẽ viết một số hàm hỗ trợ kiểm thử.
 
-### Assert on integers
+### Kiểm tra (Assert) trên các số nguyên
 
-Let's start with something basic and iterate toward our goal
+Hãy bắt đầu với một cái gì đó cơ bản và lặp lại theo mục tiêu của chúng ta
 
 ```go
 import "testing"
@@ -42,9 +42,9 @@ func AssertNotEqual(t *testing.T, got, want int) {
 ```
 
 
-### Assert on strings
+### Kiểm tra trên các chuỗi
 
-Being able to assert on the equality of integers is great but what if we want to assert on `string` ?
+Có thể kiểm tra sự bằng nhau của các số nguyên là điều tuyệt vời nhưng nếu chúng ta muốn kiểm tra trên `string thì sao?
 
 ```go
 t.Run("asserting on strings", func(t *testing.T) {
@@ -53,7 +53,7 @@ t.Run("asserting on strings", func(t *testing.T) {
 })
 ```
 
-You'll get an error
+Bạn sẽ nhận được một lỗi
 
 ```
 # github.com/quii/learn-go-with-tests/generics [github.com/quii/learn-go-with-tests/generics.test]
@@ -62,26 +62,26 @@ You'll get an error
 ./generics_test.go:13:30: cannot use "Grace" (untyped string constant) as int value in argument to AssertNotEqual
 ```
 
-If you take your time to read the error, you'll see the compiler is complaining that we're trying to pass a `string` to a function that expects an `integer`.
+Nếu bạn dành thời gian để đọc lỗi, bạn sẽ thấy trình biên dịch đang phàn nàn rằng chúng ta đang cố gắng truyền một `string` vào một hàm mong đợi một số nguyên (`integer`).
 
-#### Recap on type-safety
+#### Nhắc lại về tính an toàn kiểu (type-safety)
 
-If you've read the previous chapters of this book, or have experience with statically typed languages, this should not surprise you. The Go compiler expects you to write your functions, structs e.t.c. by describing what types you wish to work with.
+Nếu bạn đã đọc các chương trước của cuốn sách này, hoặc có kinh nghiệm với các ngôn ngữ định kiểu tĩnh, điều này sẽ không làm bạn ngạc nhiên. Trình biên dịch Go mong đợi bạn viết các hàm, struct, v.v. bằng cách mô tả các kiểu dữ liệu bạn muốn làm việc cùng.
 
-You can't pass a `string` to a function that expects an `integer`.
+Bạn không thể truyền một `string` vào một hàm mong đợi một số nguyên.
 
-Whilst this can feel like ceremony, it can be extremely helpful. By describing these constraints you,
+Mặc dù điều này có vẻ như là sự rườm rà, nhưng nó có thể cực kỳ hữu ích. Bằng cách mô tả các ràng buộc này, bạn:
 
-- Make function implementation simpler. By describing to the compiler what types you work with, you **constrain the number of possible valid implementations**. You can't "add" a `Person` and a `BankAccount`. You can't capitalise an `integer`. In software, constraints are often extremely helpful.
-- Are prevented from accidentally passing data to a function you didn't mean to.
+- Làm cho việc triển khai hàm trở nên đơn giản hơn. Bằng cách mô tả cho trình biên dịch những kiểu dữ liệu bạn làm việc cùng, bạn **ràng buộc số lượng các triển khai hợp lệ có thể có**. Bạn không thể "cộng" một `Person` và một `BankAccount`. Bạn không thể viết hoa một số nguyên. Trong phần mềm, các ràng buộc thường cực kỳ hữu ích.
+- Ngăn chặn việc vô tình truyền dữ liệu vào một hàm mà bạn không có ý định.
 
-Go offers you a way to be more abstract with your types with [interfaces](./structs-methods-and-interfaces.md), so that you can design functions that do not take concrete types but instead, types that offer the behaviour you need. This gives you some flexibility whilst maintaining type-safety.
+Go cung cấp cho bạn một cách để trừu tượng hóa hơn với các kiểu dữ liệu của mình bằng [interface](./structs-methods-and-interfaces.md), để bạn có thể thiết kế các hàm không nhận các kiểu cụ thể (concrete types) mà thay vào đó là các kiểu cung cấp hành vi bạn cần. Điều này mang lại cho bạn sự linh hoạt trong khi vẫn duy trì tính an toàn kiểu.
 
-### A function that takes a string or an integer? (or indeed, other things)
+### Một hàm nhận một chuỗi hoặc một số nguyên? (hoặc thực sự là những thứ khác)
 
-Another option Go has to make your functions more flexible is by declaring the type of your argument as `interface{}` which means "anything".
+Một tùy chọn khác mà Go có để làm cho các hàm của bạn linh hoạt hơn là khai báo kiểu của đối số là `interface{}`, có nghĩa là "bất cứ thứ gì".
 
-Try changing the signatures to use this type instead.
+Hãy thử thay đổi các chữ ký hàm để sử dụng kiểu này thay thế.
 
 ```go
 func AssertEqual(got, want interface{})
@@ -90,37 +90,37 @@ func AssertNotEqual(got, want interface{})
 
 ```
 
-The tests should now compile and pass. If you try making them fail you'll see the output is a bit ropey because we're using the integer `%d` format string to print our messages, so change them to the general `%+v` format for a better output of any kind of value.
+Các bản kiểm thử bây giờ sẽ biên dịch và vượt qua. Nếu bạn thử làm cho chúng thất bại, bạn sẽ thấy đầu ra hơi kém vì chúng ta đang sử dụng chuỗi định dạng số nguyên `%d` để in các thông báo của mình, vì vậy hãy đổi chúng thành định dạng chung `%+v` để có đầu ra tốt hơn cho bất kỳ loại giá trị nào.
 
-### The problem with `interface{}`
+### Vấn đề với `interface{}`
 
-Our `AssertX` functions are quite naive but conceptually aren't too different to how other [popular libraries offer this functionality](https://github.com/matryer/is/blob/master/is.go#L150)
+Các hàm `AssertX` của chúng ta khá ngây thơ nhưng về mặt khái niệm thì không quá khác biệt so với cách các [thư viện phổ biến khác cung cấp chức năng này](https://github.com/matryer/is/blob/master/is.go#L150)
 
 ```go
 func (is *I) Equal(a, b interface{})
 ```
 
-So what's the problem?
+Vậy vấn đề là gì?
 
-By using `interface{}` the compiler can't help us when writing our code, because we're not telling it anything useful about the types of things passed to the function. Try comparing two different types.
+Bằng cách sử dụng `interface{}`, trình biên dịch không thể giúp chúng ta khi viết mã nguồn, vì chúng ta không nói cho nó bất cứ điều gì hữu ích về kiểu của những thứ được truyền vào hàm. Hãy thử so sánh hai kiểu khác nhau.
 
 ```go
 AssertEqual(1, "1")
 ```
 
-In this case, we get away with it; the test compiles, and it fails as we'd hope, although the error message `got 1, want 1` is unclear; but do we want to be able to compare strings with integers? What about comparing a `Person` with an `Airport`?
+Trong trường hợp này, chúng ta thoát được; bản kiểm thử biên dịch, và nó thất bại như chúng ta mong đợi, mặc dù thông báo lỗi `got 1, want 1` không rõ ràng; nhưng chúng ta có thực sự muốn có thể so sánh chuỗi với số nguyên không? Thế còn việc so sánh một `Person` với một `Airport`?
 
-Writing functions that take `interface{}` can be extremely challenging and bug-prone because we've _lost_ our constraints, and we have no information at compile time as to what kinds of data we're dealing with.
+Viết các hàm nhận `interface{}` có thể cực kỳ thách thức và dễ xảy ra lỗi vì chúng ta đã *mất đi* các ràng buộc của mình, và chúng ta không có thông tin tại thời điểm biên dịch về loại dữ liệu mà chúng ta đang xử lý.
 
-This means **the compiler can't help us** and we're instead more likely to have **runtime errors** which could affect our users, cause outages, or worse.
+Điều này có nghĩa là **trình biên dịch không thể giúp chúng ta** và thay vào đó chúng ta có nhiều khả năng gặp phải các **lỗi runtime** có thể ảnh hưởng đến người dùng, gây ra sự cố, hoặc tệ hơn.
 
-Often developers have to use reflection to implement these *ahem* generic functions, which can get complicated to read and write, and can hurt the performance of your program.
+Thường thì các nhà phát triển phải sử dụng reflection để triển khai các hàm *hừm* generic này, việc này có thể trở nên phức tạp để đọc và viết, và có thể làm giảm hiệu năng của chương trình.
 
-## Our own test helpers with generics
+## Các hàm hỗ trợ kiểm thử của riêng chúng ta với generics
 
-Ideally, we don't want to have to make specific `AssertX` functions for every type we ever deal with. We'd like to be able to have _one_ `AssertEqual` function that works with _any_ type but does not let you compare [apples and oranges](https://en.wikipedia.org/wiki/Apples_and_oranges).
+Lý tưởng nhất là chúng ta không muốn phải tạo các hàm `AssertX` cụ thể cho mọi kiểu dữ liệu mà chúng ta từng xử lý. Chúng ta muốn có thể có *một* hàm `AssertEqual` hoạt động với *bất kỳ* kiểu dữ liệu nào nhưng không cho phép bạn so sánh [râu ông nọ chắp cằm bà kia (apples and oranges)](https://en.wikipedia.org/wiki/Apples_and_oranges).
 
-Generics offer us a way to make abstractions (like interfaces) by letting us **describe our constraints**. They allow us to write functions that have a similar level of flexibility that `interface{}` offers but retain type-safety and provide a better developer experience for callers.
+Generics cung cấp cho chúng ta một cách để tạo ra các trừu tượng (như interface) bằng cách để chúng ta **mô tả các ràng buộc của mình**. Chúng cho phép chúng ta viết các hàm có mức độ linh hoạt tương tự như `interface{}` nhưng vẫn giữ được tính an toàn kiểu và mang lại trải nghiệm phát triển tốt hơn cho người gọi.
 
 ```go
 func TestAssertFunctions(t *testing.T) {
@@ -134,7 +134,7 @@ func TestAssertFunctions(t *testing.T) {
 		AssertNotEqual(t, "hello", "Grace")
 	})
 
-	// AssertEqual(t, 1, "1") // uncomment to see the error
+	// AssertEqual(t, 1, "1") // bỏ chú thích để thấy lỗi
 }
 
 func AssertEqual[T comparable](t *testing.T, got, want T) {
@@ -152,27 +152,27 @@ func AssertNotEqual[T comparable](t *testing.T, got, want T) {
 }
 ```
 
-To write generic functions in Go, you need to provide "type parameters" which is just a fancy way of saying "describe your generic type and give it a label".
+Để viết các hàm generic trong Go, bạn cần cung cấp các "tham số kiểu" (type parameters), đây chỉ là một cách nói mỹ miều của việc "mô tả kiểu generic của bạn và đặt cho nó một cái nhãn".
 
-In our case the type of our type parameter is `comparable` and we've given it the label of `T`. This label then lets us describe the types for the arguments to our function (`got, want T`).
+Trong trường hợp của chúng ta, kiểu của tham số kiểu là `comparable` và chúng ta đã đặt cho nó cái nhãn là `T`. Cái nhãn này sau đó cho phép chúng ta mô tả các kiểu cho các đối số của hàm (`got, want T`).
 
-We're using `comparable` because we want to describe to the compiler that we wish to use the `==` and `!=` operators on things of type `T` in our function, we want to compare! If you try changing the type to `any`,
+Chúng ta đang sử dụng `comparable` vì chúng ta muốn mô tả cho trình biên dịch rằng chúng ta muốn sử dụng các toán tử `==` và `!=` trên các thứ thuộc kiểu `T` trong hàm của mình, chúng ta muốn so sánh! Nếu bạn thử thay đổi kiểu thành `any`,
 
 ```go
 func AssertNotEqual[T any](got, want T)
 ```
 
-You'll get the following error:
+Bạn sẽ nhận được lỗi sau:
 
 ```
 prog.go2:15:5: cannot compare got != want (operator != not defined for T)
 ```
 
-Which makes a lot of sense, because you can't use those operators on every (or `any`) type.
+Điều này rất có ý nghĩa, vì bạn không thể sử dụng các toán tử đó trên mọi (hoặc `any`) kiểu dữ liệu.
 
-### Is a generic function with [`T any`](https://go.googlesource.com/proposal/+/refs/heads/master/design/go2draft-type-parameters.md#the-constraint) the same as `interface{}` ?
+### Có phải một hàm generic với [`T any`](https://go.googlesource.com/proposal/+/refs/heads/master/design/go2draft-type-parameters.md#the-constraint) cũng giống như `interface{}`?
 
-Consider two functions
+Hãy xem xét hai hàm
 
 ```go
 func GenericFoo[T any](x, y T)
@@ -182,33 +182,33 @@ func GenericFoo[T any](x, y T)
 func InterfaceyFoo(x, y interface{})
 ```
 
-What's the point of generics here? Doesn't `any` describe... anything?
+Điểm khác biệt của generics ở đây là gì? Chẳng phải `any` mô tả... bất cứ thứ gì sao?
 
-In terms of constraints, `any` does mean "anything" and so does `interface{}`. In fact, `any` was added in 1.18 and is _just an alias for `interface{}`_.
+Về mặt ràng buộc, `any` có nghĩa là "bất cứ thứ gì" và `interface{}` cũng vậy. Thực tế, `any` đã được thêm vào Go 1.18 và nó *chỉ là một bí danh cho `interface{}`*.
 
-The difference with the generic version is _you're still describing a specific type_ and what that means is we've still constrained this function to only work with _one_ type.
+Sự khác biệt với phiên bản generic là *bạn vẫn đang mô tả một kiểu cụ thể* và điều đó có nghĩa là chúng ta vẫn ràng buộc hàm này chỉ hoạt động với *một* kiểu dữ liệu duy nhất.
 
-What this means is you can call `InterfaceyFoo` with any combination of types (e.g `InterfaceyFoo(apple, orange)`). However `GenericFoo` still offers some constraints because we've said that it only works with _one_ type, `T`.
+Điều này có nghĩa là bạn có thể gọi `InterfaceyFoo` với bất kỳ sự kết hợp kiểu nào (ví dụ: `InterfaceyFoo(apple, orange)`). Tuy nhiên, `GenericFoo` vẫn cung cấp một số ràng buộc vì chúng ta đã nói rằng nó chỉ hoạt động với *một* kiểu dữ liệu, `T`.
 
-Valid:
+Hợp lệ:
 
 - `GenericFoo(apple1, apple2)`
 - `GenericFoo(orange1, orange2)`
 - `GenericFoo(1, 2)`
 - `GenericFoo("one", "two")`
 
-Not valid (fails compilation):
+Không hợp lệ (lỗi khi biên dịch):
 
 - `GenericFoo(apple1, orange1)`
 - `GenericFoo("1", 1)`
 
-If your function returns the generic type, the caller can also use the type as it was, rather than having to make a type assertion because when a function returns `interface{}` the compiler cannot make any guarantees about the type.
+Nếu hàm của bạn trả về kiểu generic, người gọi cũng có thể sử dụng kiểu đó như vốn có, thay vì phải thực hiện khẳng định kiểu (type assertion) vì khi một hàm trả về `interface{}`, trình biên dịch không thể đảm bảo bất cứ điều gì về kiểu dữ liệu đó.
 
-## Next: Generic data types
+## Tiếp theo: Các kiểu dữ liệu Generic
 
-We're going to create a [stack](https://en.wikipedia.org/wiki/Stack_(abstract_data_type)) data type. Stacks should be fairly straightforward to understand from a requirements point of view. They're a collection of items where you can `Push` items to the "top" and to get items back again you `Pop` items from the top (LIFO - last in, first out).
+Chúng ta sẽ tạo một kiểu dữ liệu [stack](https://en.wikipedia.org/wiki/Stack_(abstract_data_type)). Stack nên khá dễ hiểu từ quan điểm yêu cầu. Chúng là một tập hợp các mục mà bạn có thể `Push` (đẩy) các mục vào "đỉnh" và để lấy lại các mục, bạn `Pop` (lấy) các mục từ đỉnh (LIFO - vào sau, ra trước).
 
-For the sake of brevity I've omitted the TDD process that arrived me at the following code for a stack of `int`s, and a stack of `string`s.
+Vì mục đích ngắn gọn, tôi đã lược bỏ quy trình TDD dẫn tôi đến mã nguồn sau cho một stack chứa các số nguyên (`int`), và một stack chứa các chuỗi (`string`).
 
 ```go
 type StackOfInts struct {
@@ -258,7 +258,7 @@ func (s *StackOfStrings) Pop() (string, bool) {
 }
 ```
 
-I've created a couple of other assertion functions to help out
+Tôi đã tạo một vài hàm kiểm tra khác để hỗ trợ
 
 ```go
 func AssertTrue(t *testing.T, got bool) {
@@ -276,21 +276,21 @@ func AssertFalse(t *testing.T, got bool) {
 }
 ```
 
-And here's the tests
+Và đây là các bản kiểm thử
 
 ```go
 func TestStack(t *testing.T) {
 	t.Run("integer stack", func(t *testing.T) {
 		myStackOfInts := new(StackOfInts)
 
-		// check stack is empty
+		// kiểm tra stack đang trống
 		AssertTrue(t, myStackOfInts.IsEmpty())
 
-		// add a thing, then check it's not empty
+		// thêm một thứ, sau đó kiểm tra nó không trống
 		myStackOfInts.Push(123)
 		AssertFalse(t, myStackOfInts.IsEmpty())
 
-		// add another thing, pop it back again
+		// thêm một thứ khác, lấy nó ra lại
 		myStackOfInts.Push(456)
 		value, _ := myStackOfInts.Pop()
 		AssertEqual(t, value, 456)
@@ -302,14 +302,14 @@ func TestStack(t *testing.T) {
 	t.Run("string stack", func(t *testing.T) {
 		myStackOfStrings := new(StackOfStrings)
 
-		// check stack is empty
+		// kiểm tra stack đang trống
 		AssertTrue(t, myStackOfStrings.IsEmpty())
 
-		// add a thing, then check it's not empty
+		// thêm một thứ, sau đó kiểm tra nó không trống
 		myStackOfStrings.Push("123")
 		AssertFalse(t, myStackOfStrings.IsEmpty())
 
-		// add another thing, pop it back again
+		// thêm một thứ khác, lấy nó ra lại
 		myStackOfStrings.Push("456")
 		value, _ := myStackOfStrings.Pop()
 		AssertEqual(t, value, "456")
@@ -320,14 +320,14 @@ func TestStack(t *testing.T) {
 }
 ```
 
-### Problems
+### Vấn đề
 
-- The code for both `StackOfStrings` and `StackOfInts` is almost identical. Whilst duplication isn't always the end of the world, it's more code to read, write and maintain.
-- As we're duplicating the logic across two types, we've had to duplicate the tests too.
+- Mã nguồn cho cả `StackOfStrings` và `StackOfInts` gần như giống hệt nhau. Mặc dù sự trùng lặp không phải lúc nào cũng là dấu chấm hết cho thế giới, nhưng nó có nghĩa là có nhiều mã nguồn hơn để đọc, viết và bảo trì.
+- Vì chúng ta đang trùng lặp logic trên hai kiểu dữ liệu, chúng ta cũng phải trùng lặp cả các bản kiểm thử.
 
-We really want to capture the _idea_ of a stack in one type, and have one set of tests for them. We should be wearing our refactoring hat right now which means we should not be changing the tests because we want to maintain the same behaviour.
+Chúng ta thực sự muốn tóm gọn *ý tưởng* về một stack trong một kiểu dữ liệu duy nhất, và có một bộ kiểm thử duy nhất cho chúng. Chúng ta nên đội chiếc mũ tái cấu trúc ngay bây giờ, điều đó có nghĩa là chúng ta không nên thay đổi các bản kiểm thử vì chúng ta muốn duy trì cùng một hành vi.
 
-Without generics, this is what we _could_ do
+Nếu không có generics, đây là những gì chúng ta *có thể* làm:
 
 ```go
 type StackOfInts = Stack
@@ -358,24 +358,24 @@ func (s *Stack) Pop() (interface{}, bool) {
 }
 ```
 
-- We're aliasing our previous implementations of `StackOfInts` and `StackOfStrings` to a new unified type `Stack`
-- We've removed the type safety from the `Stack` by making it so `values` is a [slice](https://github.com/quii/learn-go-with-tests/blob/main/arrays-and-slices.md) of `interface{}`
+- Chúng ta đang đặt bí danh (alias) cho các triển khai trước đó của `StackOfInts` và `StackOfStrings` thành một kiểu thống nhất mới là `Stack`.
+- Chúng ta đã loại bỏ tính an toàn kiểu khỏi `Stack` bằng cách làm cho `values` trở thành một [slice](https://github.com/quii/learn-go-with-tests/blob/main/arrays-and-slices.md) thuộc kiểu `interface{}`.
 
-To try this code, you'll have to remove the type constraints from our assert functions:
+Để thử mã nguồn này, bạn sẽ phải loại bỏ các ràng buộc kiểu khỏi các hàm assert của chúng ta:
 
 ```go
 func AssertEqual(t *testing.T, got, want interface{})
 ```
 
-If you do this, our tests still pass. Who needs generics?
+Nếu bạn làm điều này, các bản kiểm thử của chúng ta vẫn vượt qua. Ai cần generics chứ?
 
-### The problem with throwing out type safety
+### Vấn đề của việc vứt bỏ tính an toàn kiểu
 
-The first problem is the same as we saw with our `AssertEquals` - we've lost type safety. I can now `Push` apples onto a stack of oranges.
+Vấn đề đầu tiên tương tự như những gì chúng ta đã thấy với `AssertEquals` - chúng ta đã mất đi tính an toàn kiểu. Bây giờ tôi có thể `Push` những quả táo lên một stack đựng cam.
 
-Even if we have the discipline not to do this, the code is still unpleasant to work with because when methods **return `interface{}` they are horrible to work with**.
+Thậm chí nếu chúng ta có kỷ luật để không làm điều đó, mã nguồn vẫn không thú vị để làm việc cùng vì các phương thức **trả về `interface{}` rất khủng khiếp khi sử dụng**.
 
-Add the following test,
+Hãy thêm bản kiểm thử sau,
 
 ```go
 t.Run("interface stack DX is horrid", func(t *testing.T) {
@@ -389,15 +389,15 @@ t.Run("interface stack DX is horrid", func(t *testing.T) {
 })
 ```
 
-You get a compiler error, showing the weakness of losing type-safety:
+Bạn nhận được một lỗi trình biên dịch, cho thấy điểm yếu của việc mất tính an toàn kiểu:
 
 ```
 invalid operation: operator + not defined on firstNum (variable of type interface{})
 ```
 
-When `Pop` returns `interface{}` it means the compiler has no information about what the data is and therefore severely limits what we can do. It can't know that it should be an integer, so it does not let us use the `+` operator.
+Khi `Pop` trả về `interface{}`, điều đó có nghĩa là trình biên dịch không có thông tin về dữ liệu đó là gì và do đó hạn chế nghiêm trọng những gì chúng ta có thể làm. Nó không thể biết rằng đó nên là một số nguyên, vì vậy nó không cho phép chúng ta sử dụng toán tử `+`.
 
-To get around this, the caller has to do a [type assertion](https://golang.org/ref/spec#Type_assertions) for each value.
+Để lách qua điều này, người gọi phải thực hiện một [khẳng định kiểu (type assertion)](https://golang.org/ref/spec#Type_assertions) cho mỗi giá trị.
 
 ```go
 t.Run("interface stack dx is horrid", func(t *testing.T) {
@@ -408,24 +408,24 @@ t.Run("interface stack dx is horrid", func(t *testing.T) {
 	firstNum, _ := myStackOfInts.Pop()
 	secondNum, _ := myStackOfInts.Pop()
 
-	// get our ints from out interface{}
+	// lấy các số nguyên từ interface{}
 	reallyFirstNum, ok := firstNum.(int)
-	AssertTrue(t, ok) // need to check we definitely got an int out of the interface{}
+	AssertTrue(t, ok) // cần kiểm tra chắc chắn rằng chúng ta nhận được một số nguyên từ interface{}
 
 	reallySecondNum, ok := secondNum.(int)
-	AssertTrue(t, ok) // and again!
+	AssertTrue(t, ok) // và một lần nữa!
 
 	AssertEqual(t, reallyFirstNum+reallySecondNum, 3)
 })
 ```
 
-The unpleasantness radiating from this test would be repeated for every potential user of our `Stack` implementation, yuck.
+Sự khó chịu tỏa ra từ bản kiểm thử này sẽ bị lặp lại cho mọi người dùng tiềm năng của triển khai `Stack` của chúng ta, thật tệ.
 
-### Generic data structures to the rescue
+### Kiểu dữ liệu Generic là cứu cánh
 
-Just like you can define generic arguments to functions, you can define generic data structures.
+Giống như việc bạn có thể định nghĩa các đối số generic cho hàm, bạn có thể định nghĩa các cấu trúc dữ liệu generic.
 
-Here's our new `Stack` implementation, featuring a generic data type.
+Đây là triển khai `Stack` mới của chúng ta, sử dụng một kiểu dữ liệu generic.
 
 ```go
 type Stack[T any] struct {
@@ -453,21 +453,21 @@ func (s *Stack[T]) Pop() (T, bool) {
 }
 ```
 
-Here's the tests, showing them working how we'd like them to work, with full type-safety.
+Dưới đây là các bản kiểm thử, cho thấy chúng hoạt động theo cách chúng ta mong muốn, với sự an toàn kiểu hoàn toàn.
 
 ```go
 func TestStack(t *testing.T) {
 	t.Run("integer stack", func(t *testing.T) {
 		myStackOfInts := new(Stack[int])
 
-		// check stack is empty
+		// kiểm tra stack đang trống
 		AssertTrue(t, myStackOfInts.IsEmpty())
 
-		// add a thing, then check it's not empty
+		// thêm một thứ, sau đó kiểm tra nó không trống
 		myStackOfInts.Push(123)
 		AssertFalse(t, myStackOfInts.IsEmpty())
 
-		// add another thing, pop it back again
+		// thêm một thứ khác, lấy nó ra lại
 		myStackOfInts.Push(456)
 		value, _ := myStackOfInts.Pop()
 		AssertEqual(t, value, 456)
@@ -475,7 +475,7 @@ func TestStack(t *testing.T) {
 		AssertEqual(t, value, 123)
 		AssertTrue(t, myStackOfInts.IsEmpty())
 
-		// can get the numbers we put in as numbers, not untyped interface{}
+		// có thể lấy các con số chúng ta đưa vào dưới dạng số, không phải interface{}
 		myStackOfInts.Push(1)
 		myStackOfInts.Push(2)
 		firstNum, _ := myStackOfInts.Pop()
@@ -485,7 +485,7 @@ func TestStack(t *testing.T) {
 }
 ```
 
-You'll notice the syntax for defining generic data structures is consistent with defining generic arguments to functions.
+Bạn sẽ nhận thấy cú pháp để định nghĩa cấu trúc dữ liệu generic nhất quán với việc định nghĩa các đối số generic cho hàm.
 
 ```go
 type Stack[T any] struct {
@@ -493,15 +493,15 @@ type Stack[T any] struct {
 }
 ```
 
-It's _almost_ the same as before, it's just that what we're saying is the **type of the stack constrains what type of values you can work with**.
+Nó *gần như* giống như trước, chỉ là những gì chúng ta đang nói là kiểu của **stack ràng buộc những kiểu giá trị nào bạn có thể làm việc cùng**.
 
-Once you create a `Stack[Orange]` or a `Stack[Apple]` the methods defined on our stack will only let you pass in and will only return the particular type of the stack you're working with:
+Một khi bạn tạo một `Stack[Orange]` hoặc một `Stack[Apple]`, các phương thức được định nghĩa trên stack của chúng ta sẽ chỉ cho phép bạn truyền vào và sẽ chỉ trả về kiểu dữ liệu cụ thể của stack mà bạn đang làm việc:
 
 ```go
 func (s *Stack[T]) Pop() (T, bool)
 ```
 
-You can imagine the types of implementation being somehow generated for you, depending on what type of stack you create:
+Bạn có thể tưởng tượng các triển khai kiểu dữ liệu được tạo ra cho bạn theo cách nào đó, tùy thuộc vào loại stack bạn tạo:
 
 ```go
 func (s *Stack[Orange]) Pop() (Orange, bool)
@@ -511,23 +511,26 @@ func (s *Stack[Orange]) Pop() (Orange, bool)
 func (s *Stack[Apple]) Pop() (Apple, bool)
 ```
 
-Now that we have done this refactoring, we can safely remove the string stack test because we don't need to prove the same logic over and over.
+Bây giờ chúng ta đã thực hiện việc tái cấu trúc này, chúng ta có thể an tâm xóa bản kiểm thử string stack vì chúng ta không cần chứng minh cùng một logic lặp đi lặp lại.
 
-Note that so far in the examples of calling generic functions, we have not needed to specify the generic types. For example, to call `AssertEqual[T]`, we do not need to specify what the type `T` is since it can be inferred from the arguments. In cases where the generic types cannot be inferred, you need to specify the types when calling the function. The syntax is the same as when defining the function, i.e. you specify the types inside square brackets before the arguments.
+Lưu ý rằng cho đến nay trong các ví dụ về việc gọi hàm generic, chúng ta không cần phải chỉ định các kiểu generic. Ví dụ, để gọi `AssertEqual[T]`, chúng ta không cần chỉ định kiểu `T` là gì vì nó có thể được suy luận từ các đối số. Trong trường hợp các kiểu generic không thể được suy luận, bạn cần chỉ định các kiểu khi gọi hàm. Cú pháp giống như khi định nghĩa hàm, tức là bạn chỉ định các kiểu bên trong ngoặc vuông trước các đối số.
 
-For a concrete example, consider making a constructor for `Stack[T]`.
+Để lấy một ví dụ cụ thể, hãy xem xét việc tạo một constructor cho `Stack[T]`.
+
 ```go
 func NewStack[T any]() *Stack[T] {
 	return new(Stack[T])
 }
 ```
-To use this constructor to create a stack of ints and a stack of strings for example, you call it like this:
+
+Để sử dụng constructor này tạo một stack chứa số nguyên và một stack chứa chuỗi chẳng hạn, bạn gọi nó như sau:
+
 ```go
 myStackOfInts := NewStack[int]()
 myStackOfStrings := NewStack[string]()
 ```
 
-Here is the `Stack` implementation and the tests after adding the constructor.
+Đây là triển khai `Stack` và các bản kiểm thử sau khi thêm constructor.
 
 ```go
 type Stack[T any] struct {
@@ -564,14 +567,14 @@ func TestStack(t *testing.T) {
 	t.Run("integer stack", func(t *testing.T) {
 		myStackOfInts := NewStack[int]()
 
-		// check stack is empty
+		// kiểm tra stack đang trống
 		AssertTrue(t, myStackOfInts.IsEmpty())
 
-		// add a thing, then check it's not empty
+		// thêm một thứ, sau đó kiểm tra nó không trống
 		myStackOfInts.Push(123)
 		AssertFalse(t, myStackOfInts.IsEmpty())
 
-		// add another thing, pop it back again
+		// thêm một thứ khác, lấy nó ra lại
 		myStackOfInts.Push(456)
 		value, _ := myStackOfInts.Pop()
 		AssertEqual(t, value, 456)
@@ -579,7 +582,7 @@ func TestStack(t *testing.T) {
 		AssertEqual(t, value, 123)
 		AssertTrue(t, myStackOfInts.IsEmpty())
 
-		// can get the numbers we put in as numbers, not untyped interface{}
+		// có thể lấy các con số chúng ta đưa vào dưới dạng số, không phải interface{}
 		myStackOfInts.Push(1)
 		myStackOfInts.Push(2)
 		firstNum, _ := myStackOfInts.Pop()
@@ -589,74 +592,75 @@ func TestStack(t *testing.T) {
 }
 ```
 
+Sử dụng kiểu dữ liệu generic, chúng ta đã:
 
-Using a generic data type we have:
+- Giảm bớt sự trùng lặp của logic quan trọng.
+- Làm cho `Pop` trả về `T` để nếu chúng ta tạo một `Stack[int]`, thực tế chúng ra nhận lại `int` từ `Pop`; bây giờ chúng ta có thể sử dụng `+` mà không cần các màn nhào lộn khẳng định kiểu.
+- Ngăn chặn việc lạm dụng tại thời điểm biên dịch. Bạn không thể `Push` những quả cam vào một apple stack.
 
-- Reduced duplication of important logic.
-- Made `Pop` return `T` so that if we create a `Stack[int]` we in practice get back `int` from `Pop`; we can now use `+` without the need for type assertion gymnastics.
-- Prevented misuse at compile time. You cannot `Push` oranges to an apple stack.
 
 ## Tổng kết
 
-This chapter should have given you a taste of generics syntax, and some ideas as to why generics might be helpful. We've written our own `Assert` functions which we can safely re-use to experiment with other ideas around generics, and we've implemented a simple data structure to store any type of data we wish, in a type-safe manner.
+Chương này lẽ ra đã cho bạn cảm nhận về cú pháp generics, và một số ý tưởng tại sao generics lại có ích. Chúng ta đã viết các hàm `Assert` của riêng mình mà chúng ta có thể tái sử dụng một cách an toàn để thử nghiệm các ý tưởng khác xung quanh generics, và chúng ta đã triển khai một cấu trúc dữ liệu đơn giản để lưu trữ bất kỳ loại dữ liệu nào chúng ta muốn, theo cách an toàn kiểu.
 
-### Generics are simpler than using `interface{}` in most cases
+### Generics đơn giản hơn nhiều so với việc sử dụng `interface{}` trong hầu hết các trường hợp
 
-If you're inexperienced with statically-typed languages, the point of generics may not be immediately obvious, but I hope the examples in this chapter have illustrated where the Go language isn't as expressive as we'd like. In particular using `interface{}` makes your code:
+Nếu bạn chưa có kinh nghiệm với các ngôn ngữ định kiểu tĩnh, ưu điểm của generics có thể không quá rõ ràng ngay lập tức, nhưng tôi hy vọng các ví dụ trong chương này đã minh họa cho bạn thấy ngôn ngữ Go đôi khi không biểu cảm như chúng ta mong muốn. Cụ thể, việc sử dụng `interface{}` làm cho mã nguồn của bạn:
 
-- Less safe (mix apples and oranges), requires more error handling
-- Less expressive, `interface{}` tells you nothing about the data
-- More likely to rely on [reflection](https://github.com/quii/learn-go-with-tests/blob/main/reflection.md), type-assertions etc which makes your code more difficult to work with and more error prone as it pushes checks from compile-time to runtime
+- Kém an toàn hơn (trộn lẫn cam và táo), yêu cầu xử lý lỗi nhiều hơn
+- Kém biểu cảm hơn, `interface{}` không cho bạn biết bất cứ điều gì về dữ liệu
+- Có nhiều khả năng phải dựa vào [reflection](https://github.com/quii/learn-go-with-tests/blob/main/reflection.md), khẳng định kiểu, v.v., làm cho mã nguồn của bạn khó làm việc hơn và dễ xảy ra lỗi hơn vì nó đẩy việc kiểm tra từ thời điểm biên dịch sang thời điểm chạy (runtime)
 
-Using statically typed languages is an act of describing constraints. If you do it well, you create code that is not only safe and simple to use but also simpler to write because the possible solution space is smaller.
+Sử dụng ngôn ngữ định kiểu tĩnh là một hành động mô tả các ràng buộc. Nếu bạn làm tốt, bạn tạo ra mã nguồn không chỉ an toàn và đơn giản để sử dụng mà còn đơn giản hơn để viết vì không gian giải pháp khả thi là nhỏ hơn.
 
-Generics gives us a new way to express constraints in our code, which as demonstrated will allow us to consolidate and simplify code that was not possible until Go 1.18.
+Generics cung cấp cho chúng ta một cách mới để thể hiện các ràng buộc trong mã nguồn của mình, và như đã chứng minh, nó sẽ cho phép chúng ta củng cố và đơn giản hóa mã nguồn mà trước đây không thể thực hiện được cho đến phiên bản Go 1.18.
 
-### Will generics turn Go into Java?
+### Generics sẽ biến Go thành Java?
 
-- No.
+- Không.
 
-There's a lot of [FUD (fear, uncertainty and doubt)](https://en.wikipedia.org/wiki/Fear,_uncertainty,_and_doubt) in the Go community about generics leading to nightmare abstractions and baffling code bases. This is usually caveatted with "they must be used carefully".
+Có rất nhiều [FUD (nỗi sợ hãi, sự không chắc chắn và nghi ngờ)](https://en.wikipedia.org/wiki/Fear,_uncertainty,_and_doubt) trong cộng đồng Go về việc generics dẫn đến các trừu tượng hóa ác mộng và các cơ sở mã nguồn gây bối rối. Điều này thường đi kèm với cảnh báo "chúng phải được sử dụng cẩn thận".
 
-Whilst this is true, it's not especially useful advice because this is true of any language feature.
+Mặc dù điều này đúng, nhưng nó không phải là lời khuyên đặc biệt hữu ích vì điều này đúng với bất kỳ tính năng ngôn ngữ nào.
 
-Not many people complain about our ability to define interfaces which, like generics is a way of describing constraints within our code. When you describe an interface you are making a design choice that _could be poor_, generics are not unique in their ability to make confusing, annoying to use code.
+Không có nhiều người phàn nàn về khả năng định nghĩa interface của chúng ta, vốn cũng giống như generics là một cách mô tả các ràng buộc trong mã nguồn của chúng ta. Khi bạn mô tả một interface, bạn đang đưa ra một lựa chọn thiết kế *có thể kém*, generics không phải là thứ duy nhất có khả năng tạo ra mã nguồn gây nhầm lẫn và khó chịu khi sử dụng.
 
-### You're already using generics
+### Bạn vốn dĩ đã đang sử dụng generics
 
-When you consider that if you've used arrays, slices or maps; you've _already been a consumer of generic code_.
+Khi bạn xem xét rằng nếu bạn đã từng sử dụng array, slice hoặc map; bạn *vốn dĩ đã là một người tiêu dùng mã nguồn generic*.
 
-```
+```go
 var myApples []Apple
-// You can't do this!
+// Bạn không thể làm điều này!
 append(myApples, Orange{})
 ```
 
-### Abstraction is not a dirty word
+### Trừu tượng hóa không phải là một từ xấu
 
-It's easy to dunk on [AbstractSingletonProxyFactoryBean](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/AbstractSingletonProxyFactoryBean.html) but let's not pretend a code base with no abstraction at all isn't also bad. It's your job to _gather_ related concepts when appropriate, so your system is easier to understand and change; rather than being a collection of disparate functions and types with a lack of clarity.
+Thật dễ dàng để châm chọc [AbstractSingletonProxyFactoryBean](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/AbstractSingletonProxyFactoryBean.html) nhưng đừng giả vờ rằng một cơ sở mã nguồn không có sự trừu tượng hóa nào cả lại không tệ. Công việc của bạn là *tập hợp* các khái niệm liên quan khi thích hợp, để hệ thống của bạn dễ hiểu và dễ thay đổi hơn; thay vì là một tập hợp các hàm và kiểu dữ liệu rời rạc, thiếu rõ ràng.
 
-### [Make it work, make it right, make it fast](https://wiki.c2.com/?MakeItWorkMakeItRightMakeItFast#:~:text=%22Make%20it%20work%2C%20make%20it,to%20DesignForPerformance%20ahead%20of%20time.)
+### [Làm cho nó chạy, làm cho nó đúng, làm cho nó nhanh](https://wiki.c2.com/?MakeItWorkMakeItRightMakeItFast#:~:text=%22Make%20it%20work%2C%20make%20it,to%20DesignForPerformance%20ahead%20of%20time.)
 
-People run in to problems with generics when they're abstracting too quickly without enough information to make good design decisions.
+Mọi người gặp vấn đề với generics khi họ trừu tượng hóa quá nhanh mà không có đủ thông tin để đưa ra các quyết định thiết kế tốt.
 
-The TDD cycle of red, green, refactor means that you have more guidance as to what code you _actually need_ to deliver your behaviour, **rather than imagining abstractions up front**; but you still need to be careful.
+Chu kỳ TDD đỏ, xanh, tái cấu trúc có nghĩa là bạn có nhiều sự hướng dẫn hơn về việc bạn *thực sự cần* mã nguồn nào để phân phối hành vi của mình, **thay vì tưởng tượng ra các trừu tượng ngay từ đầu**; nhưng bạn vẫn cần cẩn thận.
 
-There's no hard and fast rules here but resist making things generic until you can see that you have a useful generalisation. When we created the various `Stack` implementations we importantly started with _concrete_ behaviour like `StackOfStrings` and `StackOfInts` backed by tests. From our _real_ code we could start to see real patterns, and backed by our tests, we could explore refactoring toward a more general-purpose solution.
+Không có quy tắc cứng nhắc nào ở đây nhưng hãy cưỡng lại việc làm cho mọi thứ trở nên generic cho đến khi bạn có thể thấy rằng mình có một sự khái quát hóa hữu ích. Khi chúng ta tạo ra các triển khai `Stack` khác nhau, chúng ta đã bắt đầu một cách quan trọng với các hành vi *cụ thể* như `StackOfStrings` và `StackOfInts` được hỗ trợ bởi các bản kiểm thử. Từ mã nguồn *thực tế* của mình, chúng ta có thể bắt đầu thấy các mẫu thực sự, và được hỗ trợ bởi các bản kiểm thử, chúng ta có thể khám phá việc tái cấu trúc theo hướng một giải pháp đa năng hơn.
 
-People often advise you to only generalise when you see the same code three times, which seems like a good starting rule of thumb.
+Mọi người thường khuyên bạn chỉ nên khái quát hóa khi bạn thấy cùng một đoạn mã nguồn xuất hiện ba lần, điều này có vẻ như là một quy tắc bắt đầu tốt.
 
-A common path I've taken in other programming languages has been:
+Một con đường phổ biến mà tôi đã đi trong các ngôn ngữ lập trình khác là:
 
-- One TDD cycle to drive some behaviour
-- Another TDD cycle to exercise some other related scenarios
+- Một chu kỳ TDD để dẫn dắt một số hành vi
+- Một chu kỳ TDD khác để thực hiện các kịch bản liên quan khác
 
-> Hmm, these things look similar - but a little duplication is better than coupling to a bad abstraction
+> Chà, những thứ này trông giống nhau - nhưng một chút trùng lặp thì tốt hơn là gắn kết (coupling) vào một sự trừu tượng tồi
 
-- Sleep on it
-- Another TDD cycle
+- Hãy ngủ một giấc
+- Một chu kỳ TDD khác
 
-> OK, I'd like to try to see if I can generalise this thing. Thank goodness I am so smart and good-looking because I use TDD, so I can refactor whenever I wish, and the process has helped me understand what behaviour I actually need before designing too much.
+> OK, tôi muốn thử xem mình liệu có thể khái quát hóa thứ này không. Tạ ơn trời đất vì tôi thật thông minh và đẹp trai vì tôi sử dụng TDD, vì vậy tôi có thể tái cấu trúc bất cứ khi nào tôi muốn, và quy trình này đã giúp tôi hiểu những hành vi nào tôi thực sự cần trước khi thiết kế quá nhiều.
 
-- This abstraction feels nice! The tests are still passing, and the code is simpler
-- I can now delete a number of tests, I've captured the _essence_ of the behaviour and removed unnecessary detail
+- Sự trừu tượng này cảm thấy thật tuyệt! Các bản kiểm thử vẫn đang vượt qua, và mã nguồn đơn giản hơn
+- Bây giờ tôi có thể xóa một số bản kiểm thử, tôi đã nắm bắt được *bản chất* của hành vi và loại bỏ những chi tiết không cần thiết
+
