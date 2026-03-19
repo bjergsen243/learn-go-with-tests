@@ -1,43 +1,43 @@
-# Reflection
+# Reflection (Phản chiếu)
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/reflection)**
 
-[From Twitter](https://twitter.com/peterbourgon/status/1011403901419937792?s=09)
+[Từ Twitter](https://twitter.com/peterbourgon/status/1011403901419937792?s=09)
 
-> golang challenge: write a function `walk(x interface{}, fn func(string))` which takes a struct `x` and calls `fn` for all strings fields found inside. difficulty level: recursively.
+> thử thách golang: viết một hàm `walk(x interface{}, fn func(string))` nhận vào một struct `x` và gọi `fn` cho tất cả các trường (fields) kiểu string được tìm thấy bên trong. mức độ khó: đệ quy.
 
-To do this we will need to use _reflection_.
+Để làm điều này, chúng ta sẽ cần sử dụng _reflection_.
 
-> Reflection in computing is the ability of a program to examine its own structure, particularly through types; it's a form of metaprogramming. It's also a great source of confusion.
+> Reflection trong lập trình là khả năng của một chương trình để kiểm tra cấu trúc của chính nó, đặc biệt là thông qua các kiểu dữ liệu; đó là một hình thức của metaprogramming. Nó cũng là một nguồn gây ra nhiều bối rối.
 
-From [The Go Blog: Reflection](https://blog.golang.org/laws-of-reflection)
+Từ [The Go Blog: Reflection](https://blog.golang.org/laws-of-reflection)
 
-## What is `interface{}`?
+## `interface{}` là gì?
 
-We have enjoyed the type-safety that Go has offered us in terms of functions that work with known types, such as `string`, `int` and our own types like `BankAccount`.
+Chúng ta đã tận hưởng tính an toàn kiểu (type-safety) mà Go mang lại thông qua các hàm làm việc với các kiểu dữ liệu đã biết, chẳng hạn như `string`, `int` và các kiểu dữ liệu của riêng chúng ta như `BankAccount`.
 
-This means that we get some documentation for free and the compiler will complain if you try and pass the wrong type to a function.
+Điều này có nghĩa là chúng ta có sẵn tài liệu miễn phí và compiler sẽ phàn nàn nếu bạn cố gắng truyền sai kiểu dữ liệu vào một hàm.
 
-You may come across scenarios though where you want to write a function where you don't know the type at compile time.
+Tuy nhiên, bạn có thể gặp phải những tình huống muốn viết một hàm mà bạn không biết kiểu dữ liệu tại thời điểm biên dịch (compile time).
 
-Go lets us get around this with the type `interface{}` which you can think of as just _any_ type (in fact, in Go `any` is an [alias](https://cs.opensource.google/go/go/+/master:src/builtin/builtin.go;drc=master;l=95) for `interface{}`).
+Go cho phép chúng ta vượt qua điều này với kiểu `interface{}`, bạn có thể coi nó là *bất kỳ* kiểu dữ liệu nào (thực tế, trong Go `any` là một [bí danh](https://cs.opensource.google/go/go/+/master:src/builtin/builtin.go;drc=master;l=95) cho `interface{}`).
 
-So `walk(x interface{}, fn func(string))` will accept any value for `x`.
+Vì vậy, `walk(x interface{}, fn func(string))` sẽ chấp nhận bất kỳ giá trị nào cho `x`.
 
-### So why not use `interface{}` for everything and have really flexible functions?
+### Vậy tại sao không sử dụng `interface{}` cho mọi thứ để có các hàm thực sự linh hoạt?
 
-- As a user of a function that takes `interface{}` you lose type safety. What if you meant to pass `Herd.species` of type `string` into a function but instead did `Herd.count` which is an `int`? The compiler won't be able to inform you of your mistake. You also have no idea _what_ you're allowed to pass to a function. Knowing that a function takes a `UserService` for instance is very useful.
-- As a writer of such a function, you have to be able to inspect _anything_ that has been passed to you and try and figure out what the type is and what you can do with it. This is done using _reflection_. This can be quite clumsy and difficult to read and is generally less performant (as you have to do checks at runtime).
+- Với tư cách là người dùng của một hàm nhận `interface{}`, bạn mất đi tính an toàn kiểu. Điều gì sẽ xảy ra nếu bạn định truyền `Herd.species` kiểu `string` vào một hàm nhưng thay vào đó lại truyền `Herd.count` vốn là kiểu `int`? Compiler sẽ không thể thông báo cho bạn về lỗi này. Bạn cũng không biết mình *được phép* truyền cái gì vào hàm. Biết rằng một hàm nhận một `UserService` chẳng hạn là rất hữu ích.
+- Với tư cách là người viết một hàm như vậy, bạn phải có khả năng kiểm tra *bất cứ thứ gì* đã được truyền cho mình và cố gắng tìm hiểu xem kiểu dữ liệu đó là gì và bạn có thể làm gì với nó. Điều này được thực hiện bằng cách sử dụng _reflection_. Điều này có thể khá vụng về, khó đọc và nói chung là kém hiệu quả hơn (vì bạn phải thực hiện các kiểm tra tại thời điểm chạy - runtime).
 
-In short only use reflection if you really need to.
+Tóm lại, chỉ sử dụng reflection nếu bạn thực sự cần.
 
-If you want polymorphic functions, consider if you could design it around an interface (not `interface{}`, confusingly) so that users can use your function with multiple types if they implement whatever methods you need for your function to work.
+Nếu bạn muốn có các hàm đa hình (polymorphic functions), hãy cân nhắc xem liệu bạn có thể thiết kế nó dựa trên một interface (khác với `interface{}`, điều này hơi gây bối rối) để người dùng có thể sử dụng hàm của bạn với nhiều kiểu dữ liệu nếu họ triển khai các phương thức cần thiết để hàm của bạn hoạt động.
 
-Our function will need to be able to work with lots of different things. As always we'll take an iterative approach, writing tests for each new thing we want to support and refactoring along the way until we're done.
+Hàm của chúng ta sẽ cần có khả năng hoạt động với nhiều thứ khác nhau. Như mọi khi, chúng ta sẽ thực hiện theo cách lặp đi lặp lại, viết các test cho từng thứ mới mà chúng ta muốn hỗ trợ và tái cấu trúc trên đường đi cho đến khi hoàn thành.
 
-## Write the test first
+## Viết test trước tiên
 
-We'll want to call our function with a struct that has a string field in it (`x`). Then we can spy on the function (`fn`) passed in to see if it is called.
+Chúng ta muốn gọi hàm của mình với một struct có một trường string trong đó (`x`). Sau đó, chúng ta có thể giám sát hàm (`fn`) được truyền vào để xem nó có được gọi hay không.
 
 ```go
 func TestWalk(t *testing.T) {
@@ -59,11 +59,11 @@ func TestWalk(t *testing.T) {
 }
 ```
 
-- We want to store a slice of strings (`got`) which stores which strings were passed into `fn` by `walk`. Often in previous chapters, we have made dedicated types for this to spy on function/method invocations but in this case, we can just pass in an anonymous function for `fn` that closes over `got`.
-- We use an anonymous `struct` with a `Name` field of type string to go for the simplest "happy" path.
-- Finally, call `walk` with `x` and the spy and for now just check the length of `got`, we'll be more specific with our assertions once we've got something very basic working.
+- Chúng ta muốn lưu trữ một slice các chuỗi (`got`) để lưu những chuỗi nào đã được truyền vào `fn` bởi `walk`. Thông thường trong các chương trước, chúng ta đã tạo các kiểu chuyên dụng cho việc này để giám sát các lời gọi hàm/phương thức nhưng trong trường hợp này, chúng ta chỉ có thể truyền vào một hàm ẩn danh cho `fn` để ghi nhận các giá trị vào `got`.
+- Chúng ta sử dụng một `struct` ẩn danh với trường `Name` kiểu string để thực hiện trường hợp "thành công" đơn giản nhất.
+- Cuối cùng, gọi `walk` với `x` và hàm giám sát, hiện tại chỉ kiểm tra độ dài của `got`, chúng ta sẽ đưa ra các xác nhận (assertions) cụ thể hơn sau khi đã làm cho chức năng cơ bản hoạt động.
 
-## Try to run the test
+## Thử chạy test
 
 ```
 ./reflection_test.go:21:2: undefined: walk
@@ -71,7 +71,7 @@ func TestWalk(t *testing.T) {
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-We need to define `walk`
+Chúng ta cần định nghĩa hàm `walk`:
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -79,7 +79,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-Thử chạy test again
+Thử chạy lại test:
 
 ```
 === RUN   TestWalk
@@ -90,7 +90,7 @@ FAIL
 
 ## Viết đủ code để test chạy thành công
 
-We can call the spy with any string to make this pass.
+Chúng ta có thể gọi hàm giám sát với bất kỳ chuỗi nào để làm test này vượt qua.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -98,11 +98,11 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-The test should now be passing. The next thing we'll need to do is make a more specific assertion on what our `fn` is being called with.
+Test bây giờ sẽ vượt qua. Việc tiếp theo chúng ta cần làm là thực hiện một xác nhận cụ thể hơn về những gì `fn` đang được gọi.
 
-## Write the test first
+## Viết test trước tiên
 
-Add the following to the existing test to check the string passed to `fn` is correct
+Thêm đoạn sau vào test hiện có để kiểm tra xem chuỗi được truyền cho `fn` có đúng không:
 
 ```go
 if got[0] != expected {
@@ -110,7 +110,7 @@ if got[0] != expected {
 }
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestWalk
@@ -129,24 +129,24 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-This code is _very unsafe and very naive_, but remember: our goal when we are in "red" (the tests failing) is to write the smallest amount of code possible. We then write more tests to address our concerns.
+Đoạn mã này *rất không an toàn và rất ngây thơ*, nhưng hãy nhớ: mục tiêu của chúng ta khi đang ở trạng thái "đỏ" (các bản kiểm thử thất bại) là viết lượng mã nhỏ nhất có thể. Sau đó, chúng ta sẽ viết thêm các bản kiểm thử để giải quyết các mối lo ngại của mình.
 
-We need to use reflection to have a look at `x` and try and look at its properties.
+Chúng ta cần sử dụng reflection để xem xét `x` và thử nhìn vào các thuộc tính của nó.
 
-The [reflect package](https://pkg.go.dev/reflect) has a function `ValueOf` which returns us a `Value` of a given variable. This has ways for us to inspect a value, including its fields which we use on the next line.
+[Package reflect](https://pkg.go.dev/reflect) có một hàm `ValueOf` trả về cho chúng ta một `Value` của một biến cho trước. Nó có các cách để chúng ta kiểm tra một giá trị, bao gồm các trường của nó mà chúng ta sử dụng ở dòng tiếp theo.
 
-We then make some very optimistic assumptions about the value passed in:
+Sau đó, chúng ta đưa ra một số giả định rất lạc quan về giá trị được truyền vào:
 
-- We look at the first and only field. However, there may be no fields at all, which would cause a panic.
-- We then call `String()`, which returns the underlying value as a string. However, this would be wrong if the field was something other than a string.
+- Chúng ta nhìn vào trường đầu tiên và duy nhất. Tuy nhiên, có thể không có trường nào cả, điều này sẽ gây ra panic.
+- Sau đó, chúng ta gọi `String()`, hàm này trả về giá trị bên dưới dưới dạng một chuỗi. Tuy nhiên, điều này sẽ sai nếu trường đó là một kiểu dữ liệu khác không phải chuỗi.
 
 ## Refactor
 
-Our code is passing for the simple case but we know our code has a lot of shortcomings.
+Mã của chúng ta đang vượt qua trường hợp đơn giản nhưng chúng ta biết rằng mã của mình còn nhiều thiếu sót.
 
-We're going to be writing a number of tests where we pass in different values and checking the array of strings that `fn` was called with.
+Chúng ta sẽ viết một số bản kiểm thử nơi chúng ta truyền vào các giá trị khác nhau và kiểm tra mảng chuỗi mà `fn` được gọi.
 
-We should refactor our test into a table based test to make this easier to continue testing new scenarios.
+Chúng ta nên tái cấu trúc bản kiểm thử của mình thành một table-driven test (kiểm thử dựa trên bảng) để dễ dàng tiếp tục kiểm thử các kịch bản mới.
 
 ```go
 func TestWalk(t *testing.T) {
@@ -180,11 +180,11 @@ func TestWalk(t *testing.T) {
 }
 ```
 
-Now we can easily add a scenario to see what happens if we have more than one string field.
+Bây giờ chúng ta có thể dễ dàng thêm một kịch bản để xem điều gì xảy ra nếu chúng ta có nhiều hơn một trường string.
 
-## Write the test first
+## Viết test trước tiên
 
-Add the following scenario to the `cases`.
+Thêm kịch bản sau vào `cases`.
 
 ```
 {
@@ -197,7 +197,7 @@ Add the following scenario to the `cases`.
 }
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestWalk/struct_with_two_string_fields
@@ -218,17 +218,17 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-`val` has a method `NumField` which returns the number of fields in the value. This lets us iterate over the fields and call `fn` which passes our test.
+`val` có một phương thức `NumField` trả về số lượng trường trong giá trị đó. Điều này cho phép chúng ta lặp qua các trường và gọi `fn`, làm cho test vượt qua.
 
 ## Refactor
 
-It doesn't look like there's any obvious refactors here that would improve the code so let's press on.
+Có vẻ như không có bước tái cấu trúc rõ ràng nào ở đây giúp cải thiện mã nguồn, vì vậy chúng ta hãy tiếp tục.
 
-The next shortcoming in `walk` is that it assumes every field is a `string`. Let's write a test for this scenario.
+Thiếu sót tiếp theo trong `walk` là nó giả định mọi trường đều là một `string`. Hãy viết một bản kiểm thử cho kịch bản này.
 
-## Write the test first
+## Viết test trước tiên
 
-Add the following case
+Thêm trường hợp sau:
 
 ```
 {
@@ -241,7 +241,7 @@ Add the following case
 },
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestWalk/struct_with_non_string_field
@@ -251,7 +251,7 @@ Add the following case
 
 ## Viết đủ code để test chạy thành công
 
-We need to check that the type of the field is a `string`.
+Chúng ta cần kiểm tra xem kiểu của trường có phải là `string` hay không.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -267,17 +267,17 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-We can do that by checking its [`Kind`](https://pkg.go.dev/reflect#Kind).
+Chúng ta có thể thực hiện điều đó bằng cách kiểm tra [`Kind`](https://pkg.go.dev/reflect#Kind) của nó.
 
 ## Refactor
 
-Again it looks like the code is reasonable enough for now.
+Một lần nữa, có vẻ như mã nguồn đã đủ hợp lý cho thời điểm hiện tại.
 
-The next scenario is what if it isn't a "flat" `struct`? In other words, what happens if we have a `struct` with some nested fields?
+Kịch bản tiếp theo là điều gì sẽ xảy ra nếu nó không phải là một `struct` "phẳng"? Nói cách khác, điều gì xảy ra nếu chúng ta có một `struct` với một số trường lồng nhau?
 
-## Write the test first
+## Viết test trước tiên
 
-We have been using the anonymous struct syntax to declare types ad-hocly for our tests so we could continue to do that like so
+Chúng ta đã sử dụng cú pháp struct ẩn danh để khai báo các kiểu dữ liệu cho bản kiểm thử của mình, vì vậy chúng ta có thể tiếp tục làm như vậy:
 
 ```
 {
@@ -296,11 +296,11 @@ We have been using the anonymous struct syntax to declare types ad-hocly for our
 },
 ```
 
-But we can see that when you get inner anonymous structs the syntax gets a little messy. [There is a proposal to make it so the syntax would be nicer](https://github.com/golang/go/issues/12854).
+Nhưng chúng ta có thể thấy rằng khi bạn có các struct ẩn danh bên trong, cú pháp sẽ trở nên hơi lộn xộn. [Đã có một đề xuất để làm cho cú pháp này đẹp hơn](https://github.com/golang/go/issues/12854).
 
-Let's just refactor this by making a known type for this scenario and reference it in the test. There is a little indirection in that some of the code for our test is outside the test but readers should be able to infer the structure of the `struct` by looking at the initialisation.
+Hãy tái cấu trúc điều này bằng cách tạo một kiểu dữ liệu cụ thể cho kịch bản này và tham chiếu nó trong test. Có một chút gián tiếp ở chỗ một phần mã cho test của chúng ta nằm bên ngoài test, nhưng người đọc vẫn có thể suy ra cấu trúc của `struct` bằng cách nhìn vào phần khởi tạo.
 
-Add the following type declarations somewhere in your test file
+Thêm các khai báo kiểu sau vào đâu đó trong file test của bạn:
 
 ```go
 type Person struct {
@@ -314,7 +314,7 @@ type Profile struct {
 }
 ```
 
-Now we can add this to our cases which reads a lot clearer than before
+Giờ đây chúng ta có thể thêm thông tin này vào các trường hợp kiểm thử, điều này dễ đọc hơn nhiều so với trước đây:
 
 ```
 {
@@ -327,7 +327,7 @@ Now we can add this to our cases which reads a lot clearer than before
 },
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestWalk/Nested_fields
@@ -335,7 +335,7 @@ Now we can add this to our cases which reads a lot clearer than before
         reflection_test.go:54: got [Chris], want [Chris London]
 ```
 
-The problem is we're only iterating on the fields on the first level of the type's hierarchy.
+Vấn đề là chúng ta chỉ đang lặp qua các trường ở cấp độ đầu tiên của hệ thống phân cấp kiểu.
 
 ## Viết đủ code để test chạy thành công
 
@@ -357,7 +357,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-The solution is quite simple, we again inspect its `Kind` and if it happens to be a `struct` we just call `walk` again on that inner `struct`.
+Giải pháp khá đơn giản, chúng ta lại kiểm tra `Kind` của nó và nếu nó tình cờ là một `struct`, chúng ta chỉ cần gọi lại `walk` trên `struct` bên trong đó.
 
 ## Refactor
 
@@ -378,13 +378,13 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-When you're doing a comparison on the same value more than once _generally_ refactoring into a `switch` will improve readability and make your code easier to extend.
+Khi bạn thực hiện so sánh trên cùng một giá trị nhiều hơn một lần, _nói chung_ việc tái cấu trúc thành `switch` sẽ cải thiện khả năng đọc và làm cho mã nguồn của bạn dễ mở rộng hơn.
 
-What if the value of the struct passed in is a pointer?
+Điều gì xảy ra nếu giá trị của struct được truyền vào là một con trỏ (pointer)?
 
-## Write the test first
+## Viết test trước tiên
 
-Add this case
+Thêm trường hợp này:
 
 ```
 {
@@ -397,7 +397,7 @@ Add this case
 },
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestWalk/pointers_to_things
@@ -428,11 +428,11 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-You can't use `NumField` on a pointer `Value`, we need to extract the underlying value before we can do that by using `Elem()`.
+Bạn không thể sử dụng `NumField` trên một `Value` của con trỏ, chúng ta cần trích xuất giá trị bên dưới trước khi có thể làm điều đó bằng cách sử dụng `Elem()`.
 
 ## Refactor
 
-Let's encapsulate the responsibility of extracting the `reflect.Value` from a given `interface{}` into a function.
+Hãy bao đóng trách nhiệm trích xuất `reflect.Value` từ một `interface{}` cho trước vào một hàm.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -461,14 +461,14 @@ func getValue(x interface{}) reflect.Value {
 }
 ```
 
-This actually adds _more_ code but I feel the abstraction level is right.
+Điều này thực sự làm tăng thêm một chút mã nguồn nhưng tôi cảm thấy cấp độ trừu tượng đã hợp lý hơn.
 
-- Get the `reflect.Value` of `x` so I can inspect it, I don't care how.
-- Iterate over the fields, doing whatever needs to be done depending on its type.
+- Lấy `reflect.Value` của `x` để tôi có thể kiểm tra nó, tôi không quan tâm bằng cách nào.
+- Lặp qua các trường, thực hiện bất cứ điều gì cần làm tùy thuộc vào kiểu của nó.
 
-Next, we need to cover slices.
+Tiếp theo, chúng ta cần xử lý các slice.
 
-## Write the test first
+## Viết test trước tiên
 
 ```
 {
@@ -481,7 +481,7 @@ Next, we need to cover slices.
 },
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestWalk/slices
@@ -491,7 +491,7 @@ panic: reflect: call of reflect.Value.NumField on slice Value [recovered]
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-This is similar to the pointer scenario before, we are trying to call `NumField` on our `reflect.Value` but it doesn't have one as it's not a struct.
+Trường hợp này tương tự như kịch bản con trỏ ở trên, chúng ta đang cố gắng gọi `NumField` trên `reflect.Value` của mình nhưng nó không có vì đó không phải là một struct.
 
 ## Viết đủ code để test chạy thành công
 
@@ -521,16 +521,16 @@ func walk(x interface{}, fn func(input string)) {
 
 ## Refactor
 
-This works but it's yucky. No worries, we have working code backed by tests so we are free to tinker all we like.
+Đoạn mã này hoạt động nhưng trông hơi tệ. Đừng lo lắng, chúng ta có mã đang hoạt động được hỗ trợ bởi các bản kiểm thử nên chúng ta có thể tự do chỉnh sửa theo ý muốn.
 
-If you think a little abstractly, we want to call `walk` on either
+Nếu bạn suy nghĩ hơi trừu tượng một chút, chúng ta muốn gọi `walk` trên cả:
 
-- Each field in a struct
-- Each _thing_ in a slice
+- Mỗi trường trong một struct
+- Mỗi mục trong một slice
 
-Our code at the moment does this but doesn't reflect it very well. We just have a check at the start to see if it's a slice (with a `return` to stop the rest of the code executing) and if it's not we just assume it's a struct.
+Hiện tại mã của chúng ta đang thực hiện điều này nhưng chưa thể hiện nó một cách rõ ràng. Chúng ta chỉ có một kiểm tra ở đầu để xem nó có phải là một slice hay không (với lệnh `return` để dừng các đoạn mã còn lại) và nếu không, chúng ta chỉ mặc nhiên coi nó là một struct.
 
-Let's rework the code so instead we check the type _first_ and then do our work.
+Hãy sửa lại mã để thay vào đó chúng ta kiểm tra kiểu *trước tiên*, sau đó mới thực hiện công việc.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -551,9 +551,9 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-Looking much better! If it's a struct or a slice we iterate over its values calling `walk` on each one. Otherwise, if it's a `reflect.String` we can call `fn`.
+Trông tốt hơn nhiều rồi đấy! Nếu đó là một struct hoặc slice, chúng ta lặp qua các giá trị của nó và gọi `walk` cho từng giá trị. Ngược lại, nếu đó là một `reflect.String`, chúng ta có thể gọi `fn`.
 
-Still, to me it feels like it could be better. There's repetition of the operation of iterating over fields/values and then calling `walk` but conceptually they're the same.
+Tuy nhiên, đối với tôi, nó vẫn có thể tốt hơn nữa. Có sự lặp lại của hoạt động lặp qua các trường/giá trị và sau đó gọi `walk`, nhưng về mặt khái niệm chúng là giống nhau.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -579,20 +579,20 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-If the `value` is a `reflect.String` then we just call `fn` like normal.
+Nếu `value` là một `reflect.String` thì chúng ta chỉ cần gọi `fn` như bình thường.
 
-Otherwise, our `switch` will extract out two things depending on the type
+Ngược lại, lệnh `switch` của chúng ta sẽ trích xuất ra hai thứ tùy thuộc vào kiểu dữ liệu:
 
-- How many fields there are
-- How to extract the `Value` (`Field` or `Index`)
+- Có bao nhiêu trường (fields)
+- Cách trích xuất `Value` (`Field` hoặc `Index`)
 
-Once we've determined those things we can iterate through `numberOfValues` calling `walk` with the result of the `getField` function.
+Khi đã xác định được những thứ đó, chúng ta có thể lặp qua `numberOfValues` và gọi `walk` với kết quả của hàm `getField`.
 
-Now we've done this, handling arrays should be trivial.
+Khi chúng ta làm xong việc này, việc xử lý các mảng (arrays) sẽ trở nên rất đơn giản.
 
-## Write the test first
+## Viết test trước tiên
 
-Add to the cases
+Thêm vào các trường hợp kiểm thử:
 
 ```
 {
@@ -605,7 +605,7 @@ Add to the cases
 },
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestWalk/arrays
@@ -615,7 +615,7 @@ Add to the cases
 
 ## Viết đủ code để test chạy thành công
 
-Arrays can be handled the same way as slices, so just add it to the case with a comma
+Mảng có thể được xử lý giống như slice, vì vậy chỉ cần thêm nó vào cùng một trường hợp bằng dấu phẩy:
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -641,9 +641,9 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-The next type we want to handle is `map`.
+Kiểu dữ liệu tiếp theo chúng ta muốn xử lý là `map`.
 
-## Write the test first
+## Viết test trước tiên
 
 ```
 {
@@ -656,7 +656,7 @@ The next type we want to handle is `map`.
 },
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestWalk/maps
@@ -666,7 +666,7 @@ The next type we want to handle is `map`.
 
 ## Viết đủ code để test chạy thành công
 
-Again if you think a little abstractly you can see that `map` is very similar to `struct`, it's just the keys are unknown at compile time.
+Một lần nữa, nếu bạn suy nghĩ hơi trừu tượng một chút, bạn sẽ thấy rằng `map` rất giống với `struct`, chỉ là các key không được biết trước tại thời điểm biên dịch.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -696,15 +696,15 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-However, by design you cannot get values out of a map by index. It's only done by _key_, so that breaks our abstraction, darn.
+Tuy nhiên, theo thiết kế của Go, bạn không thể lấy các giá trị ra khỏi một map bằng chỉ số (index). Nó chỉ được thực hiện thông qua _key_, vì vậy điều này phá hỏng sự trừu tượng của chúng ta, thật tệ.
 
 ## Refactor
 
-How do you feel right now? It felt like maybe a nice abstraction at the time but now the code feels a little wonky.
+Bạn cảm thấy thế nào ngay lúc này? Có vẻ như đó là một sự trừu tượng hay vào thời điểm đó nhưng bây giờ mã nguồn cảm thấy hơi lộn xộn.
 
-_This is OK!_ Refactoring is a journey and sometimes we will make mistakes. A major point of TDD is it gives us the freedom to try these things out.
+*Điều này không sao cả!* Tái cấu trúc là một hành trình và đôi khi chúng ta sẽ mắc sai lầm. Điểm quan trọng của TDD là nó cho chúng ta sự tự do để thử những điều này.
 
-By taking small steps backed by tests this is in no way an irreversible situation. Let's just put it back to how it was before the refactor.
+Bằng cách thực hiện các bước nhỏ được hỗ trợ bởi các bản kiểm thử, đây hoàn toàn không phải là một tình huống không thể vãn hồi. Hãy đưa nó trở lại trạng thái trước khi tái cấu trúc.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -733,13 +733,13 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-We've introduced `walkValue` which DRYs up the calls to `walk` inside our `switch` so that they only have to extract out the `reflect.Value`s from `val`.
+Chúng ta đã đưa vào hàm `walkValue` để áp dụng nguyên tắc DRY cho các lời gọi `walk` bên trong lệnh `switch`, nhờ đó chúng chỉ cần trích xuất các `reflect.Value` từ `val`.
 
-### One final problem
+### Một vấn đề cuối cùng
 
-Remember that maps in Go do not guarantee order. So your tests will sometimes fail because we assert that the calls to `fn` are done in a particular order.
+Hãy nhớ rằng các map trong Go không đảm bảo thứ tự. Vì vậy, các test của bạn đôi khi sẽ thất bại vì chúng ta khẳng định rằng các lời gọi đến `fn` được thực hiện theo một thứ tự cụ thể.
 
-To fix this, we'll need to move our assertion with the maps to a new test where we do not care about the order.
+Để khắc phục điều này, chúng ta cần chuyển phần xác nhận với map sang một bản kiểm thử mới nơi chúng ta không quan tâm đến thứ tự.
 
 ```go
 t.Run("with maps", func(t *testing.T) {
@@ -758,7 +758,7 @@ t.Run("with maps", func(t *testing.T) {
 })
 ```
 
-Here is how `assertContains` is defined
+Đây là cách `assertContains` được định nghĩa:
 
 ```go
 func assertContains(t testing.TB, haystack []string, needle string) {
@@ -775,11 +775,11 @@ func assertContains(t testing.TB, haystack []string, needle string) {
 }
 ```
 
-Since we have extracted maps into a new test, we haven't seen the failure message. Intentionally break the `with maps` test here so that you can check the error message, then fix it again so all tests are passing.
+Vì chúng ta đã trích xuất các map vào một bản kiểm thử mới, chúng ta không thấy thông báo lỗi. Hãy cố tình làm hỏng bản kiểm thử `with maps` ở đây để bạn có thể kiểm tra thông báo lỗi, sau đó sửa lại để tất cả các test vượt qua.
 
-The next type we want to handle is `chan`.
+Kiểu dữ liệu tiếp theo chúng ta muốn xử lý là `chan`.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 t.Run("with channels", func(t *testing.T) {
@@ -804,7 +804,7 @@ t.Run("with channels", func(t *testing.T) {
 })
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 --- FAIL: TestWalk (0.00s)
@@ -814,7 +814,7 @@ t.Run("with channels", func(t *testing.T) {
 
 ## Viết đủ code để test chạy thành công
 
-We can iterate through all values sent through channel until it was closed with Recv()
+Chúng ta có thể lặp qua tất cả các giá trị được gửi qua channel cho đến khi nó được đóng bằng cách sử dụng `Recv()`.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -850,9 +850,10 @@ func walk(x interface{}, fn func(input string)) {
 	}
 }
 ```
-The next type we want to handle is `func`.
 
-## Write the test first
+Kiểu dữ liệu tiếp theo chúng ta muốn xử lý là `func` (hàm).
+
+## Viết test trước tiên
 
 ```go
 t.Run("with function", func(t *testing.T) {
@@ -873,7 +874,7 @@ t.Run("with function", func(t *testing.T) {
 })
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 --- FAIL: TestWalk (0.00s)
@@ -883,7 +884,7 @@ t.Run("with function", func(t *testing.T) {
 
 ## Viết đủ code để test chạy thành công
 
-Non zero-argument functions do not seem to make a lot of sense in this scenario. But we should allow for arbitrary return values.
+Các hàm không có đối số dường như không có nhiều ý nghĩa trong kịch bản này. Tuy nhiên, chúng ta nên cho phép có các giá trị trả về tùy ý.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -923,8 +924,8 @@ func walk(x interface{}, fn func(input string)) {
 
 ## Tổng kết
 
-- Introduced some concepts from the `reflect` package.
-- Used recursion to traverse arbitrary data structures.
-- Did an in retrospect bad refactor but didn't get too upset about it. By working iteratively with tests it's not such a big deal.
-- This only covered a small aspect of reflection. [The Go blog has an excellent post covering more details](https://blog.golang.org/laws-of-reflection).
-- Now that you know about reflection, do your best to avoid using it.
+- Đã giới thiệu một số khái niệm từ package `reflect`.
+- Đã sử dụng đệ quy (recursion) để duyệt qua các cấu trúc dữ liệu tùy ý.
+- Đã thực hiện một bước tái cấu trúc mà khi nhìn lại thấy không ổn nhưng không quá bối rối vì điều đó. Bằng cách làm việc lặp đi lặp lại với các bản kiểm thử, đó không phải là vấn đề quá lớn.
+- Chương này chỉ đề cập đến một khía cạnh nhỏ của reflection. [The Go blog có một bài viết tuyệt vời đề cập đến nhiều chi tiết hơn](https://blog.golang.org/laws-of-reflection).
+- Bây giờ bạn đã biết về reflection, hãy cố gắng hết sức để tránh sử dụng nó.
