@@ -2,17 +2,17 @@
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/context)**
 
-Software often kicks off long-running, resource-intensive processes (often in goroutines). If the action that caused this gets cancelled or fails for some reason you need to stop these processes in a consistent way through your application.
+Phần mềm thường khởi chạy các quy trình chạy lâu, tốn nhiều tài nguyên (thường là trong các goroutine). Nếu hành động gây ra điều này bị hủy bỏ hoặc thất bại vì lý do nào đó, bạn cần dừng các quy trình này một cách nhất quán trong toàn bộ ứng dụng của mình.
 
-If you don't manage this your snappy Go application that you're so proud of could start having difficult to debug performance problems.
+Nếu bạn không quản lý điều này, ứng dụng Go nhanh nhẹn mà bạn rất tự hào có thể bắt đầu gặp các vấn đề về hiệu suất rất khó gỡ lỗi.
 
-In this chapter we'll use the package `context` to help us manage long-running processes.
+Trong chương này, chúng ta sẽ sử dụng package `context` để giúp quản lý các quy trình chạy lâu.
 
-We're going to start with a classic example of a web server that when hit kicks off a potentially long-running process to fetch some data for it to return in the response.
+Chúng ta sẽ bắt đầu với một ví dụ kinh điển về một web server, khi được truy cập sẽ khởi chạy một quy trình tiềm ẩn khả năng chạy lâu để lấy một số dữ liệu và trả về trong phản hồi (response).
 
-We will exercise a scenario where a user cancels the request before the data can be retrieved and we'll make sure the process is told to give up.
+Chúng ta sẽ thực hiện kịch bản nơi người dùng hủy yêu cầu (request) trước khi dữ liệu được lấy ra, và chúng ta sẽ đảm bảo quy trình đó được thông báo để dừng lại.
 
-I've set up some code on the happy path to get us started. Here is our server code.
+Tôi đã thiết lập một số mã nguồn cho kịch bản thành công (happy path) để chúng ta bắt đầu. Đây là mã nguồn server của chúng ta:
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -22,7 +22,7 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-The function `Server` takes a `Store` and returns us a `http.HandlerFunc`. Store is defined as:
+Hàm `Server` nhận một `Store` và trả về cho chúng ta một `http.HandlerFunc`. Store được định nghĩa là:
 
 ```go
 type Store interface {
@@ -30,9 +30,9 @@ type Store interface {
 }
 ```
 
-The returned function calls the `store`'s `Fetch` method to get the data and writes it to the response.
+Hàm được trả về gọi phương thức `Fetch` của `store` để lấy dữ liệu và ghi nó vào phản hồi.
 
-We have a corresponding spy for `Store` which we use in a test.
+Chúng ta có một hàm giám sát (spy) tương ứng cho `Store` mà chúng ta sử dụng trong một bản kiểm thử.
 
 ```go
 type SpyStore struct {
@@ -58,11 +58,11 @@ func TestServer(t *testing.T) {
 }
 ```
 
-Now that we have a happy path, we want to make a more realistic scenario where the `Store` can't finish a`Fetch` before the user cancels the request.
+Bây giờ chúng ta đã có kịch bản thành công, chúng ta muốn tạo một kịch bản thực tế hơn nơi `Store` không thể hoàn thành `Fetch` trước khi người dùng hủy yêu cầu.
 
-## Write the test first
+## Viết test trước tiên
 
-Our handler will need a way of telling the `Store` to cancel the work so update the interface.
+Handler của chúng ta sẽ cần một cách để thông báo cho `Store` hủy bỏ công việc, vì vậy hãy cập nhật interface:
 
 ```go
 type Store interface {
@@ -71,7 +71,7 @@ type Store interface {
 }
 ```
 
-We will need to adjust our spy so it takes some time to return `data` and a way of knowing it has been told to cancel. It'll have to add `Cancel` as a method to implement the `Store` interface.
+Chúng ta sẽ cần điều chỉnh hàm giám sát của mình để nó tốn một chút thời gian mới trả về `data`, và có một cách để biết nó đã được yêu cầu hủy bỏ. Nó sẽ phải thêm phương thức `Cancel` để triển khai interface `Store`.
 
 ```go
 type SpyStore struct {
@@ -89,7 +89,7 @@ func (s *SpyStore) Cancel() {
 }
 ```
 
-Let's add a new test where we cancel the request before 100 milliseconds and check the store to see if it gets cancelled.
+Hãy thêm một bản kiểm thử mới nơi chúng ta hủy yêu cầu trước 100 mili giây và kiểm tra store để xem nó có bị hủy hay không.
 
 ```go
 t.Run("tells store to cancel work if request is cancelled", func(t *testing.T) {
@@ -113,17 +113,17 @@ t.Run("tells store to cancel work if request is cancelled", func(t *testing.T) {
 })
 ```
 
-From the [Go Blog: Context](https://blog.golang.org/context)
+Từ [Go Blog: Context](https://blog.golang.org/context):
 
-> The context package provides functions to derive new Context values from existing ones. These values form a tree: when a Context is canceled, all Contexts derived from it are also canceled.
+> Package context cung cấp các hàm để tạo ra các giá trị Context mới từ các giá trị hiện có. Các giá trị này tạo thành một cái cây: khi một Context bị hủy, tất cả các Context được tạo ra từ nó cũng bị hủy.
 
-It's important that you derive your contexts so that cancellations are propagated throughout the call stack for a given request.
+Điều quan trọng là bạn phải tạo ra các context kế thừa để việc hủy bỏ được lan truyền (propagate) trong suốt stack lời gọi cho một yêu cầu nhất định.
 
-What we do is derive a new `cancellingCtx` from our `request` which returns us a `cancel` function. We then schedule that function to be called in 5 milliseconds by using `time.AfterFunc`. Finally we use this new context in our request by calling `request.WithContext`.
+Những gì chúng ta làm là tạo ra một `cancellingCtx` mới từ `request`, hàm này trả về cho chúng ta một hàm `cancel`. Sau đó, chúng ta lên lịch để hàm đó được gọi sau 5 mili giây bằng cách sử dụng `time.AfterFunc`. Cuối cùng, chúng ta sử dụng context mới này trong yêu cầu của mình bằng cách gọi `request.WithContext`.
 
-## Try to run the test
+## Thử chạy test
 
-The test fails as we'd expect.
+Bản kiểm thử thất bại như chúng ta mong đợi.
 
 ```
 --- FAIL: TestServer (0.00s)
@@ -133,7 +133,7 @@ The test fails as we'd expect.
 
 ## Viết đủ code để test chạy thành công
 
-Remember to be disciplined with TDD. Write the _minimal_ amount of code to make our test pass.
+Hãy nhớ kỷ luật với TDD. Viết lượng mã *nhỏ nhất* để làm cho bản kiểm thử của chúng ta vượt qua.
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -144,11 +144,11 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-This makes this test pass but it doesn't feel good does it! We surely shouldn't be cancelling `Cancel()` before we fetch on _every request_.
+Điều này làm cho test vượt qua nhưng cảm giác không ổn chút nào phải không! Chúng ta chắc chắn không nên gọi `Cancel()` trước khi fetch trong *mọi yêu cầu*.
 
-By being disciplined it highlighted a flaw in our tests, this is a good thing!
+Bằng cách kỷ luật, nó đã làm nổi bật một lỗ hổng trong các bản kiểm thử của chúng ta, đây là một điều tốt!
 
-We'll need to update our happy path test to assert that it does not get cancelled.
+Chúng ta sẽ cần cập nhật bản kiểm thử kịch bản thành công để xác nhận rằng nó không bị hủy bỏ.
 
 ```go
 t.Run("returns data from store", func(t *testing.T) {
@@ -171,7 +171,7 @@ t.Run("returns data from store", func(t *testing.T) {
 })
 ```
 
-Run both tests and the happy path test should now be failing and now we're forced to do a more sensible implementation.
+Chạy cả hai test và kịch bản thành công hiện tại sẽ thất bại, và bây giờ chúng ta bị buộc phải thực hiện một cách triển khai hợp lý hơn.
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -194,15 +194,15 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-What have we done here?
+Chúng ta đã làm gì ở đây?
 
-`context` has a method `Done()` which returns a channel which gets sent a signal when the context is "done" or "cancelled". We want to listen to that signal and call `store.Cancel` if we get it but we want to ignore it if our `Store` manages to `Fetch` before it.
+`context` có một phương thức `Done()` trả về một channel, channel này sẽ nhận được một tín hiệu khi context bị "xong" hoặc "bị hủy". Chúng ta muốn lắng nghe tín hiệu đó và gọi `store.Cancel` nếu nhận được, nhưng chúng ta muốn bỏ qua nó nếu `Store` của chúng ta hoàn thành việc `Fetch` trước đó.
 
-To manage this we run `Fetch` in a goroutine and it will write the result into a new channel `data`. We then use `select` to effectively race to the two asynchronous processes and then we either write a response or `Cancel`.
+Để quản lý điều này, chúng ta chạy `Fetch` trong một goroutine và nó sẽ ghi kết quả vào một channel mới `data`. Sau đó, chúng ta sử dụng `select` để thực hiện một cuộc đua hiệu quả giữa hai quy trình không đồng bộ và sau đó chúng ta viết một phản hồi hoặc gọi `Cancel`.
 
 ## Refactor
 
-We can refactor our test code a bit by making assertion methods on our spy
+Chúng ta có thể tái cấu trúc mã kiểm thử của mình một chút bằng cách tạo các phương thức xác nhận trên hàm giám sát:
 
 ```go
 type SpyStore struct {
@@ -226,7 +226,7 @@ func (s *SpyStore) assertWasNotCancelled() {
 }
 ```
 
-Remember to pass in the `*testing.T` when creating the spy.
+Hãy nhớ truyền vào `*testing.T` khi tạo hàm giám sát.
 
 ```go
 func TestServer(t *testing.T) {
@@ -267,29 +267,29 @@ func TestServer(t *testing.T) {
 }
 ```
 
-This approach is ok, but is it idiomatic?
+Cách tiếp cận này ổn, nhưng nó có phải là chuẩn mực (idiomatic)?
 
-Does it make sense for our web server to be concerned with manually cancelling `Store`? What if `Store` also happens to depend on other slow-running processes? We'll have to make sure that `Store.Cancel` correctly propagates the cancellation to all of its dependants.
+Liệu có hợp lý khi web server của chúng ta phải quan tâm đến việc hủy bỏ `Store` một cách thủ công? Điều gì xảy ra nếu `Store` cũng phụ thuộc vào các quy trình chạy chậm khác? Chúng ta sẽ phải đảm bảo rằng `Store.Cancel` lan truyền chính xác việc hủy bỏ đến tất cả các bên phụ thuộc của nó.
 
-One of the main points of `context` is that it is a consistent way of offering cancellation.
+Một trong những mục đích chính của `context` là nó cung cấp một cách nhất quán để thực hiện việc hủy bỏ.
 
-[From the go doc](https://golang.org/pkg/context/)
+[Từ Go doc](https://golang.org/pkg/context/):
 
-> Incoming requests to a server should create a Context, and outgoing calls to servers should accept a Context. The chain of function calls between them must propagate the Context, optionally replacing it with a derived Context created using WithCancel, WithDeadline, WithTimeout, or WithValue. When a Context is canceled, all Contexts derived from it are also canceled.
+> Các yêu cầu đến một server nên tạo một Context, và các cuộc gọi đi đến các server khác nên chấp nhận một Context. Chuỗi các cuộc gọi hàm giữa chúng phải lan truyền Context, có thể thay thế nó bằng một Context phái sinh được tạo bằng WithCancel, WithDeadline, WithTimeout hoặc WithValue. Khi một Context bị hủy, tất cả các Context phái sinh từ nó cũng bị hủy.
 
-From the [Go Blog: Context](https://blog.golang.org/context) again:
+Từ [Go Blog: Context](https://blog.golang.org/context):
 
-> At Google, we require that Go programmers pass a Context parameter as the first argument to every function on the call path between incoming and outgoing requests. This allows Go code developed by many different teams to interoperate well. It provides simple control over timeouts and cancellation and ensures that critical values like security credentials transit Go programs properly.
+> Tại Google, chúng tôi yêu cầu các lập trình viên Go truyền một tham số Context làm đối số đầu tiên cho mọi hàm trên đường dẫn cuộc gọi giữa các yêu cầu đến và đi. Điều này cho phép mã Go được phát triển bởi nhiều nhóm khác nhau có thể tương tác tốt. Nó cung cấp sự kiểm soát đơn giản đối với các khoảng thời gian chờ (timeouts) và việc hủy bỏ, đồng thời đảm bảo rằng các giá trị quan trọng như thông tin bảo mật được truyền qua các chương trình Go một cách chính xác.
 
-(Pause for a moment and think of the ramifications of every function having to send in a context, and the ergonomics of that.)
+(Dừng lại một chút và nghĩ về những hệ quả khi mọi hàm phải nhận vào một context, và tính tiện dụng của việc đó.)
 
-Feeling a bit uneasy? Good. Let's try and follow that approach though and instead pass through the `context` to our `Store` and let it be responsible. That way it can also pass the `context` through to its dependants and they too can be responsible for stopping themselves.
+Cảm thấy hơi khó chịu? Tốt. Tuy nhiên, hãy thử làm theo cách đó và thay vào đó truyền `context` qua cho `Store` của chúng ta và để nó tự chịu trách nhiệm. Bằng cách đó, nó cũng có thể truyền `context` qua cho các bên phụ thuộc của nó và họ cũng có thể tự chịu trách nhiệm dừng lại.
 
-## Write the test first
+## Viết test trước tiên
 
-We'll have to change our existing tests as their responsibilities are changing. The only thing our handler is responsible for now is making sure it sends a context through to the downstream `Store` and that it handles the error that will come from the `Store` when it is cancelled.
+Chúng ta sẽ phải thay đổi các bản kiểm thử hiện có vì trách nhiệm của chúng đang thay đổi. Điều duy nhất handler của chúng ta chịu trách nhiệm lúc này là đảm bảo nó gửi một context qua cho `Store` ở hạ nguồn và nó xử lý lỗi sẽ đến từ `Store` khi bị hủy.
 
-Let's update our `Store` interface to show the new responsibilities.
+Hãy cập nhật interface `Store` để thể hiện các trách nhiệm mới.
 
 ```go
 type Store interface {
@@ -297,7 +297,7 @@ type Store interface {
 }
 ```
 
-Delete the code inside our handler for now
+Xóa mã bên trong handler của chúng ta ngay bây giờ:
 
 ```go
 func Server(store Store) http.HandlerFunc {
@@ -306,7 +306,7 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-Update our `SpyStore`
+Cập nhật `SpyStore` của chúng ta:
 
 ```go
 type SpyStore struct {
@@ -341,17 +341,17 @@ func (s *SpyStore) Fetch(ctx context.Context) (string, error) {
 }
 ```
 
-We have to make our spy act like a real method that works with `context`.
+Chúng ta phải làm cho hàm giám sát hoạt động giống như một phương thức thực thụ làm việc với `context`.
 
-We are simulating a slow process where we build the result slowly by appending the string, character by character in a goroutine. When the goroutine finishes its work it writes the string to the `data` channel. The goroutine listens for the `ctx.Done` and will stop the work if a signal is sent in that channel.
+Chúng ta đang mô phỏng một quy trình chậm nơi chúng ta xây dựng kết quả một cách từ từ bằng cách thêm từng ký tự vào chuỗi trong một goroutine. Khi goroutine hoàn thành công việc, nó sẽ ghi chuỗi vào channel `data`. Goroutine lắng nghe `ctx.Done` và sẽ dừng công việc nếu có tín hiệu được gửi vào channel đó.
 
-Finally the code uses another `select` to wait for that goroutine to finish its work or for the cancellation to occur.
+Cuối cùng, mã sử dụng một `select` khác để đợi goroutine đó hoàn thành công việc hoặc xảy ra việc hủy bỏ.
 
-It's similar to our approach from before, we use Go's concurrency primitives to make two asynchronous processes race each other to determine what we return.
+Nó tương tự như cách tiếp cận trước đây của chúng ta, chúng ta sử dụng các nguyên hàm đồng thời (concurrency primitives) của Go để tạo ra hai quy trình không đồng bộ đua với nhau để xác định những gì chúng ta trả về.
 
-You'll take a similar approach when writing your own functions and methods that accept a `context` so make sure you understand what's going on.
+Bạn sẽ thực hiện một cách tiếp cận tương tự khi viết các hàm và phương thức của riêng mình có chấp nhận `context`, vì vậy hãy đảm bảo bạn hiểu chuyện gì đang xảy ra.
 
-Finally we can update our tests. Comment out our cancellation test so we can fix the happy path test first.
+Cuối cùng, chúng ta có thể cập nhật các bản kiểm thử của mình. Hãy tạm đóng (comment out) bản kiểm thử hủy bỏ để chúng ta có thể sửa test kịch bản thành công trước.
 
 ```go
 t.Run("returns data from store", func(t *testing.T) {
@@ -370,7 +370,7 @@ t.Run("returns data from store", func(t *testing.T) {
 })
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestServer/returns_data_from_store
@@ -390,11 +390,11 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-Our happy path should be... happy. Now we can fix the other test.
+Kịch bản thành công của chúng ta nên... thành công. Bây giờ chúng ta có thể sửa bản kiểm thử còn lại.
 
-## Write the test first
+## Viết test trước tiên
 
-We need to test that we do not write any kind of response on the error case. Sadly `httptest.ResponseRecorder` doesn't have a way of figuring this out so we'll have to roll our own spy to test for this.
+Chúng ta cần kiểm thử rằng mình không viết bất kỳ loại phản hồi nào khi xảy ra lỗi. Đáng buồn là `httptest.ResponseRecorder` không có cách nào để xác định điều này, vì vậy chúng ta sẽ phải tự tạo hàm giám sát của riêng mình để kiểm tra.
 
 ```go
 type SpyResponseWriter struct {
@@ -416,7 +416,7 @@ func (s *SpyResponseWriter) WriteHeader(statusCode int) {
 }
 ```
 
-Our `SpyResponseWriter` implements `http.ResponseWriter` so we can use it in the test.
+`SpyResponseWriter` của chúng ta triển khai `http.ResponseWriter` để chúng ta có thể sử dụng nó trong bản kiểm thử.
 
 ```go
 t.Run("tells store to cancel work if request is cancelled", func(t *testing.T) {
@@ -440,7 +440,7 @@ t.Run("tells store to cancel work if request is cancelled", func(t *testing.T) {
 })
 ```
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestServer
@@ -466,41 +466,41 @@ func Server(store Store) http.HandlerFunc {
 }
 ```
 
-We can see after this that the server code has become simplified as it's no longer explicitly responsible for cancellation, it simply passes through `context` and relies on the downstream functions to respect any cancellations that may occur.
+Sau việc này, chúng ta có thể thấy mã nguồn server đã trở nên đơn giản hơn vì nó không còn chịu trách nhiệm rõ ràng về việc hủy bỏ nữa, nó chỉ đơn giản là truyền `context` qua và dựa vào các hàm hạ nguồn để tôn trọng bất kỳ sự hủy bỏ nào có thể xảy ra.
 
 ## Tổng kết
 
-### What we've covered
+### Những gì chúng ta đã học
 
-- How to test a HTTP handler that has had the request cancelled by the client.
-- How to use context to manage cancellation.
-- How to write a function that accepts `context` and uses it to cancel itself by using goroutines, `select` and channels.
-- Follow Google's guidelines as to how to manage cancellation by propagating request scoped context through your call-stack.
-- How to roll your own spy for `http.ResponseWriter` if you need it.
+- Cách kiểm thử một HTTP handler khi yêu cầu bị hủy bởi client.
+- Cách sử dụng context để quản lý việc hủy bỏ.
+- Cách viết một hàm chấp nhận `context` và sử dụng nó để tự hủy bằng cách dùng goroutine, `select` và channel.
+- Tuân theo các hướng dẫn của Google về cách quản lý việc hủy bỏ bằng cách lan truyền context phạm vi yêu cầu (request scoped context) qua stack lời gọi.
+- Cách tự tạo hàm giám sát cho `http.ResponseWriter` nếu bạn cần.
 
-### What about context.Value ?
+### Còn context.Value thì sao?
 
-[Michal Štrba](https://faiface.github.io/post/context-should-go-away-go2/) and I have a similar opinion.
+[Michal Štrba](https://faiface.github.io/post/context-should-go-away-go2/) và tôi có quan điểm tương tự.
 
-> If you use ctx.Value in my (non-existent) company, you’re fired
+> Nếu bạn sử dụng ctx.Value trong công ty (không tồn tại) của tôi, bạn bị đuổi việc.
 
-Some engineers have advocated passing values through `context` as it _feels convenient_.
+Một số kỹ sư đã ủng hộ việc truyền các giá trị qua `context` vì nó *cảm thấy tiện lợi*.
 
-Convenience is often the cause of bad code.
+Sự tiện lợi thường là nguyên nhân gây ra mã nguồn tồi.
 
-The problem with `context.Values` is that it's just an untyped map so you have no type-safety and you have to handle it not actually containing your value. You have to create a coupling of map keys from one module to another and if someone changes something things start breaking.
+Vấn đề với `context.Values` là nó chỉ là một map không được định nghĩa kiểu (untyped map) nên bạn không có tính an toàn kiểu (type-safety) và bạn phải xử lý trường hợp nó không thực sự chứa giá trị của bạn. Bạn phải tạo ra sự liên kết giữa các map keys từ module này sang module khác và nếu ai đó thay đổi điều gì đó, mọi thứ bắt đầu bị hỏng.
 
-In short, **if a function needs some values, put them as typed parameters rather than trying to fetch them from `context.Value`**. This makes it statically checked and documented for everyone to see.
+Tóm lại, **nếu một hàm cần một số giá trị, hãy đặt chúng làm các tham số có kiểu dữ liệu rõ ràng thay vì cố gắng lấy chúng từ `context.Value`**. Điều này giúp nó được kiểm tra tĩnh và được tài liệu hóa cho mọi người xem.
 
-#### But...
+#### Nhưng...
 
-On other hand, it can be helpful to include information that is orthogonal to a request in a context, such as a trace id. Potentially this information would not be needed by every function in your call-stack and would make your functional signatures very messy.
+Mặt khác, có thể hữu ích khi bao gồm thông tin trực giao (orthogonal) với một yêu cầu trong một context, chẳng hạn như trace id. Có khả năng thông tin này sẽ không cần thiết cho mọi hàm trong stack lời gọi của bạn và sẽ làm cho các signature hàm của bạn trở nên rất lộn xộn.
 
-[Jack Lindamood says **Context.Value should inform, not control**](https://medium.com/@cep21/how-to-correctly-use-context-context-in-go-1-7-8f2c0fafdf39)
+[Jack Lindamood nói **Context.Value nên mang tính thông tin, không phải điều khiển**](https://medium.com/@cep21/how-to-correctly-use-context-context-in-go-1-7-8f2c0fafdf39):
 
-> The content of context.Value is for maintainers not users. It should never be required input for documented or expected results.
+> Nội dung của context.Value là dành cho những người bảo trì chứ không phải người dùng. Nó không bao giờ được là đầu vào bắt buộc cho các kết quả được tài liệu hóa hoặc mong đợi.
 
-### Additional material
+### Tài liệu bổ sung
 
-- I really enjoyed reading [Context should go away for Go 2 by Michal Štrba](https://faiface.github.io/post/context-should-go-away-go2/). His argument is that having to pass `context` everywhere is a smell, that it's pointing to a deficiency in the language in respect to cancellation. He says it would better if this was somehow solved at the language level, rather than at a library level. Until that happens, you will need `context` if you want to manage long running processes.
-- The [Go blog further describes the motivation for working with `context` and has some examples](https://blog.golang.org/context)
+- Tôi thực sự thích đọc bài [Context should go away for Go 2 của Michal Štrba](https://faiface.github.io/post/context-should-go-away-go2/). Lập luận của ông là việc phải truyền `context` ở mọi nơi là một dấu hiệu xấu (smell), nó chỉ ra một thiếu sót của ngôn ngữ trong việc hủy bỏ. Ông nói rằng sẽ tốt hơn nếu điều này được giải quyết ở cấp độ ngôn ngữ theo cách nào đó, thay vì ở cấp độ thư viện. Cho đến khi điều đó xảy ra, bạn sẽ cần `context` nếu muốn quản lý các quy trình chạy lâu.
+- [Go blog mô tả thêm động lực khi làm việc với `context` và có một số ví dụ](https://blog.golang.org/context).
