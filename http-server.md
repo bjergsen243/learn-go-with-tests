@@ -1,59 +1,59 @@
 # HTTP Server
 
-**[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/http-server)**
+**[Tất cả mã nguồn của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/http-server)**
 
-You have been asked to create a web server where users can track how many games players have won.
+Bạn đã được yêu cầu tạo một máy chủ web nơi người dùng có thể theo dõi số trận thắng của những người chơi.
 
--   `GET /players/{name}` should return a number indicating the total number of wins
--   `POST /players/{name}` should record a win for that name, incrementing for every subsequent `POST`
+-   `GET /players/{name}` nên trả về một con số cho biết tổng số trận thắng.
+-   `POST /players/{name}` nên ghi lại một trận thắng cho tên đó, tăng lên cho mỗi lần `POST` tiếp theo.
 
-We will follow the TDD approach, getting working software as quickly as we can and then making small iterative improvements until we have the solution. By taking this approach we
+Chúng ta sẽ tuân theo cách tiếp cận TDD, tạo ra phần mềm hoạt động nhanh nhất có thể và sau đó thực hiện các cải tiến lặp đi lặp lại nhỏ cho đến khi có giải pháp hoàn chỉnh. Bằng cách thực hiện phương pháp này, chúng ta:
 
--   Keep the problem space small at any given time
--   Don't go down rabbit holes
--   If we ever get stuck/lost, doing a revert wouldn't lose loads of work.
+-   Giữ cho phạm vi vấn đề nhỏ tại bất kỳ thời điểm nào.
+-   Không sa đà vào những hướng đi sai lầm.
+-   Nếu chúng ta bị mắc kẹt hoặc lạc lối, việc hoàn tác (revert) sẽ không làm mất quá nhiều công sức.
 
-## Red, green, refactor
+## Đỏ, xanh, tái cấu trúc (Red, green, refactor)
 
-Throughout this book, we have emphasised the TDD process of write a test & watch it fail (red), write the _minimal_ amount of code to make it work (green) and then refactor.
+Xuyên suốt cuốn sách này, chúng ta đã nhấn mạnh quy trình TDD là viết một bản kiểm thử và xem nó thất bại (đỏ), viết lượng mã nguồn *tối thiểu* để làm cho nó hoạt động (xanh), và sau đó tái cấu trúc.
 
-This discipline of writing the minimal amount of code is important in terms of the safety TDD gives you. You should be striving to get out of "red" as soon as you can.
+Kỷ luật viết lượng mã nguồn tối thiểu này rất quan trọng về mặt an toàn mà TDD mang lại cho bạn. Bạn nên cố gắng thoát khỏi trạng thái "đỏ" càng sớm càng tốt.
 
-Kent Beck describes it as:
+Kent Beck mô tả nó như sau:
 
-> Make the test work quickly, committing whatever sins necessary in process.
+> Làm cho bản kiểm thử hoạt động nhanh chóng, chấp nhận bất kỳ "tội lỗi" nào cần thiết trong quá trình đó.
 
-You can commit these sins because you will refactor afterwards backed by the safety of the tests.
+Bạn có thể phạm những "tội lỗi" này vì sau đó bạn sẽ tái cấu trúc với sự đảm bảo an toàn từ các bản kiểm thử.
 
-### What if you don't do this?
+### Điều gì xảy ra nếu bạn không làm điều này?
 
-The more changes you make while in red, the more likely you are to add more problems, not covered by tests.
+Càng thực hiện nhiều thay đổi khi đang ở trạng thái đỏ, bạn càng có nhiều khả năng gây ra thêm các vấn đề mà không được bao phủ bởi các bản kiểm thử.
 
-The idea is to be iteratively writing useful code with small steps, driven by tests so that you don't fall into a rabbit hole for hours.
+Ý tưởng là viết mã nguồn hữu ích một cách lặp đi lặp lại với các bước nhỏ, được dẫn dắt bởi các bản kiểm thử để bạn không rơi vào trạng thái bế tắc trong nhiều giờ.
 
-### Chicken and egg
+### Con gà hay quả trứng
 
-How can we incrementally build this? We can't `GET` a player without having stored something and it seems hard to know if `POST` has worked without the `GET` endpoint already existing.
+Làm thế nào chúng ta có thể xây dựng điều này một cách lặp đi lặp lại? Chúng ta không thể `GET` một người chơi mà không lưu trữ thứ gì đó, và có vẻ khó biết liệu `POST` có hoạt động hay không nếu điểm cuối (endpoint) `GET` chưa tồn tại.
 
-This is where _mocking_ shines.
+Đây là lúc *mocking* tỏa sáng.
 
--   `GET` will need a `PlayerStore` _thing_ to get scores for a player. This should be an interface so when we test we can create a simple stub to test our code without needing to have implemented any actual storage code.
--   For `POST` we can _spy_ on its calls to `PlayerStore` to make sure it stores players correctly. Our implementation of saving won't be coupled to retrieval.
--   For having some working software quickly we can make a very simple in-memory implementation and then later we can create an implementation backed by whatever storage mechanism we prefer.
+-   `GET` sẽ cần một *thứ* gọi là `PlayerStore` để lấy điểm cho một người chơi. Đây nên là một interface để khi kiểm thử, chúng ta có thể tạo một stub đơn giản nhằm kiểm thử mã nguồn của mình mà không cần phải triển khai bất kỳ mã nguồn lưu trữ thực tế nào.
+-   Đối với `POST`, chúng ta có thể *spy* (giám sát) các lệnh gọi của nó tới `PlayerStore` để đảm bảo nó lưu trữ người chơi một cách chính xác. Việc triển khai lưu trữ của chúng ta sẽ không bị ràng buộc (coupled) vào việc truy xuất.
+-   Để có được phần mềm hoạt động nhanh chóng, chúng ta có thể thực hiện một triển khai trong bộ nhớ (in-memory) rất đơn giản và sau đó có thể tạo một triển khai được hỗ trợ bởi bất kỳ cơ chế lưu trữ nào chúng ta muốn.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-We can write a test and make it pass by returning a hard-coded value to get us started. Kent Beck refers this as "Faking it". Once we have a working test we can then write more tests to help us remove that constant.
+Chúng ta có thể viết một bản kiểm thử và làm cho nó vượt qua bằng cách trả về một giá trị được mã hóa cứng (hard-coded) để bắt đầu. Kent Beck gọi đây là "Faking it" (Giả vờ). Khi đã có một bản kiểm thử hoạt động, chúng ta có thể viết thêm các bản kiểm thử để giúp loại bỏ hằng số đó.
 
-By doing this very small step, we can make the important start of getting an overall project structure working correctly without having to worry too much about our application logic.
+Bằng cách thực hiện bước rất nhỏ này, chúng ta có thể bắt đầu quan trọng là làm cho cấu trúc tổng thể của dự án hoạt động chính xác mà không phải lo lắng quá nhiều về logic ứng dụng.
 
-To create a web server in Go you will typically call [ListenAndServe](https://golang.org/pkg/net/http/#ListenAndServe).
+Để tạo một máy chủ web trong Go, thông thường bạn sẽ gọi [ListenAndServe](https://golang.org/pkg/net/http/#ListenAndServe).
 
 ```go
 func ListenAndServe(addr string, handler Handler) error
 ```
 
-This will start a web server listening on a port, creating a goroutine for every request and running it against a [`Handler`](https://golang.org/pkg/net/http/#Handler).
+Điều này sẽ bắt đầu một máy chủ web lắng nghe trên một cổng, tạo một goroutine cho mỗi yêu cầu và chạy nó thông qua một [`Handler`](https://golang.org/pkg/net/http/#Handler).
 
 ```go
 type Handler interface {
@@ -61,9 +61,10 @@ type Handler interface {
 }
 ```
 
-A type implements the Handler interface by implementing the `ServeHTTP` method which expects two arguments, the first is where we _write our response_ and the second is the HTTP request that was sent to the server.
+Một kiểu thực thi interface Handler bằng cách triển khai phương thức `ServeHTTP`, mong đợi hai đối số: đối số thứ nhất là nơi chúng ta *viết phản hồi* (response) và đối số thứ hai là yêu cầu HTTP (request) được gửi đến máy chủ.
 
-Let's create a file named `server_test.go` and write a test for a function `PlayerServer` that takes in those two arguments. The request sent in will be to get a player's score, which we expect to be `"20"`.
+Hãy tạo một tệp tên là `server_test.go` và viết một bản kiểm thử cho một hàm `PlayerServer` nhận hai đối số đó. Yêu cầu được gửi đến sẽ là lấy điểm của một người chơi, mà chúng ta mong đợi là `"20"`.
+
 ```go
 func TestGETPlayers(t *testing.T) {
 	t.Run("returns Pepper's score", func(t *testing.T) {
@@ -82,26 +83,26 @@ func TestGETPlayers(t *testing.T) {
 }
 ```
 
-In order to test our server, we will need a `Request` to send in and we'll want to _spy_ on what our handler writes to the `ResponseWriter`.
+Để kiểm thử máy chủ của mình, chúng ta sẽ cần một `Request` để gửi vào và chúng ta sẽ muốn *spy* những gì handler của chúng ta viết vào `ResponseWriter`.
 
--   We use `http.NewRequest` to create a request. The first argument is the request's method and the second is the request's path. The `nil` argument refers to the request's body, which we don't need to set in this case.
--   `net/http/httptest` has a spy already made for us called `ResponseRecorder` so we can use that. It has many helpful methods to inspect what has been written as a response.
+-   Chúng ta sử dụng `http.NewRequest` để tạo một yêu cầu. Đối số đầu tiên là phương thức của yêu cầu và đối số thứ hai là đường dẫn của yêu cầu. Đối số `nil` đề cập đến thân (body) của yêu cầu, mà chúng ta không cần thiết lập trong trường hợp này.
+-   `net/http/httptest` có một spy đã được tạo sẵn cho chúng ta gọi là `ResponseRecorder`, vì vậy chúng ta có thể sử dụng nó. Nó có nhiều phương thức hữu ích để kiểm tra những gì đã được viết dưới dạng phản hồi.
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 `./server_test.go:13:2: undefined: PlayerServer`
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
+## Viết lượng mã nguồn tối thiểu để bản kiểm thử chạy và kiểm tra kết quả lỗi
 
-The compiler is here to help, just listen to it.
+Trình biên dịch ở đây để giúp đỡ, hãy lắng nghe nó.
 
-Create a file named `server.go` and define `PlayerServer`
+Tạo một tệp tên là `server.go` và định nghĩa `PlayerServer`.
 
 ```go
 func PlayerServer() {}
 ```
 
-Try again
+Thử lại lần nữa:
 
 ```
 ./server_test.go:13:14: too many arguments in call to PlayerServer
@@ -109,7 +110,7 @@ Try again
     want ()
 ```
 
-Add the arguments to our function
+Thêm các đối số vào hàm của chúng ta:
 
 ```go
 import "net/http"
@@ -119,7 +120,7 @@ func PlayerServer(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The code now compiles and the test fails
+Mã nguồn bây giờ đã biên dịch và bản kiểm thử thất bại:
 
 ```
 === RUN   TestGETPlayers/returns_Pepper's_score
@@ -127,9 +128,9 @@ The code now compiles and the test fails
         server_test.go:20: got '', want '20'
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-From the DI chapter, we touched on HTTP servers with a `Greet` function. We learned that net/http's `ResponseWriter` also implements io `Writer` so we can use `fmt.Fprint` to send strings as HTTP responses.
+Từ chương DI, chúng ta đã chạm đến các máy chủ HTTP với hàm `Greet`. Chúng ta đã biết rằng `ResponseWriter` của net/http cũng triển khai interface `Writer` của io, vì vậy chúng ta có thể sử dụng `fmt.Fprint` để gửi các chuỗi dưới dạng phản hồi HTTP.
 
 ```go
 func PlayerServer(w http.ResponseWriter, r *http.Request) {
@@ -137,16 +138,16 @@ func PlayerServer(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The test should now pass.
+Bản kiểm thử bây giờ sẽ vượt qua.
 
-## Complete the scaffolding
+## Hoàn thiện khung ứng dụng (Scaffolding)
 
-We want to wire this up into an application. This is important because
+Chúng ta muốn kết nối điều này vào một ứng dụng. Điều này quan trọng vì:
 
--   We'll have _actual working software_, we don't want to write tests for the sake of it, it's good to see the code in action.
--   As we refactor our code, it's likely we will change the structure of the program. We want to make sure this is reflected in our application too as part of the incremental approach.
+-   Chúng ta sẽ có *phần mềm thực tế đang hoạt động*, chúng ta không muốn viết các bản kiểm thử chỉ để cho có, thật tốt khi thấy mã nguồn hoạt động.
+-   Khi chúng ta tái cấu trúc mã nguồn, có khả năng chúng ta sẽ thay đổi cấu trúc của chương trình. Chúng ta muốn đảm bảo điều này cũng được phản ánh trong ứng dụng như một phần của cách tiếp cận lặp đi lặp lại.
 
-Create a new `main.go` file for our application and put this code in
+Tạo một tệp `main.go` mới cho ứng dụng của chúng ta và đưa mã nguồn này vào:
 
 ```go
 package main
@@ -162,34 +163,33 @@ func main() {
 }
 ```
 
-So far all of our application code has been in one file, however, this isn't best practice for larger projects where you'll want to separate things into different files.
+Cho đến nay, tất cả mã nguồn ứng dụng của chúng ta đều nằm trong một tệp, tuy nhiên, đây không phải là phương pháp tốt nhất cho các dự án lớn hơn, nơi bạn sẽ muốn tách biệt mọi thứ thành các tệp khác nhau.
 
-To run this, do `go build` which will take all the `.go` files in the directory and build you a program. You can then execute it with `./myprogram`.
+Để chạy ứng dụng này, hãy thực hiện lệnh `go build`, lệnh này sẽ lấy tất cả các tệp `.go` trong thư mục và xây dựng cho bạn một chương trình. Sau đó, bạn có thể thực thi nó bằng lệnh `./myprogram`.
 
 ### `http.HandlerFunc`
 
-Earlier we explored that the `Handler` interface is what we need to implement in order to make a server. _Typically_ we do that by creating a `struct` and make it implement the interface by implementing its own ServeHTTP method. However the use-case for structs is for holding data but _currently_ we have no state, so it doesn't feel right to be creating one.
+Trước đó, chúng ta đã khám phá rằng interface `Handler` là những gì chúng ta cần triển khai để tạo một máy chủ. *Thông thường*, chúng ta làm điều đó bằng cách tạo một `struct` và làm cho nó triển khai interface bằng cách thực hiện phương thức ServeHTTP của chính nó. Tuy nhiên, trường hợp sử dụng của struct là để giữ dữ liệu nhưng *hiện tại* chúng ta không có trạng thái, vì vậy việc tạo một cái cảm thấy không đúng lắm.
 
-[HandlerFunc](https://golang.org/pkg/net/http/#HandlerFunc) lets us avoid this.
+[HandlerFunc](https://golang.org/pkg/net/http/#HandlerFunc) giúp chúng ta tránh được điều này.
 
-> The HandlerFunc type is an adapter to allow the use of ordinary functions as HTTP handlers. If f is a function with the appropriate signature, HandlerFunc(f) is a Handler that calls f.
+> Kiểu HandlerFunc là một bộ điều hợp (adapter) cho phép sử dụng các hàm thông thường làm các HTTP handler. Nếu f là một hàm có chữ ký thích hợp, HandlerFunc(f) là một Handler gọi f.
 
 ```go
 type HandlerFunc func(ResponseWriter, *Request)
 ```
 
-From the documentation, we see that type `HandlerFunc` has already implemented the `ServeHTTP` method.
-By type casting our `PlayerServer` function with it, we have now implemented the required `Handler`.
+Từ tài liệu, chúng ta thấy rằng kiểu `HandlerFunc` đã triển khai phương thức `ServeHTTP`. Bằng cách ép kiểu hàm `PlayerServer` của chúng ta với nó, chúng ta đã triển khai `Handler` theo yêu cầu.
 
 ### `http.ListenAndServe(":5000"...)`
 
-`ListenAndServe` takes a port to listen on a `Handler`. If there is a problem the web server will return an error, an example of that might be the port already being listened to. For that reason we wrap the call in `log.Fatal` to log the error to the user.
+`ListenAndServe` nhận một cổng để lắng nghe và một `Handler`. Nếu có vấn đề, máy chủ web sẽ trả về một lỗi; ví dụ cho điều đó có thể là cổng đã được sử dụng rồi. Vì lý do đó, chúng ta bọc lời gọi trong `log.Fatal` để ghi lại lỗi cho người dùng.
 
-What we're going to do now is write _another_ test to force us into making a positive change to try and move away from the hard-coded value.
+Những gì chúng ta sẽ làm bây giờ là viết một bản kiểm thử *khác* để buộc chúng ta thực hiện một thay đổi tích cực nhằm cố gắng thoát khỏi giá trị được mã hóa cứng.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-We'll add another subtest to our suite which tries to get the score of a different player, which will break our hard-coded approach.
+Chúng ta sẽ thêm một bản kiểm thử phụ (subtest) khác vào bộ kiểm thử của mình nhằm cố gắng lấy điểm của một người chơi khác, điều này sẽ làm hỏng cách tiếp cận mã hóa cứng của chúng ta.
 
 ```go
 t.Run("returns Floyd's score", func(t *testing.T) {
@@ -207,13 +207,13 @@ t.Run("returns Floyd's score", func(t *testing.T) {
 })
 ```
 
-You may have been thinking
+Bạn có thể đã nghĩ:
 
-> Surely we need some kind of concept of storage to control which player gets what score. It's weird that the values seem so arbitrary in our tests.
+> Chắc chắn chúng ta cần một loại khái niệm về lưu trữ để kiểm soát người chơi nào nhận được số điểm nào. Thật kỳ lạ khi các giá trị có vẻ tùy lẹ trong các bản kiểm thử của chúng ta.
 
-Remember we are just trying to take as small as steps as reasonably possible, so we're just trying to break the constant for now.
+Hãy nhớ rằng chúng ta chỉ đang cố gắng thực hiện các bước nhỏ nhất có thể, vì vậy hiện tại chúng ta chỉ đang cố gắng phá bỏ hằng số.
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 === RUN   TestGETPlayers/returns_Pepper's_score
@@ -223,10 +223,10 @@ Remember we are just trying to take as small as steps as reasonably possible, so
         server_test.go:34: got '20', want '10'
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
 ```go
-//server.go
+// server.go
 func PlayerServer(w http.ResponseWriter, r *http.Request) {
 	player := strings.TrimPrefix(r.URL.Path, "/players/")
 
@@ -242,20 +242,20 @@ func PlayerServer(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-This test has forced us to actually look at the request's URL and make a decision. So whilst in our heads, we may have been worrying about player stores and interfaces the next logical step actually seems to be about _routing_.
+Bản kiểm thử này đã buộc chúng ta thực sự phải nhìn vào URL của yêu cầu và đưa ra quyết định. Vì vậy, trong khi trong đầu chúng ta có thể đã lo lắng về player store và interfaces, bước hợp lý tiếp theo thực sự có vẻ là về *định tuyến* (routing).
 
-If we had started with the store code the amount of changes we'd have to do would be very large compared to this. **This is a smaller step towards our final goal and was driven by tests**.
+Nếu chúng ta bắt đầu với mã nguồn của store thì lượng thay đổi chúng ta phải thực hiện sẽ rất lớn so với điều này. **Đây là một bước nhỏ hơn hướng tới mục tiêu cuối cùng của chúng ta và được dẫn dắt bởi các bản kiểm thử**.
 
-We're resisting the temptation to use any routing libraries right now, just the smallest step to get our test passing.
+Chúng ta đang chống lại sự cám dỗ sử dụng bất kỳ thư viện định tuyến nào ngay bây giờ, chỉ là bước nhỏ nhất để bản kiểm thử của chúng ta vượt qua.
 
-`r.URL.Path` returns the path of the request which we can then use [`strings.TrimPrefix`](https://golang.org/pkg/strings/#TrimPrefix) to trim away `/players/` to get the requested player. It's not very robust but will do the trick for now.
+`r.URL.Path` trả về đường dẫn của yêu cầu mà sau đó chúng ta có thể sử dụng [`strings.TrimPrefix`](https://golang.org/pkg/strings/#TrimPrefix) để cắt bỏ `/players/` nhằm lấy người chơi được yêu cầu. Nó không quá mạnh mẽ nhưng sẽ giải quyết được vấn đề hiện tại.
 
-## Refactor
+## Tái cấu trúc (Refactor)
 
-We can simplify the `PlayerServer` by separating out the score retrieval into a function
+Chúng ta có thể đơn giản hóa `PlayerServer` bằng cách tách việc truy xuất điểm thành một hàm:
 
 ```go
-//server.go
+// server.go
 func PlayerServer(w http.ResponseWriter, r *http.Request) {
 	player := strings.TrimPrefix(r.URL.Path, "/players/")
 
@@ -275,10 +275,10 @@ func GetPlayerScore(name string) string {
 }
 ```
 
-And we can DRY up some of the code in the tests by making some helpers
+Và chúng ta có thể làm cho mã nguồn trong các bản kiểm thử gọn gàng hơn bằng cách tạo ra một số helper:
 
 ```go
-//server_test.go
+// server_test.go
 func TestGETPlayers(t *testing.T) {
 	t.Run("returns Pepper's score", func(t *testing.T) {
 		request := newGetScoreRequest("Pepper")
@@ -312,13 +312,13 @@ func assertResponseBody(t testing.TB, got, want string) {
 }
 ```
 
-However, we still shouldn't be happy. It doesn't feel right that our server knows the scores.
+Tuy nhiên, chúng ta vẫn chưa nên hài lòng. Việc máy chủ của chúng ta biết các số điểm cảm thấy không đúng.
 
-Our refactoring has made it pretty clear what to do.
+Việc tái cấu trúc đã làm cho hướng đi tiếp theo trở nên khá rõ ràng.
 
-We moved the score calculation out of the main body of our handler into a function `GetPlayerScore`. This feels like the right place to separate the concerns using interfaces.
+Chúng ta đã chuyển việc tính toán điểm ra khỏi thân chính của handler vào một hàm `GetPlayerScore`. Đây có vẻ là nơi thích hợp để tách biệt các mối quan tâm bằng cách sử dụng interface.
 
-Let's move our function we re-factored to be an interface instead
+Hãy chuyển hàm mà chúng ta đã tái cấu trúc thành một interface:
 
 ```go
 type PlayerStore interface {
@@ -326,7 +326,7 @@ type PlayerStore interface {
 }
 ```
 
-For our `PlayerServer` to be able to use a `PlayerStore`, it will need a reference to one. Now feels like the right time to change our architecture so that our `PlayerServer` is now a `struct`.
+Để `PlayerServer` của chúng ta có thể sử dụng `PlayerStore`, nó sẽ cần một tham chiếu đến một cái. Bây giờ có vẻ là thời điểm thích hợp để thay đổi kiến trúc sao cho `PlayerServer` giờ đây là một `struct`.
 
 ```go
 type PlayerServer struct {
@@ -334,7 +334,7 @@ type PlayerServer struct {
 }
 ```
 
-Finally, we will now implement the `Handler` interface by adding a method to our new struct and putting in our existing handler code.
+Cuối cùng, bây giờ chúng ta sẽ triển khai interface `Handler` bằng cách thêm một phương thức vào struct mới của mình và chuyển mã nguồn handler hiện tại vào đó.
 
 ```go
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -343,12 +343,12 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The only other change is we now call our `store.GetPlayerScore` to get the score, rather than the local function we defined (which we can now delete).
+Thay đổi duy nhất khác là giờ đây chúng ta gọi `p.store.GetPlayerScore` để lấy điểm, thay vì hàm cục bộ mà chúng ta đã định nghĩa (mà bây giờ chúng ta có thể xóa).
 
-Here is the full code listing of our server
+Dưới đây là danh sách đầy đủ mã nguồn cho máy chủ của chúng ta:
 
 ```go
-//server.go
+// server.go
 type PlayerStore interface {
 	GetPlayerScore(name string) int
 }
@@ -363,16 +363,16 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-### Fix the issues
+### Khắc phục các vấn đề
 
-This was quite a few changes and we know our tests and application will no longer compile, but just relax and let the compiler work through it.
+Đây là một vài thay đổi lớn và chúng ta biết rằng các bản kiểm thử và ứng dụng của chúng ta sẽ không còn biên dịch được nữa, nhưng hãy bình tĩnh và để trình biên dịch giải quyết vấn đề đó.
 
 `./main.go:9:58: type PlayerServer is not an expression`
 
-We need to change our tests to instead create a new instance of our `PlayerServer` and then call its method `ServeHTTP`.
+Chúng ta cần thay đổi các bản kiểm thử để thay vào đó là tạo một phiên bản (instance) mới của `PlayerServer` và sau đó gọi phương thức `ServeHTTP` của nó.
 
 ```go
-//server_test.go
+// server_test.go
 func TestGETPlayers(t *testing.T) {
 	server := &PlayerServer{}
 
@@ -396,13 +396,13 @@ func TestGETPlayers(t *testing.T) {
 }
 ```
 
-Notice we're still not worrying about making stores _just yet_, we just want the compiler passing as soon as we can.
+Hãy chú ý rằng chúng ta vẫn chưa lo lắng về việc tạo các store *ngay bây giờ*, chúng ta chỉ muốn trình biên dịch thông qua nhanh nhất có thể.
 
-You should be in the habit of prioritising having code that compiles and then code that passes the tests.
+Bạn nên hình thành thói quen ưu tiên có mã nguồn được biên dịch và sau đó là mã nguồn vượt qua các bản kiểm thử.
 
-By adding more functionality (like stub stores) whilst the code isn't compiling, we are opening ourselves up to potentially _more_ compilation problems.
+Bằng cách thêm nhiều chức năng hơn (như stub store) trong khi mã nguồn vẫn chưa biên dịch được, chúng ta đang mở ra khả năng gặp phải *nhiều hơn* các vấn đề về biên dịch.
 
-Now `main.go` won't compile for the same reason.
+Bây giờ `main.go` cũng sẽ không biên dịch được vì lý do tương tự.
 
 ```go
 func main() {
@@ -411,7 +411,7 @@ func main() {
 }
 ```
 
-Finally, everything is compiling but the tests are failing
+Cuối cùng, mọi thứ đã được biên dịch nhưng các bản kiểm thử lại thất bại:
 
 ```
 === RUN   TestGETPlayers/returns_the_Pepper's_score
@@ -419,10 +419,10 @@ panic: runtime error: invalid memory address or nil pointer dereference [recover
     panic: runtime error: invalid memory address or nil pointer dereference
 ```
 
-This is because we have not passed in a `PlayerStore` in our tests. We'll need to make a stub one up.
+Điều này là do chúng ta chưa truyền vào một `PlayerStore` trong các bản kiểm thử của mình. Chúng ta sẽ cần tạo một stub cho nó.
 
 ```go
-//server_test.go
+// server_test.go
 type StubPlayerStore struct {
 	scores map[string]int
 }
@@ -433,10 +433,10 @@ func (s *StubPlayerStore) GetPlayerScore(name string) int {
 }
 ```
 
-A `map` is a quick and easy way of making a stub key/value store for our tests. Now let's create one of these stores for our tests and send it into our `PlayerServer`.
+Một `map` là cách nhanh chóng và dễ dàng để tạo một kho lưu trữ key/value stub cho các bản kiểm thử của chúng ta. Bây giờ hãy tạo một trong những store này cho các bản kiểm thử của mình và gửi nó vào `PlayerServer`.
 
 ```go
-//server_test.go
+// server_test.go
 func TestGETPlayers(t *testing.T) {
 	store := StubPlayerStore{
 		map[string]int{
@@ -466,18 +466,18 @@ func TestGETPlayers(t *testing.T) {
 }
 ```
 
-Our tests now pass and are looking better. The _intent_ behind our code is clearer now due to the introduction of the store. We're telling the reader that because we have _this data in a `PlayerStore`_ that when you use it with a `PlayerServer` you should get the following responses.
+Các bản kiểm thử của chúng ta hiện đã vượt qua và trông ổn hơn. *Ý định* đằng sau mã nguồn của chúng ta bây giờ rõ ràng hơn nhờ việc giới thiệu store. Chúng ta đang nói với người đọc rằng vì chúng ta có *dữ liệu này trong một `PlayerStore`* nên khi bạn sử dụng nó với một `PlayerServer`, bạn sẽ nhận được các phản hồi sau đây.
 
-### Run the application
+### Chạy ứng dụng
 
-Now our tests are passing the last thing we need to do to complete this refactor is to check if our application is working. The program should start up but you'll get a horrible response if you try and hit the server at `http://localhost:5000/players/Pepper`.
+Bây giờ các bản kiểm thử đã vượt qua, điều cuối cùng chúng ta cần làm để hoàn thành việc tái cấu trúc này là kiểm tra xem ứng dụng có hoạt động hay không. Chương trình sẽ khởi động nhưng bạn sẽ nhận được một phản hồi rất tệ nếu thử truy cập máy chủ tại `http://localhost:5000/players/Pepper`.
 
-The reason for this is that we have not passed in a `PlayerStore`.
+Lý do cho việc này là chúng ta chưa truyền vào một `PlayerStore`.
 
-We'll need to make an implementation of one, but that's difficult right now as we're not storing any meaningful data so it'll have to be hard-coded for the time being.
+Chúng ta sẽ cần thực hiện một sự triển khai (implementation) của nó, nhưng điều đó khó thực hiện ngay bây giờ vì chúng ta chưa lưu trữ bất kỳ dữ liệu có ý nghĩa nào, vì vậy nó sẽ phải được mã hóa cứng tạm thời.
 
 ```go
-//main.go
+// main.go
 type InMemoryPlayerStore struct{}
 
 func (i *InMemoryPlayerStore) GetPlayerScore(name string) int {
@@ -490,22 +490,21 @@ func main() {
 }
 ```
 
-If you run `go build` again and hit the same URL you should get `"123"`. Not great, but until we store data that's the best we can do.
-It also didn't feel great that our main application was starting up but not actually working. We had to manually test to see the problem.
+Nếu bạn chạy `go build` lại và truy cập cùng một URL đó, bạn sẽ nhận được `"123"`. Không mấy tuyệt vời, nhưng cho đến khi chúng ta lưu trữ dữ liệu thực tế thì đó là điều tốt nhất chúng ta có thể làm. Điều đó cũng gợi ý rằng không ổn lắm khi ứng dụng chính của chúng ta khởi động nhưng lại không thực sự hoạt động. Chúng ta đã phải kiểm thử thủ công để thấy vấn đề.
 
-We have a few options as to what to do next
+Chúng ta có một vài lựa chọn cho việc sẽ làm gì tiếp theo:
 
--   Handle the scenario where the player doesn't exist
--   Handle the `POST /players/{name}` scenario
+-   Xử lý kịch bản khi người chơi không tồn tại.
+-   Xử lý kịch bản `POST /players/{name}`.
 
-Whilst the `POST` scenario gets us closer to the "happy path", I feel it'll be easier to tackle the missing player scenario first as we're in that context already. We'll get to the rest later.
+Trong khi kịch bản `POST` đưa chúng ta đến gần hơn với "luồng hoạt động trơn tru" (happy path), tôi cảm thấy sẽ dễ dàng hơn khi giải quyết kịch bản thiếu người chơi trước vì chúng ta đã đang ở trong ngữ cảnh đó rồi. Chúng ta sẽ thực hiện những phần còn lại sau.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-Add a missing player scenario to our existing suite
+Thêm kịch bản thiếu người chơi vào bộ kiểm thử hiện có của chúng ta:
 
 ```go
-//server_test.go
+// server_test.go
 t.Run("returns 404 on missing players", func(t *testing.T) {
 	request := newGetScoreRequest("Apollo")
 	response := httptest.NewRecorder()
@@ -521,7 +520,7 @@ t.Run("returns 404 on missing players", func(t *testing.T) {
 })
 ```
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 === RUN   TestGETPlayers/returns_404_on_missing_players
@@ -529,10 +528,10 @@ t.Run("returns 404 on missing players", func(t *testing.T) {
         server_test.go:56: got status 200 want 404
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	player := strings.TrimPrefix(r.URL.Path, "/players/")
 
@@ -542,18 +541,18 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Sometimes I heavily roll my eyes when TDD advocates say "make sure you just write the minimal amount of code to make it pass" as it can feel very pedantic.
+Đôi khi tôi thực sự cảm thấy chán nản khi những người ủng hộ TDD nói rằng "hãy đảm bảo bạn chỉ viết lượng mã nguồn tối thiểu để bản kiểm thử vượt qua" vì nó có vẻ rất giáo điều.
 
-But this scenario illustrates the example well. I have done the bare minimum (knowing it is not correct), which is write a `StatusNotFound` on **all responses** but all our tests are passing!
+Nhưng kịch bản này minh họa khá tốt cho ví dụ đó. Tôi đã thực hiện những điều tối thiểu (biết rằng nó không đúng), đó là viết `StatusNotFound` cho **tất cả các phản hồi** nhưng tất cả các bản kiểm thử của chúng ta đều vượt qua!
 
-**By doing the bare minimum to make the tests pass it can highlight gaps in your tests**. In our case, we are not asserting that we should be getting a `StatusOK` when players _do_ exist in the store.
+**Bằng cách thực hiện những điều tối thiểu để làm cho các bản kiểm thử vượt qua, nó có thể làm lộ ra các lỗ hổng trong bản kiểm thử của bạn**. Trong trường hợp của chúng ta, chúng ta chưa khẳng định rằng mình nên nhận được một `StatusOK` khi người chơi *có* tồn tại trong store.
 
-Update the other two tests to assert on the status and fix the code.
+Cập nhật hai bản kiểm thử khác để khẳng định trạng thái và sửa mã nguồn.
 
-Here are the new tests
+Dưới đây là các bản kiểm thử mới:
 
 ```go
-//server_test.go
+// server_test.go
 func TestGETPlayers(t *testing.T) {
 	store := StubPlayerStore{
 		map[string]int{
@@ -613,12 +612,12 @@ func assertResponseBody(t testing.TB, got, want string) {
 }
 ```
 
-We're checking the status in all our tests now so I made a helper `assertStatus` to facilitate that.
+Chúng ta đang kiểm tra trạng thái trong tất cả các bản kiểm thử của mình ngay bây giờ, vì vậy tôi đã tạo một helper `assertStatus` để tạo điều kiện thuận lợi cho việc đó.
 
-Now our first two tests fail because of the 404 instead of 200, so we can fix `PlayerServer` to only return not found if the score is 0.
+Bây giờ hai bản kiểm thử đầu tiên của chúng ta thất bại vì mã lỗi 404 thay vì 200, vì vậy chúng ta có thể sửa `PlayerServer` để chỉ trả về "không tìm thấy" nếu số điểm bằng 0.
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	player := strings.TrimPrefix(r.URL.Path, "/players/")
 
@@ -632,14 +631,14 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-### Storing scores
+### Lưu trữ số điểm
 
-Now that we can retrieve scores from a store it now makes sense to be able to store new scores.
+Bây giờ chúng ta đã có thể truy xuất số điểm từ store, điều hợp lý tiếp theo là có thể lưu trữ số điểm mới.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
 ```go
-//server_test.go
+// server_test.go
 func TestStoreWins(t *testing.T) {
 	store := StubPlayerStore{
 		map[string]int{},
@@ -657,9 +656,9 @@ func TestStoreWins(t *testing.T) {
 }
 ```
 
-For a start let's just check we get the correct status code if we hit the particular route with POST. This lets us drive out the functionality of accepting a different kind of request and handling it differently to `GET /players/{name}`. Once this works we can then start asserting on our handler's interaction with the store.
+Đầu tiên chúng ta hãy kiểm tra xem mình có nhận được mã trạng thái chính xác hay không nếu chúng ta truy cập vào route cụ thể với POST. Điều này cho phép chúng ta dẫn dắt chức năng chấp nhận một loại yêu cầu khác và xử lý nó khác với `GET /players/{name}`. Một khi điều này hoạt động, chúng ta có thể bắt đầu khẳng định sự tương tác của handler với store.
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 === RUN   TestStoreWins/it_returns_accepted_on_POST
@@ -667,12 +666,12 @@ For a start let's just check we get the correct status code if we hit the partic
         server_test.go:70: did not get correct status, got 404, want 202
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-Remember we are deliberately committing sins, so an `if` statement based on the request's method will do the trick.
+Hãy nhớ rằng chúng ta đang cố tình phạm "tội lỗi", vì vậy một câu lệnh `if` dựa trên phương thức của yêu cầu sẽ giải quyết được vấn đề.
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
@@ -692,12 +691,12 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-## Refactor
+## Tái cấu trúc
 
-The handler is looking a bit muddled now. Let's break the code up to make it easier to follow and isolate the different functionality into new functions.
+Handler bây giờ trông có vẻ hơi lộn xộn. Hãy tách mã nguồn ra để dễ theo dõi hơn và cô lập các chức năng khác nhau vào các hàm mới.
 
 ```go
-//server.go
+// server.go
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
@@ -726,16 +725,16 @@ func (p *PlayerServer) processWin(w http.ResponseWriter) {
 }
 ```
 
-This makes the routing aspect of `ServeHTTP` a bit clearer and means our next iterations on storing can just be inside `processWin`.
+Điều này làm cho khía cạnh định tuyến của `ServeHTTP` rõ ràng hơn một chút và có nghĩa là các lần lặp tiếp theo của chúng ta về việc lưu trữ có thể chỉ nằm trong `processWin`.
 
-Next, we want to check that when we do our `POST /players/{name}` that our `PlayerStore` is told to record the win.
+Tiếp theo, chúng ta muốn kiểm tra xem khi thực hiện `POST /players/{name}` thì `PlayerStore` của chúng ta có được yêu cầu ghi lại trận thắng hay không.
 
-## Write the test first
+## Viết bản kiểm thử trước tiên
 
-We can accomplish this by extending our `StubPlayerStore` with a new `RecordWin` method and then spy on its invocations.
+Chúng ta có thể hoàn thành việc này bằng cách mở rộng `StubPlayerStore` của mình với một phương thức `RecordWin` mới và sau đó theo dõi các lần gọi của nó.
 
 ```go
-//server_test.go
+// server_test.go
 type StubPlayerStore struct {
 	scores   map[string]int
 	winCalls []string
@@ -751,10 +750,10 @@ func (s *StubPlayerStore) RecordWin(name string) {
 }
 ```
 
-Now extend our test to check the number of invocations for a start
+Bây giờ hãy mở rộng bản kiểm thử của chúng ta để kiểm tra số lần gọi:
 
 ```go
-//server_test.go
+// server_test.go
 func TestStoreWins(t *testing.T) {
 	store := StubPlayerStore{
 		map[string]int{},
@@ -781,121 +780,29 @@ func newPostWinRequest(name string) *http.Request {
 }
 ```
 
-## Try to run the test
+## Thử chạy bản kiểm thử
 
 ```
 ./server_test.go:26:20: too few values in struct initializer
 ./server_test.go:65:20: too few values in struct initializer
 ```
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
+## Viết lượng mã nguồn tối thiểu để bản kiểm thử chạy và kiểm tra kết quả lỗi
 
-We need to update our code where we create a `StubPlayerStore` as we've added a new field
+Chúng ta cần cập nhật mã nguồn của mình ở những nơi chúng ta tạo một `StubPlayerStore` vì chúng ta đã thêm một trường mới:
 
 ```go
-//server_test.go
+// server_test.go
 store := StubPlayerStore{
 	map[string]int{},
 	nil,
 }
 ```
 
-```
---- FAIL: TestStoreWins (0.00s)
-    --- FAIL: TestStoreWins/it_records_wins_when_POST (0.00s)
-        server_test.go:80: got 0 calls to RecordWin want 1
-```
-
-## Viết đủ code để test chạy thành công
-
-As we're only asserting the number of calls rather than the specific values it makes our initial iteration a little smaller.
-
-We need to update `PlayerServer`'s idea of what a `PlayerStore` is by changing the interface if we're going to be able to call `RecordWin`.
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
 ```go
-//server.go
-type PlayerStore interface {
-	GetPlayerScore(name string) int
-	RecordWin(name string)
-}
-```
-
-By doing this `main` no longer compiles
-
-```
-./main.go:17:46: cannot use InMemoryPlayerStore literal (type *InMemoryPlayerStore) as type PlayerStore in field value:
-    *InMemoryPlayerStore does not implement PlayerStore (missing RecordWin method)
-```
-
-The compiler tells us what's wrong. Let's update `InMemoryPlayerStore` to have that method.
-
-```go
-//main.go
-type InMemoryPlayerStore struct{}
-
-func (i *InMemoryPlayerStore) RecordWin(name string) {}
-```
-
-Try and run the tests and we should be back to compiling code - but the test is still failing.
-
-Now that `PlayerStore` has `RecordWin` we can call it within our `PlayerServer`
-
-```go
-//server.go
-func (p *PlayerServer) processWin(w http.ResponseWriter) {
-	p.store.RecordWin("Bob")
-	w.WriteHeader(http.StatusAccepted)
-}
-```
-
-Run the tests and it should be passing! Obviously `"Bob"` isn't exactly what we want to send to `RecordWin`, so let's further refine the test.
-
-## Write the test first
-
-```go
-//server_test.go
-func TestStoreWins(t *testing.T) {
-	store := StubPlayerStore{
-		map[string]int{},
-		nil,
-	}
-	server := &PlayerServer{&store}
-
-	t.Run("it records wins on POST", func(t *testing.T) {
-		player := "Pepper"
-
-		request := newPostWinRequest(player)
-		response := httptest.NewRecorder()
-
-		server.ServeHTTP(response, request)
-
-		assertStatus(t, response.Code, http.StatusAccepted)
-
-		if len(store.winCalls) != 1 {
-			t.Fatalf("got %d calls to RecordWin want %d", len(store.winCalls), 1)
-		}
-
-		if store.winCalls[0] != player {
-			t.Errorf("did not store correct winner got %q want %q", store.winCalls[0], player)
-		}
-	})
-}
-```
-
-Now that we know there is one element in our `winCalls` slice we can safely reference the first one and check it is equal to `player`.
-
-## Try to run the test
-
-```
-=== RUN   TestStoreWins/it_records_wins_on_POST
-    --- FAIL: TestStoreWins/it_records_wins_on_POST (0.00s)
-        server_test.go:86: did not store correct winner got 'Bob' want 'Pepper'
-```
-
-## Viết đủ code để test chạy thành công
-
-```go
-//server.go
+// server.go
 func (p *PlayerServer) processWin(w http.ResponseWriter, r *http.Request) {
 	player := strings.TrimPrefix(r.URL.Path, "/players/")
 	p.store.RecordWin(player)
@@ -903,14 +810,50 @@ func (p *PlayerServer) processWin(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-We changed `processWin` to take `http.Request` so we can look at the URL to extract the player's name. Once we have that we can call our `store` with the correct value to make the test pass.
-
-## Refactor
-
-We can DRY up this code a bit as we're extracting the player name the same way in two places
+Chúng ta cần cập nhật `processWin` để nhận `*http.Request` để có thể trích xuất tên người chơi.
 
 ```go
-//server.go
+// server.go
+func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	switch r.Method {
+	case http.MethodPost:
+		p.processWin(w, r)
+	case http.MethodGet:
+		p.showScore(w, r)
+	}
+}
+```
+
+## Tái cấu trúc
+
+Bây giờ mã nguồn của chúng ta đã vượt qua các bản kiểm thử, chúng ta nên hít một hơi thật sâu và xem xét lại mã nguồn.
+
+Hàm `ServeHTTP` của chúng ta đang thực hiện khá nhiều việc: nó chịu trách nhiệm điều phối các yêu cầu (routing) và đồng thời cũng xử lý logic phản hồi. Điều này sẽ trở nên khó khăn hơn khi chúng ta thêm nhiều endpoint hơn.
+
+Go cung cấp một giải pháp tích hợp sẵn rất mạnh mẽ gọi là `ServeMux`.
+
+> ServeMux là một bộ dồn kênh (multiplexer) yêu cầu HTTP. Nó so khớp URL của mỗi yêu cầu được nhận với một danh sách các mẫu đã đăng ký và gọi handler cho mẫu khớp gần nhất với URL.
+
+Hãy sử dụng nó để tái cấu trúc mã nguồn của chúng ta.
+
+```go
+// server.go
+func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	router := http.NewServeMux()
+	router.Handle("/players/", http.HandlerFunc(p.showScore))
+	router.Handle("/players/", http.HandlerFunc(p.processWin))
+
+	router.ServeHTTP(w, r)
+}
+```
+
+Vấn đề ở đây là chúng ta không thể đăng ký cùng một đường dẫn cho các phương thức HTTP khác nhau với `ServeMux` cơ bản. Chúng ta cần lồng chúng lại hoặc sử dụng một trình định tuyến khác.
+
+Hãy tiếp tục sử dụng `switch` cho bây giờ vì nó đơn giản, nhưng hãy di chuyển logic lấy tên người chơi vào một phương thức helper.
+
+```go
+// server.go
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	player := strings.TrimPrefix(r.URL.Path, "/players/")
 
@@ -938,158 +881,233 @@ func (p *PlayerServer) processWin(w http.ResponseWriter, player string) {
 }
 ```
 
-Even though our tests are passing we don't really have working software. If you try and run `main` and use the software as intended it doesn't work because we haven't got round to implementing `PlayerStore` correctly. This is fine though; by focusing on our handler we have identified the interface that we need, rather than trying to design it up-front.
+Điều này trông sạch sẽ hơn rất nhiều. Logic lấy tên người chơi chỉ được thực hiện ở một nơi.
 
-We _could_ start writing some tests around our `InMemoryPlayerStore` but it's only here temporarily until we implement a more robust way of persisting player scores (i.e. a database).
+### Triển khai store thực tế
 
-What we'll do for now is write an _integration test_ between our `PlayerServer` and `InMemoryPlayerStore` to finish off the functionality. This will let us get to our goal of being confident our application is working, without having to directly test `InMemoryPlayerStore`. Not only that, but when we get around to implementing `PlayerStore` with a database, we can test that implementation with the same integration test.
+Bước tiếp theo của chúng ta là thực hiện một triển khai `PlayerStore` thực tế thay vì stub. Chúng ta sẽ bắt đầu với phiên bản trong bộ nhớ (`InMemoryPlayerStore`).
 
-### Integration tests
+## Viết bản kiểm thử trước tiên
 
-Integration tests can be useful for testing that larger areas of your system work but you must bear in mind:
-
--   They are harder to write
--   When they fail, it can be difficult to know why (usually it's a bug within a component of the integration test) and so can be harder to fix
--   They are sometimes slower to run (as they often are used with "real" components, like a database)
-
-For that reason, it is recommended that you research _The Test Pyramid_.
-
-## Write the test first
-
-In the interest of brevity, I am going to show you the final refactored integration test.
+Hãy tạo một file mới `in_memory_player_store_test.go` (hoặc tích hợp vào file hiện có).
 
 ```go
-// server_integration_test.go
-package main
+func TestInMemoryPlayerStore(t *testing.T) {
+	t.Run("it stores wins for players", func(t *testing.T) {
+		store := InMemoryPlayerStore{map[string]int{}}
 
-import (
-	"net/http"
-	"net/http/httptest"
-	"testing"
-)
+		player := "Pepper"
+		store.RecordWin(player)
+		store.RecordWin(player)
+		store.RecordWin(player)
 
-func TestRecordingWinsAndRetrievingThem(t *testing.T) {
-	store := InMemoryPlayerStore{}
-	server := PlayerServer{&store}
-	player := "Pepper"
+		got := store.GetPlayerScore(player)
+		want := 3
 
-	server.ServeHTTP(httptest.NewRecorder(), newPostWinRequest(player))
-	server.ServeHTTP(httptest.NewRecorder(), newPostWinRequest(player))
-	server.ServeHTTP(httptest.NewRecorder(), newPostWinRequest(player))
-
-	response := httptest.NewRecorder()
-	server.ServeHTTP(response, newGetScoreRequest(player))
-	assertStatus(t, response.Code, http.StatusOK)
-
-	assertResponseBody(t, response.Body.String(), "3")
+		if got != want {
+			t.Errorf("got %d want %d", got, want)
+		}
+	})
 }
 ```
 
--   We are creating our two components we are trying to integrate with: `InMemoryPlayerStore` and `PlayerServer`.
--   We then fire off 3 requests to record 3 wins for `player`. We're not too concerned about the status codes in this test as it's not relevant to whether they are integrating well.
--   The next response we do care about (so we store a variable `response`) because we are going to try and get the `player`'s score.
-
-## Try to run the test
-
-```
---- FAIL: TestRecordingWinsAndRetrievingThem (0.00s)
-    server_integration_test.go:24: response body is wrong, got '123' want '3'
-```
-
-## Viết đủ code để test chạy thành công
-
-I am going to take some liberties here and write more code than you may be comfortable with without writing a test.
-
-_This is allowed!_ We still have a test checking things should be working correctly but it is not around the specific unit we're working with (`InMemoryPlayerStore`).
-
-If I were to get stuck in this scenario, I would revert my changes back to the failing test and then write more specific unit tests around `InMemoryPlayerStore` to help me drive out a solution.
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
 ```go
-//in_memory_player_store.go
-func NewInMemoryPlayerStore() *InMemoryPlayerStore {
-	return &InMemoryPlayerStore{map[string]int{}}
-}
-
+// in_memory_player_store.go
 type InMemoryPlayerStore struct {
 	store map[string]int
-}
-
-func (i *InMemoryPlayerStore) RecordWin(name string) {
-	i.store[name]++
 }
 
 func (i *InMemoryPlayerStore) GetPlayerScore(name string) int {
 	return i.store[name]
 }
+
+func (i *InMemoryPlayerStore) RecordWin(name string) {
+	i.store[name]++
+}
 ```
 
--   We need to store the data so I've added a `map[string]int` to the `InMemoryPlayerStore` struct
--   For convenience I've made `NewInMemoryPlayerStore` to initialise the store, and updated the integration test to use it:
-    ```go
-    //server_integration_test.go
-    store := NewInMemoryPlayerStore()
-    server := PlayerServer{store}
-    ```
--   The rest of the code is just wrapping around the `map`
-
-The integration test passes, now we just need to change `main` to use `NewInMemoryPlayerStore()`
+Đừng quên khởi tạo map trong `main.go`.
 
 ```go
 // main.go
-package main
-
-import (
-	"log"
-	"net/http"
-)
-
 func main() {
-	server := &PlayerServer{NewInMemoryPlayerStore()}
+	server := &PlayerServer{&InMemoryPlayerStore{map[string]int{}}}
 	log.Fatal(http.ListenAndServe(":5000", server))
 }
 ```
 
-Build it, run it and then use `curl` to test it out.
+Bây giờ chúng ta đã có một ứng dụng chạy được thực sự! Bạn có thể `POST` để tăng điểm và `GET` để xem điểm.
 
--   Run this a few times, change the player names if you like `curl -X POST http://localhost:5000/players/Pepper`
--   Check scores with `curl http://localhost:5000/players/Pepper`
+### JSON và Định dạng Phản hồi
 
-Great! You've made a REST-ish service. To take this forward you'd want to pick a data store to persist the scores longer than the length of time the program runs.
+Endpoint tiếp theo mà chúng ta muốn có là một bảng xếp hạng (league table). Nó nên trả về danh sách những người chơi và số trận thắng của họ dưới dạng JSON.
 
--   Pick a store (Bolt? Mongo? Postgres? File system?)
--   Make `PostgresPlayerStore` implement `PlayerStore`
--   TDD the functionality so you're sure it works
--   Plug it into the integration test, check it's still ok
--   Finally plug it into `main`
+- `GET /league` nên trả về `[{ "Name": "Chris", "Wins": 20 }]`
 
-## Refactor
+## Viết bản kiểm thử trước tiên
 
-We are almost there! Lets take some effort to prevent concurrency errors like these
+```go
+func TestLeague(t *testing.T) {
+	store := StubPlayerStore{}
+	server := &PlayerServer{&store}
 
+	t.Run("it returns 200 on /league", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/league", nil)
+		response := httptest.NewRecorder()
+
+		server.ServeHTTP(response, request)
+
+		assertStatus(t, response.Code, http.StatusOK)
+	})
+}
 ```
-fatal error: concurrent map read and map write
+
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
+
+Bây giờ chúng ta thực sự cần một trình định tuyến (router) vì chúng ta có các đường dẫn khác nhau.
+
+```go
+// server.go
+func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	router := http.NewServeMux()
+	router.Handle("/league", http.HandlerFunc(p.leagueHandler))
+	router.Handle("/players/", http.HandlerFunc(p.playersHandler))
+
+	router.ServeHTTP(w, r)
+}
+
+func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func (p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {
+	player := strings.TrimPrefix(r.URL.Path, "/players/")
+
+	switch r.Method {
+	case http.MethodPost:
+		p.processWin(w, player)
+	case http.MethodGet:
+		p.showScore(w, player)
+	}
+}
 ```
 
-By adding mutexes, we enforce concurrency safety especially for the counter in our `RecordWin` function. Read more about mutexes in the sync chapter.
+Vấn đề là chúng ta đang tạo một trình định tuyến mới cho *mỗi* yêu cầu. Điều này không hiệu quả. Hãy sử dụng một kỹ thuật gọi là "contructor" để tạo trình định tuyến một lần khi server được tạo.
+
+```go
+// server.go
+type PlayerServer struct {
+	store  PlayerStore
+	router *http.ServeMux
+}
+
+func NewPlayerServer(store PlayerStore) *PlayerServer {
+	p := &PlayerServer{
+		store:  store,
+		router: http.NewServeMux(),
+	}
+
+	p.router.Handle("/league", http.HandlerFunc(p.leagueHandler))
+	p.router.Handle("/players/", http.HandlerFunc(p.playersHandler))
+
+	return p
+}
+
+func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	p.router.ServeHTTP(w, r)
+}
+```
+
+Đừng quên cập nhật tất cả các lần khởi tạo `&PlayerServer{...}` thành `NewPlayerServer(...)`.
+
+## Tái cấu trúc - Trả về JSON
+
+Bây giờ hãy làm cho `leagueHandler` trả về một số dữ liệu JSON thực tế.
+
+```go
+type Player struct {
+	Name string
+	Wins int
+}
+
+func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
+	league := []Player{
+		{"Chris", 20},
+	}
+
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode(league)
+}
+```
+
+Chúng ta nên cập nhật bản kiểm thử để kiểm tra xem JSON có đúng không.
+
+```go
+func TestLeague(t *testing.T) {
+	// ... khởi tạo ...
+	t.Run("it returns the league table as JSON", func(t *testing.T) {
+		wantedLeague := []Player{
+			{"Cleo", 32},
+			{"Chris", 20},
+			{"Tiest", 14},
+		}
+
+		store.league = wantedLeague
+		server := NewPlayerServer(&store)
+
+		request, _ := http.NewRequest(http.MethodGet, "/league", nil)
+		response := httptest.NewRecorder()
+
+		server.ServeHTTP(response, request)
+
+		var got []Player
+		err := json.NewDecoder(response.Body).Decode(&got)
+
+		if err != nil {
+			t.Fatalf("Unable to parse response from server %q into slice of Player, '%v'", response.Body, err)
+		}
+
+		assertStatus(t, response.Code, http.StatusOK)
+
+		if !reflect.DeepEqual(got, wantedLeague) {
+			t.Errorf("got %v want %v", got, wantedLeague)
+		}
+	})
+}
+```
+
+Chúng ta cần cập nhật interface `PlayerStore` để bao gồm phương thức `GetLeague()`.
+
+```go
+type PlayerStore interface {
+	GetPlayerScore(name string) int
+	RecordWin(name string)
+	GetLeague() []Player
+}
+```
+
+Và cập nhật handler:
+
+```go
+func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode(p.store.GetLeague())
+}
+```
 
 ## Tổng kết
 
-### `http.Handler`
+Trong chương này, chúng ta đã học cách xây dựng một máy chủ HTTP trong Go từng bước một thông qua TDD.
 
--   Implement this interface to create web servers
--   Use `http.HandlerFunc` to turn ordinary functions into `http.Handler`s
--   Use `httptest.NewRecorder` to pass in as a `ResponseWriter` to let you spy on the responses your handler sends
--   Use `http.NewRequest` to construct the requests you expect to come in to your system
+-   Chúng ta đã bắt đầu với một hàm đơn giản và sau đó chuyển sang một `struct` triển khai interface `http.Handler`.
+-   Chúng ta đã sử dụng `httptest.ResponseRecorder` để kiểm thử các phản hồi HTTP mà không cần khởi động máy chủ thực.
+-   Chúng ta đã thấy cách sử dụng interfaces để tách biệt máy chủ khỏi cơ chế lưu trữ dữ liệu (`PlayerStore`).
+-   Chúng ta đã sử dụng `http.NewServeMux` để định tuyến các yêu cầu đến các handler khác nhau.
+-   Chúng ta đã học cách trả về dữ liệu JSON bằng `json.NewEncoder`.
+-   Chúng ta đã triển khai một phiên bản lưu trữ đơn giản bằng bộ nhớ (`InMemoryPlayerStore`).
 
-### Interfaces, Mocking and DI
+Việc duy trì các bước nhỏ trong TDD giúp chúng ta kiểm soát được độ phức tạp và luôn có mã nguồn sẵn sàng để chạy.
 
--   Lets you iteratively build the system up in smaller chunks
--   Allows you to develop a handler that needs a storage without needing actual storage
--   TDD to drive out the interfaces you need
 
-### Commit sins, then refactor (and then commit to source control)
-
--   You need to treat having failing compilation or failing tests as a red situation that you need to get out of as soon as you can.
--   Write just the necessary code to get there. _Then_ refactor and make the code nice.
--   By trying to do too many changes whilst the code isn't compiling or the tests are failing puts you at risk of compounding the problems.
--   Sticking to this approach forces you to write small tests, which means small changes, which helps keep working on complex systems manageable.
