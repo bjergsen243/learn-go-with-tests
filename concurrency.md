@@ -1,9 +1,8 @@
-# Concurrency
+# Concurrency (Lập trình đồng thời)
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/concurrency)**
 
-Here's the setup: a colleague has written a function, `CheckWebsites`, that
-checks the status of a list of URLs.
+Bối cảnh như sau: một đồng nghiệp đã viết một hàm, `CheckWebsites`, để kiểm tra trạng thái của một danh sách các URL.
 
 ```go
 package concurrency
@@ -21,16 +20,13 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 }
 ```
 
-It returns a map of each URL checked to a boolean value: `true` for a good
-response; `false` for a bad response.
+Nó trả về một map của mỗi URL được kiểm tra với một giá trị boolean: `true` cho phản hồi tốt; `false` cho phản hồi xấu.
 
-You also have to pass in a `WebsiteChecker` which takes a single URL and returns
-a boolean. This is used by the function to check all the websites.
+Bạn cũng phải truyền vào một `WebsiteChecker`, nó nhận một URL duy nhất và trả về một boolean. Điều này được hàm sử dụng để kiểm tra tất cả các trang web.
 
-Using [dependency injection][DI] has allowed them to test the function without
-making real HTTP calls, making it reliable and fast.
+Việc sử dụng [dependency injection][DI] đã cho phép họ kiểm thử hàm mà không cần thực hiện các cuộc gọi HTTP thực sự, làm cho nó đáng tin cậy và nhanh chóng.
 
-Here's the test they've written:
+Đây là bản kiểm thử họ đã viết:
 
 ```go
 package concurrency
@@ -65,14 +61,11 @@ func TestCheckWebsites(t *testing.T) {
 }
 ```
 
-The function is in production and being used to check hundreds of websites. But
-your colleague has started to get complaints that it's slow, so they've asked
-you to help speed it up.
+Hàm này đang được đưa vào triển khai thực tế và được sử dụng để kiểm tra hàng trăm trang web. Nhưng đồng nghiệp của bạn đã bắt đầu nhận được khiếu nại rằng nó chậm, vì vậy họ yêu cầu bạn giúp tăng tốc nó.
 
-## Write a test
+## Viết một test
 
-Let's use a benchmark to test the speed of `CheckWebsites` so that we can see the
-effect of our changes.
+Hãy sử dụng benchmark để kiểm tra tốc độ của `CheckWebsites` để chúng ta có thể thấy tác động của các thay đổi của mình.
 
 ```go
 package concurrency
@@ -99,14 +92,9 @@ func BenchmarkCheckWebsites(b *testing.B) {
 }
 ```
 
-The benchmark tests `CheckWebsites` using a slice of one hundred urls and uses
-a new fake implementation of `WebsiteChecker`. `slowStubWebsiteChecker` is
-deliberately slow. It uses `time.Sleep` to wait exactly twenty milliseconds and
-then it returns true. We use `b.ResetTimer()` in this test to reset the time of our
-test before it actually runs
+Benchmark kiểm thử `CheckWebsites` bằng cách sử dụng một slice gồm một trăm url và sử dụng một implementation giả mới của `WebsiteChecker`. `slowStubWebsiteChecker` cố tình chạy chậm. Nó sử dụng `time.Sleep` để đợi chính xác hai mươi mili giây và sau đó nó trả về true. Chúng ta sử dụng `b.ResetTimer()` trong test này để đặt lại thời gian của test trước khi nó thực sự chạy.
 
-
-When we run the benchmark using `go test -bench=.` (or if you're in Windows Powershell `go test -bench="."`):
+Khi chúng ta chạy benchmark bằng `go test -bench=.` (hoặc nếu bạn đang ở Windows Powershell thì dùng `go test -bench="."`):
 
 ```sh
 pkg: github.com/gypsydave5/learn-go-with-tests/concurrency/v0
@@ -115,41 +103,23 @@ PASS
 ok      github.com/gypsydave5/learn-go-with-tests/concurrency/v0        2.268s
 ```
 
-`CheckWebsites` has been benchmarked at 2249228637 nanoseconds - about two and
-a quarter seconds.
+`CheckWebsites` đã được benchmark ở mức 2.249.228.637 nano giây - khoảng hai giây và một phần tư.
 
-Let's try and make this faster.
+Hãy cố gắng làm cho nó nhanh hơn.
 
 ### Viết đủ code để test chạy thành công
 
-Now we can finally talk about concurrency which, for the purposes of the
-following, means "having more than one thing in progress." This is something
-that we do naturally everyday.
+Cuối cùng chúng ta có thể nói về concurrency (lập trình đồng thời), mà đối với mục đích của phần sau, có nghĩa là "có nhiều hơn một việc đang được thực hiện". Đây là điều mà chúng ta thực hiện một cách tự nhiên hàng ngày.
 
-For instance, this morning I made a cup of tea. I put the kettle on and then,
-while I was waiting for it to boil, I got the milk out of the fridge, got the
-tea out of the cupboard, found my favourite mug, put the teabag into the cup and
-then, when the kettle had boiled, I put the water in the cup.
+Chẳng hạn, sáng nay tôi đã pha một tách trà. Tôi bật ấm đun nước điện và sau đó, trong khi chờ nó sôi, tôi lấy sữa ra khỏi tủ lạnh, lấy trà ra khỏi tủ chén, tìm chiếc cốc yêu thích của mình, cho túi trà vào cốc và sau đó, khi ấm đun nước đã sôi, tôi đổ nước vào cốc.
 
-What I _didn't_ do was put the kettle on and then stand there blankly staring at
-the kettle until it boiled, then do everything else once the kettle had boiled.
+Điều tôi *không* làm là bật ấm đun nước lên và sau đó đứng đó ngây người nhìn ấm cho đến khi nó sôi, rồi mới làm mọi việc khác sau khi ấm đã sôi.
 
-If you can understand why it's faster to make tea the first way, then you can
-understand how we will make `CheckWebsites` faster. Instead of waiting for
-a website to respond before sending a request to the next website, we will tell
-our computer to make the next request while it is waiting.
+Nếu bạn có thể hiểu tại sao cách pha trà thứ nhất nhanh hơn, thì bạn có thể hiểu cách chúng ta sẽ làm cho `CheckWebsites` nhanh hơn. Thay vì đợi một trang web phản hồi trước khi gửi yêu cầu đến trang web tiếp theo, chúng ta sẽ bảo máy tính thực hiện yêu cầu tiếp theo trong khi nó đang chờ đợi.
 
-Normally in Go when we call a function `doSomething()` we wait for it to return
-(even if it has no value to return, we still wait for it to finish). We say that
-this operation is *blocking* - it makes us wait for it to finish. An operation
-that does not block in Go will run in a separate *process* called a *goroutine*.
-Think of a process as reading down the page of Go code from top to bottom, going
-'inside' each function when it gets called to read what it does. When a separate
-process starts, it's like another reader begins reading inside the function,
-leaving the original reader to carry on going down the page.
+Thông thường trong Go khi chúng ta gọi một hàm `doSomething()`, chúng ta đợi nó quay trở lại (ngay cả khi nó không có giá trị trả về, chúng ta vẫn đợi nó hoàn thành). Chúng ta nói rằng hoạt động này là *blocking* (chặn) - nó khiến chúng ta phải đợi nó kết thúc. Một hoạt động không chặn trong Go sẽ chạy trong một *process* (quy trình) riêng biệt được gọi là một *goroutine*. Hãy tưởng tượng một quy trình giống như việc đọc mã Go từ trên xuống dưới, đi 'vào bên trong' mỗi hàm khi nó được gọi để đọc những gì nó làm. Khi một quy trình riêng biệt bắt đầu, nó giống như một người đọc khác bắt đầu đọc bên trong hàm, để mặc người đọc ban đầu tiếp tục đi xuống trang giấy.
 
-To tell Go to start a new goroutine we turn a function call into a `go`
-statement by putting the keyword `go` in front of it: `go doSomething()`.
+Để bảo Go bắt đầu một goroutine mới, chúng ta chuyển một lời gọi hàm thành một câu lệnh `go` bằng cách đặt từ khóa `go` phía trước nó: `go doSomething()`.
 
 ```go
 package concurrency
@@ -169,25 +139,13 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 }
 ```
 
-Because the only way to start a goroutine is to put `go` in front of a function
-call, we often use *anonymous functions* when we want to start a goroutine. An
-anonymous function literal looks just the same as a normal function declaration,
-but without a name (unsurprisingly). You can see one above in the body of the
-`for` loop.
+Bởi vì cách duy nhất để bắt đầu một goroutine là đặt `go` trước một lời gọi hàm, chúng ta thường sử dụng *anonymous functions* (hàm ẩn danh) khi muốn bắt đầu một goroutine. Một hàm ẩn danh trông giống hệt như một khai báo hàm bình thường, nhưng không có tên (không ngạc nhiên lắm). Bạn có thể thấy một ví dụ ở trên trong thân vòng lặp `for`.
 
-Anonymous functions have a number of features which make them useful, two of
-which we're using above. Firstly, they can be executed at the same time that
-they're declared - this is what the `()` at the end of the anonymous function is
-doing. Secondly they maintain access to the lexical scope in which they are
-defined - all the variables that are available at the point when you declare the
-anonymous function are also available in the body of the function.
+Các hàm ẩn danh có một số tính năng làm cho chúng hữu ích, hai tính năng trong số đó mà chúng ta đang sử dụng ở trên. Thứ nhất, chúng có thể được thực thi ngay tại thời điểm chúng được khai báo - đây là những gì cặp ngoặc `()` ở cuối hàm ẩn danh đang làm. Thứ hai, chúng duy trì quyền truy cập vào phạm vi từ vựng (lexical scope) mà chúng được định nghĩa - tất cả các biến có sẵn tại thời điểm bạn khai báo hàm ẩn danh cũng có sẵn trong thân hàm.
 
-The body of the anonymous function above is just the same as the loop body was
-before. The only difference is that each iteration of the loop will start a new
-goroutine, concurrent with the current process (the `WebsiteChecker` function).
-Each goroutine will add its result to the results map.
+Thân của hàm ẩn danh ở trên giống hệt như thân vòng lặp trước đó. Sự khác biệt duy nhất là mỗi lần lặp của vòng lặp sẽ bắt đầu một goroutine mới, đồng thời với quy trình hiện tại (hàm `WebsiteChecker`). Mỗi goroutine sẽ thêm kết quả của nó vào map results.
 
-But when we run `go test`:
+Nhưng khi chúng ta chạy `go test`:
 
 ```sh
 --- FAIL: TestCheckWebsites (0.00s)
@@ -195,29 +153,19 @@ But when we run `go test`:
 FAIL
 exit status 1
 FAIL    github.com/gypsydave5/learn-go-with-tests/concurrency/v1        0.010s
-
 ```
 
-### A quick aside into the concurrency universe...
+### Một cái nhìn thoáng qua vào vũ trụ của concurrency...
 
-You might not get this result. You might get a panic message that
-we're going to talk about in a bit. Don't worry if you got that, just keep
-running the test until you _do_ get the result above. Or pretend that you did.
-Up to you. Welcome to concurrency: when it's not handled correctly it's hard to
-predict what's going to happen. Don't worry - that's why we're writing tests, to
-help us know when we're handling concurrency predictably.
+Bạn có lẽ sẽ không nhận được kết quả này. Bạn có thể nhận được một thông báo panic mà chúng ta sẽ nói đến sau đây một chút. Đừng lo lắng nếu bạn nhận được kết quả đó, chỉ cần tiếp tục chạy test cho đến khi bạn *thực sự* nhận được kết quả ở trên. Hoặc giả vờ rằng bạn đã nhận được. Tùy bạn thôi. Chào mừng bạn đến với concurrency: khi nó không được xử lý chính xác, thật khó để đoán trước điều gì sẽ xảy ra. Đừng lo lắng - đó là lý do tại sao chúng ta viết các test, để giúp chúng ta biết khi nào mình đang xử lý concurrency một cách có thể đoán trước được.
 
-### ... and we're back.
+### ... và chúng ta đã quay trở lại.
 
-We are caught by the original test `CheckWebsites`, it's now returning an
-empty map. What went wrong?
+Chúng ta đã bị vướng bởi test ban đầu `CheckWebsites`, giờ đây nó đang trả về một map trống. Có chuyện gì đã xảy ra?
 
-None of the goroutines that our `for` loop started had enough time to add
-their result to the `results` map; the `WebsiteChecker` function is too fast for
-them, and it returns the still empty map.
+Không có goroutine nào mà vòng lặp `for` của chúng ta khởi động có đủ thời gian để thêm kết quả của chúng vào map `results`; hàm `WebsiteChecker` quá nhanh đối với chúng, và nó trả về map vẫn còn trống.
 
-To fix this we can just wait while all the goroutines do their work, and then
-return. Two seconds ought to do it, right?
+Để khắc phục điều này, chúng ta có thể chỉ cần đợi trong khi tất cả các goroutine thực hiện công việc của họ, rồi mới trả về. Hai giây chắc là đủ, phải không?
 
 ```go
 package concurrency
@@ -241,14 +189,14 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 }
 ```
 
-Now if you're lucky you'll get:
+Bây giờ nếu bạn may mắn, bạn sẽ nhận được:
 
 ```sh
 PASS
 ok      github.com/gypsydave5/learn-go-with-tests/concurrency/v1        2.012s
 ```
 
-But if you're unlucky (this is more likely if you run them with the benchmark as you'll get more tries)
+Nhưng nếu bạn không may mắn (điều này dễ xảy ra hơn nếu bạn chạy chúng với benchmark vì bạn sẽ có nhiều lần thử hơn):
 
 ```sh
 fatal error: concurrent map writes
@@ -265,24 +213,16 @@ runtime.goexit()
 created by github.com/gypsydave5/learn-go-with-tests/concurrency/v3.WebsiteChecker
         /Users/gypsydave5/go/src/github.com/gypsydave5/learn-go-with-tests/concurrency/v3/websiteChecker.go:11 +0xa1
 
-        ... many more scary lines of text ...
+        ... còn nhiều dòng chữ đáng sợ khác nữa ...
 ```
 
-This is long and scary, but all we need to do is take a breath and read the
-stacktrace: `fatal error: concurrent map writes`. Sometimes, when we run our
-tests, two of the goroutines write to the results map at exactly the same time.
-Maps in Go don't like it when more than one thing tries to write to them at
-once, and so `fatal error`.
+Điều này dài và đáng sợ, nhưng tất cả những gì chúng ta cần làm là hít một hơi thật sâu và đọc stacktrace (dấu vết ngăn xếp): `fatal error: concurrent map writes`. Đôi khi, khi chúng ta chạy các bản kiểm thử, hai trong số các goroutine ghi vào map results cùng một lúc. Maps trong Go không thích việc có nhiều hơn một thứ cố gắng ghi vào chúng cùng lúc, và do đó xảy ra `fatal error`.
 
-This is a _race condition_, a bug that occurs when the output of our software is
-dependent on the timing and sequence of events that we have no control over.
-Because we cannot control exactly when each goroutine writes to the results map,
-we are vulnerable to two goroutines writing to it at the same time.
+Đây là một *race condition* (điều kiện tranh đua), một lỗi xảy ra khi đầu ra của phần mềm phụ thuộc vào thời gian và trình tự của các sự kiện mà chúng ta không có quyền kiểm soát. Bởi vì chúng ta không thể kiểm soát chính xác thời điểm mỗi goroutine ghi vào map results, chúng ta dễ bị tổn thương khi hai goroutine ghi vào đó cùng một lúc.
 
-Go can help us to spot race conditions with its built in [_race detector_][godoc_race_detector].
-To enable this feature, run the tests with the `race` flag: `go test -race`.
+Go có thể giúp chúng ta phát hiện các race condition bằng trình phát hiện tranh đua built-in của nó ([*race detector*][godoc_race_detector]). Để bật tính năng này, hãy chạy các test với cờ `race`: `go test -race`.
 
-You should get some output that looks like this:
+Bạn sẽ nhận được một số kết quả trông như thế này:
 
 ```sh
 ==================
@@ -317,37 +257,29 @@ Goroutine 7 (finished) created at:
 ==================
 ```
 
-The details are, again, hard to read - but `WARNING: DATA RACE` is pretty
-unambiguous. Reading into the body of the error we can see two different
-goroutines performing writes on a map:
+Các chi tiết, một lần nữa, lại khó đọc - nhưng `WARNING: DATA RACE` là khá rõ ràng. Đọc vào nội dung của lỗi, chúng ta có thể thấy hai goroutine khác nhau đang thực hiện ghi trên một map:
 
 `Write at 0x00c420084d20 by goroutine 8:`
 
-is writing to the same block of memory as
+đang viết vào cùng một khối bộ nhớ với
 
 `Previous write at 0x00c420084d20 by goroutine 7:`
 
-On top of that, we can see the line of code where the write is happening:
+Trên hết, chúng ta có thể thấy dòng mã nơi việc ghi đang diễn ra:
 
 `/Users/gypsydave5/go/src/github.com/gypsydave5/learn-go-with-tests/concurrency/v3/websiteChecker.go:12`
 
-and the line of code where goroutines 7 an 8 are started:
+và dòng mã nơi goroutine 7 và 8 được khởi động:
 
 `/Users/gypsydave5/go/src/github.com/gypsydave5/learn-go-with-tests/concurrency/v3/websiteChecker.go:11`
 
-Everything you need to know is printed to your terminal - all you have to do is
-be patient enough to read it.
+Mọi thứ bạn cần biết đều được in ra terminal của bạn - tất cả những gì bạn phải làm là đủ kiên nhẫn để đọc nó.
 
 ### Channels
 
-We can solve this data race by coordinating our goroutines using _channels_.
-Channels are a Go data structure that can both receive and send values. These
-operations, along with their details, allow communication between different
-processes.
+Chúng ta có thể giải quyết race condition này bằng cách điều phối các goroutine của mình bằng các *channels*. Channels là một cấu trúc dữ liệu của Go có thể vừa nhận vừa gửi các giá trị. Các hoạt động này, cùng với các chi tiết của chúng, cho phép giao tiếp giữa các quy trình khác nhau.
 
-In this case we want to think about the communication between the parent process
-and each of the goroutines that it makes to do the work of running the
-`WebsiteChecker` function with the url.
+Trong trường hợp này, chúng ta muốn nghĩ về sự giao tiếp giữa quy trình cha và mỗi goroutine mà nó tạo ra để thực hiện công việc chạy hàm `WebsiteChecker` với url.
 
 ```go
 package concurrency
@@ -377,49 +309,29 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 }
 ```
 
-Alongside the `results` map we now have a `resultChannel`, which we `make` in
-the same way. `chan result` is the type of the channel - a channel of `result`.
-The new type, `result` has been made to associate the return value of the
-`WebsiteChecker` with the url being checked - it's a struct of `string` and
-`bool`. As we don't need either value to be named, each of them is anonymous
-within the struct; this can be useful in when it's hard to know what to name
-a value.
+Bên cạnh map `results` hiện nay chúng ta có thêm một `resultChannel`, mà chúng ta `make` theo cùng một cách. `chan result` là kiểu của channel - một channel chứa các `result`. Kiểu mới, `result`, đã được tạo ra để liên kết giá trị trả về của `WebsiteChecker` với url đang được kiểm tra - đó là một struct gồm `string` và `bool`. Vì chúng ta không cần đặt tên cho cả hai giá trị, mỗi giá trị trong số đó là ẩn danh trong struct; điều này có thể hữu ích khi khó biết đặt tên cho một giá trị là gì.
 
-Now when we iterate over the urls, instead of writing to the `map` directly
-we're sending a `result` struct for each call to `wc` to the `resultChannel`
-with a _send statement_. This uses the `<-` operator, taking a channel on the
-left and a value on the right:
+Bây giờ khi chúng ta lặp qua các url, thay vì viết trực tiếp vào `map`, chúng ta đang gửi một struct `result` cho mỗi lần gọi `wc` đến `resultChannel` bằng *send statement* (câu lệnh gửi). Nó sử dụng toán tử `<-`, lấy một channel ở bên trái và một giá trị ở bên phải:
 
 ```go
 // Send statement
 resultChannel <- result{u, wc(u)}
 ```
 
-The next `for` loop iterates once for each of the urls. Inside we're using
-a _receive expression_, which assigns a value received from a channel to
-a variable. This also uses the `<-` operator, but with the two operands now
-reversed: the channel is now on the right and the variable that
-we're assigning to is on the left:
+Vòng lặp `for` tiếp theo lặp một lần cho mỗi url. Bên trong nó, chúng ta đang sử dụng *receive expression* (biểu thức nhận), biểu thức này gán một giá trị nhận được từ một channel cho một biến. Biểu thức này cũng sử dụng toán tử `<-`, nhưng với hai toán hạng bây giờ được đảo ngược: channel hiện ở bên phải và biến mà chúng ta đang gán cho ở bên trái:
 
 ```go
 // Receive expression
 r := <-resultChannel
 ```
 
-We then use the `result` received to update the map.
+Sau đó chúng ta sử dụng `result` nhận được để cập nhật map.
 
-By sending the results into a channel, we can control the timing of each write
-into the results map, ensuring that it happens one at a time. Although each of
-the calls of `wc`, and each send to the result channel, is happening concurrently
-inside its own process, each of the results is being dealt with one at a time as
-we take values out of the result channel with the receive expression.
+Bằng cách gửi các kết quả vào một channel, chúng ta có thể kiểm soát thời gian của mỗi lần ghi vào map kết quả, đảm bảo rằng nó diễn ra từng cái một. Mặc dù mỗi lần gọi `wc`, và mỗi lần gửi đến channel kết quả, đang diễn ra đồng thời trong quy trình riêng của nó, mỗi kết quả đang được xử lý từng cái một khi chúng ta lấy các giá trị ra khỏi channel kết quả bằng receive expression.
 
-We have used concurrency for the part of the code that we wanted to make faster, while
-making sure that the part that cannot happen simultaneously still happens linearly.
-And we have communicated across the multiple processes involved by using
-channels.
+Chúng ta đã sử dụng concurrency cho phần mã mà chúng ta muốn làm cho nhanh hơn, đồng thời vẫn đảm bảo rằng phần không thể diễn ra đồng thời vẫn diễn ra một cách tuyến tính. Và chúng ta đã giao tiếp qua nhiều quy trình liên quan bằng cách sử dụng các channel.
 
-When we run the benchmark:
+Khi chúng ta chạy benchmark:
 
 ```sh
 pkg: github.com/gypsydave5/learn-go-with-tests/concurrency/v2
@@ -427,43 +339,29 @@ BenchmarkCheckWebsites-8             100          23406615 ns/op
 PASS
 ok      github.com/gypsydave5/learn-go-with-tests/concurrency/v2        2.377s
 ```
-23406615 nanoseconds - 0.023 seconds, about one hundred times as fast as
-original function. A great success.
+
+23.406.615 nano giây - 0,023 giây, nhanh gấp khoảng một trăm lần so với hàm ban đầu. Một thành công rực rỡ.
 
 ## Tổng kết
 
-This exercise has been a little lighter on the TDD than usual. In a way we've
-been taking part in one long refactoring of the `CheckWebsites` function; the
-inputs and outputs never changed, it just got faster. But the tests we had in
-place, as well as the benchmark we wrote, allowed us to refactor `CheckWebsites`
-in a way that maintained confidence that the software was still working, while
-demonstrating that it had actually become faster.
+Bài tập này ít sử dụng TDD hơn bình thường một chút. Theo một cách nào đó, chúng ta đã tham gia vào một quá trình tái cấu trúc dài cho hàm `CheckWebsites`; đầu vào và đầu ra không bao giờ thay đổi, nó chỉ nhanh hơn thôi. Nhưng các test chúng ta đã có sẵn, cũng như benchmark chúng ta đã viết, đã cho phép chúng ta tái cấu trúc `CheckWebsites` theo cách duy trì sự tin cậy rằng phần mềm vẫn hoạt động tốt, đồng thời chứng minh rằng nó thực sự đã trở nên nhanh hơn.
 
-In making it faster we learned about
+Để làm cho nó nhanh hơn, chúng ta đã tìm hiểu về:
 
-- *goroutines*, the basic unit of concurrency in Go, which let us manage more
-  than one website check request.
-- *anonymous functions*, which we used to start each of the concurrent processes
-  that check websites.
-- *channels*, to help organize and control the communication between the
-  different processes, allowing us to avoid a *race condition* bug.
-- *the race detector* which helped us debug problems with concurrent code
+- *goroutines*, đơn vị cơ bản trong lập trình đồng thời của Go, cho phép chúng ta quản lý nhiều hơn một yêu cầu kiểm tra trang web.
+- *anonymous functions* (hàm ẩn danh), mà chúng ta đã sử dụng để bắt đầu từng quy trình đồng thời kiểm tra các trang web.
+- *channels*, để giúp tổ chức và kiểm soát giao tiếp giữa các quy trình khác nhau, cho phép chúng ta tránh lỗi *race condition*.
+- *trình phát hiện tranh đua (race detector)* đã giúp chúng ta gỡ lỗi cho các mã đồng thời.
 
-### Make it fast
+### Hãy làm cho nó nhanh (Make it fast)
 
-One formulation of an agile way of building software, often misattributed to Kent
-Beck, is:
+Một công thức phát triển phần mềm theo phương thức Agile, thường bị gán nhầm cho Kent Beck, là:
 
-> [Make it work, make it right, make it fast][wrf]
+> [Hãy làm nó hoạt động, làm nó đúng, rồi làm nó nhanh][wrf]
 
-Where 'work' is making the tests pass, 'right' is refactoring the code, and
-'fast' is optimizing the code to make it, for example, run quickly. We can only
-'make it fast' once we've made it work and made it right. We were lucky that the
-code we were given was already demonstrated to be working, and didn't need to be
-refactored. We should never try to 'make it fast' before the other two steps
-have been performed because
+Trong đó 'hoạt động' (work) là làm cho các test vượt qua, 'đúng' (right) là tái cấu trúc mã, và 'nhanh' (fast) là tối ưu hóa mã để mã chạy nhanh hơn chẳng hạn. Chúng ta chỉ có thể 'làm cho nó nhanh' khi chúng ta đã làm cho nó hoạt động và làm cho nó đúng. Chúng ta đã may mắn khi mã được giao cho đã được chứng minh là hoạt động tốt, và không cần phải tái cấu trúc. Chúng ta không bao giờ nên cố gắng 'làm cho nó nhanh' trước khi hai bước kia được thực hiện vì:
 
-> [Premature optimization is the root of all evil][popt]
+> [Tối ưu hóa sớm là nguồn gốc của mọi quỷ dữ][popt]
 > -- Donald Knuth
 
 [DI]: dependency-injection.md
