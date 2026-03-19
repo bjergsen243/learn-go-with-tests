@@ -2,18 +2,18 @@
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/select)**
 
-You have been asked to make a function called `WebsiteRacer` which takes two URLs and "races" them by hitting them with an HTTP GET and returning the URL which returned first. If none of them return within 10 seconds then it should return an `error`.
+Bạn được yêu cầu tạo một hàm gọi là `WebsiteRacer` nhận vào hai URL và cho chúng "đua" với nhau bằng cách gọi HTTP GET đến cả hai, sau đó trả về URL nào phản hồi trước. Nếu không có URL nào phản hồi trong vòng 10 giây thì nó nên trả về một `error`.
 
-For this, we will be using:
+Để làm điều này, chúng ta sẽ sử dụng:
 
-- `net/http` to make the HTTP calls.
-- `net/http/httptest` to help us test them.
+- `net/http` để thực hiện các cuộc gọi HTTP.
+- `net/http/httptest` để giúp chúng ta kiểm thử.
 - goroutines.
-- `select` to synchronise processes.
+- `select` để đồng bộ hóa các quy trình.
 
-## Write the test first
+## Viết test trước tiên
 
-Let's start with something naive to get us going.
+Hãy bắt đầu với một cách tiếp cận đơn giản nhất có thể.
 
 ```go
 func TestRacer(t *testing.T) {
@@ -29,9 +29,9 @@ func TestRacer(t *testing.T) {
 }
 ```
 
-We know this isn't perfect and has problems, but it's a start. It's important not to get too hung-up on getting things perfect first time.
+Chúng ta biết điều này chưa hoàn hảo và còn nhiều vấn đề, nhưng đó là một điểm khởi đầu. Điều quan trọng là đừng quá sa đà vào việc làm mọi thứ hoàn hảo ngay từ lần đầu tiên.
 
-## Try to run the test
+## Thử chạy test
 
 `./racer_test.go:14:9: undefined: Racer`
 
@@ -65,29 +65,29 @@ func Racer(a, b string) (winner string) {
 }
 ```
 
-For each URL:
+Đối với mỗi URL:
 
-1. We use `time.Now()` to record just before we try and get the `URL`.
-1. Then we use [`http.Get`](https://golang.org/pkg/net/http/#Client.Get) to try and perform an HTTP `GET` request against the `URL`. This function returns an [`http.Response`](https://golang.org/pkg/net/http/#Response) and an `error` but so far we are not interested in these values.
-1. `time.Since` takes the start time and returns a `time.Duration` of the difference.
+1. Chúng ta sử dụng `time.Now()` để ghi lại thời điểm ngay trước khi thử truy cập `URL`.
+1. Sau đó, chúng ta sử dụng [`http.Get`](https://golang.org/pkg/net/http/#Client.Get) để thực hiện yêu cầu HTTP `GET` đối với `URL`. Hàm này trả về một [`http.Response`](https://golang.org/pkg/net/http/#Response) và một `error`, nhưng hiện tại chúng ta chưa quan tâm đến các giá trị này.
+1. `time.Since` nhận thời gian bắt đầu và trả về một `time.Duration` cho sự chênh lệch thời gian.
 
-Once we have done this we simply compare the durations to see which is the quickest.
+Sau khi thực hiện điều này, chúng ta chỉ đơn giản là so sánh các khoảng thời gian để xem cái nào nhanh nhất.
 
-### Problems
+### Vấn đề
 
-This may or may not make the test pass for you. The problem is we're reaching out to real websites to test our own logic.
+Cách này có thể giúp test của bạn vượt qua hoặc không. Vấn đề là chúng ta đang kết nối đến các trang web thực tế để kiểm thử logic của chính mình.
 
-Testing code that uses HTTP is so common that Go has tools in the standard library to help you test it.
+Kiểm thử mã nguồn sử dụng HTTP là việc rất phổ biến nên Go có các công cụ trong thư viện chuẩn để giúp bạn thực hiện điều đó.
 
-In the mocking and dependency injection chapters, we covered how ideally we don't want to be relying on external services to test our code because they can be
+Trong các chương về mocking và dependency injection, chúng ta đã đề cập rằng lý tưởng nhất là chúng ta không muốn dựa vào các dịch vụ bên ngoài để kiểm thử mã của mình vì chúng có thể:
 
-- Slow
-- Flaky
-- Can't test edge cases
+- Chậm
+- Không ổn định (Flaky)
+- Không thể kiểm thử được các trường hợp đặc biệt (edge cases)
 
-In the standard library, there is a package called [`net/http/httptest`](https://golang.org/pkg/net/http/httptest/) which enables users to easily create a mock HTTP server.
+Trong thư viện chuẩn, có một package gọi là [`net/http/httptest`](https://golang.org/pkg/net/http/httptest/) cho phép người dùng dễ dàng tạo một máy chủ HTTP giả lập (mock HTTP server).
 
-Let's change our tests to use mocks so we have reliable servers to test against that we can control.
+Hãy thay đổi các bản kiểm thử của chúng ta để sử dụng bản giả lập sao cho chúng ta có các máy chủ đáng tin cậy để kiểm thử và có thể kiểm soát được.
 
 ```go
 func TestRacer(t *testing.T) {
@@ -116,23 +116,23 @@ func TestRacer(t *testing.T) {
 }
 ```
 
-The syntax may look a bit busy but just take your time.
+Cú pháp trông có vẻ hơi rắc rối nhưng hãy bình tĩnh quan sát.
 
-`httptest.NewServer` takes an `http.HandlerFunc` which we are sending in via an _anonymous function_.
+`httptest.NewServer` nhận một `http.HandlerFunc`, cái mà chúng ta đang gửi vào thông qua một *hàm ẩn danh*.
 
-`http.HandlerFunc` is a type that looks like this: `type HandlerFunc func(ResponseWriter, *Request)`.
+`http.HandlerFunc` là một kiểu dữ liệu có dạng: `type HandlerFunc func(ResponseWriter, *Request)`.
 
-All it's really saying is it needs a function that takes a `ResponseWriter` and a `Request`, which is not too surprising for an HTTP server.
+Tất cả những gì nó thực sự nói là nó cần một hàm nhận vào một `ResponseWriter` và một `Request`, điều này không quá ngạc nhiên đối với một máy chủ HTTP.
 
-It turns out there's really no extra magic here, **this is also how you would write a _real_ HTTP server in Go**. The only difference is we are wrapping it in an `httptest.NewServer` which makes it easier to use with testing, as it finds an open port to listen on and then you can close it when you're done with your test.
+Hóa ra không có phép màu gì ở đây cả, **đây cũng chính là cách bạn viết một máy chủ HTTP *thật sự* trong Go**. Điểm khác biệt duy nhất là chúng ta đang bọc nó trong một `httptest.NewServer`, giúp việc sử dụng trong kiểm thử trở nên dễ dàng hơn, vì nó sẽ tìm một cổng mở để lắng nghe và sau đó bạn có thể đóng nó lại khi hoàn thành bản kiểm thử của mình.
 
-Inside our two servers, we make the slow one have a short `time.Sleep` when we get a request to make it slower than the other one. Both servers then write an `OK` response with `w.WriteHeader(http.StatusOK)` back to the caller.
+Bên trong hai máy chủ của chúng ta, chúng ta làm cho cái chậm có một khoảng nghỉ ngắn `time.Sleep` khi nhận được yêu cầu để làm cho nó chậm hơn cái còn lại. Cả hai máy chủ sau đó đều gửi phản hồi `OK` bằng `w.WriteHeader(http.StatusOK)` về cho người gọi.
 
-If you re-run the test it will definitely pass now and should be faster. Play with these sleeps to deliberately break the test.
+Nếu bạn chạy lại test, nó chắc chắn sẽ vượt qua ngay bây giờ và sẽ nhanh hơn. Hãy thử nghịch các giá trị sleep này để cố tình làm hỏng bản kiểm thử.
 
 ## Refactor
 
-We have some duplication in both our production code and test code.
+Chúng ta thấy có sự lặp lại trong cả mã triển khai và mã kiểm thử.
 
 ```go
 func Racer(a, b string) (winner string) {
@@ -153,7 +153,7 @@ func measureResponseTime(url string) time.Duration {
 }
 ```
 
-This DRY-ing up makes our `Racer` code a lot easier to read.
+Việc áp dụng nguyên tắc DRY (Don't Repeat Yourself) này làm cho mã `Racer` của chúng ta dễ đọc hơn nhiều.
 
 ```go
 func TestRacer(t *testing.T) {
@@ -183,24 +183,24 @@ func makeDelayedServer(delay time.Duration) *httptest.Server {
 }
 ```
 
-We've refactored creating our fake servers into a function called `makeDelayedServer` to move some uninteresting code out of the test and reduce repetition.
+Chúng ta đã cấu trúc lại việc tạo máy chủ giả lập thành một hàm gọi là `makeDelayedServer` để tách những đoạn mã không thú vị ra khỏi bản kiểm thử và giảm sự lặp lại.
 
 ### `defer`
 
-By prefixing a function call with `defer` it will now call that function _at the end of the containing function_.
+Bằng cách đặt từ khóa `defer` trước một lời gọi hàm, hàm đó sẽ được gọi *ở cuối hàm chứa nó*.
 
-Sometimes you will need to clean up resources, such as closing a file or in our case closing a server so that it does not continue to listen to a port.
+Đôi khi bạn sẽ cần giải phóng tài nguyên, chẳng hạn như đóng một file hoặc trong trường hợp của chúng ta là đóng một máy chủ để nó không tiếp tục chiếm dụng cổng lắng nghe.
 
-You want this to execute at the end of the function, but keep the instruction near where you created the server for the benefit of future readers of the code.
+Bạn muốn việc này thực thi ở cuối hàm, nhưng hãy giữ chỉ thị này ở gần nơi bạn tạo máy chủ để những người đọc mã sau này dễ dàng theo dõi.
 
-Our refactoring is an improvement and is a reasonable solution given the Go features covered so far, but we can make the solution simpler.
+Việc tái cấu trúc này là một sự cải tiến và là một giải pháp hợp lý dựa trên các tính năng của Go đã học được cho đến nay, nhưng chúng ta có thể làm cho giải pháp trở nên đơn giản hơn nữa.
 
-### Synchronising processes
+### Đồng bộ hóa các quy trình (Synchronising processes)
 
-- Why are we testing the speeds of the websites one after another when Go is great at concurrency? We should be able to check both at the same time.
-- We don't really care about _the exact response times_ of the requests, we just want to know which one comes back first.
+- Tại sao chúng ta lại đi kiểm tra tốc độ của các website lần lượt từng cái một trong khi Go rất mạnh về lập trình đồng thời (concurrency)? Chúng ta nên kiểm tra cả hai cùng một lúc.
+- Chúng ta không thực sự quan tâm đến *thời gian phản hồi chính xác* của các yêu cầu, chúng ta chỉ muốn biết cái nào phản hồi trước.
 
-To do this, we're going to introduce a new construct called `select` which helps us synchronise processes really easily and clearly.
+Để làm điều này, chúng ta sẽ giới thiệu một cấu trúc mới gọi là `select`, giúp chúng ta đồng bộ hóa các quy trình một cách dễ dàng và rõ ràng.
 
 ```go
 func Racer(a, b string) (winner string) {
@@ -224,37 +224,37 @@ func ping(url string) chan struct{} {
 
 #### `ping`
 
-We have defined a function `ping` which creates a `chan struct{}` and returns it.
+Chúng ta đã định nghĩa một hàm `ping` để tạo một `chan struct{}` và trả về nó.
 
-In our case, we don't _care_ what type is sent to the channel, _we just want to signal we are done_ and closing the channel works perfectly!
+Trong trường hợp này, chúng ta không *quan tâm* kiểu dữ liệu nào được gửi vào channel, *chúng ta chỉ muốn phát tín hiệu rằng mình đã xong* và việc đóng channel hoạt động một cách hoàn hảo cho mục đích đó!
 
-Why `struct{}` and not another type like a `bool`? Well, a `chan struct{}` is the smallest data type available from a memory perspective so we
-get no allocation versus a `bool`. Since we are closing and not sending anything on the chan, why allocate anything?
+Tại sao lại là `struct{}` mà không phải một kiểu khác như `bool`? Có thể nói `chan struct{}` là kiểu dữ liệu nhỏ nhất xét về mặt bộ nhớ, vì vậy chúng ta không tốn bộ nhớ so với `bool`. Vì chúng ta chỉ đóng channel chứ không gửi bất kỳ dữ liệu gì qua nó, tại sao lại phải phân bổ bộ nhớ làm gì?
 
-Inside the same function, we start a goroutine which will send a signal into that channel once we have completed `http.Get(url)`.
+Bên trong cùng một hàm, chúng ta bắt đầu một goroutine để gửi một tín hiệu vào channel đó sau khi đã hoàn thành việc gọi `http.Get(url)`.
 
-##### Always `make` channels
+##### Luôn luôn dùng `make` để tạo channels
 
-Notice how we have to use `make` when creating a channel; rather than say `var ch chan struct{}`. When you use `var` the variable will be initialised with the "zero" value of the type. So for `string` it is `""`, `int` it is 0, etc.
+Lưu ý cách chúng ta sử dụng `make` khi tạo channel; thay vì chỉ khai báo `var ch chan struct{}`. Khi bạn sử dụng `var`, biến sẽ được khởi tạo với giá trị "zero" của kiểu đó. Đối với `string` là `""`, `int` là 0, v.v.
 
-For channels the zero value is `nil` and if you try and send to it with `<-` it will block forever because you cannot send to `nil` channels
+Đối với channels, giá trị zero là `nil` và nếu bạn cố gửi dữ liệu vào nó bằng `<-`, nó sẽ chặn (block) mãi mãi vì bạn không thể gửi vào một channel `nil`.
 
-[You can see this in action in The Go Playground](https://play.golang.org/p/IIbeAox5jKA)
+[Bạn có thể thấy điều này đang hoạt động trong The Go Playground](https://play.golang.org/p/IIbeAox5jKA)
+
 #### `select`
 
-You'll recall from the concurrency chapter that you can wait for values to be sent to a channel with `myVar := <-ch`. This is a _blocking_ call, as you're waiting for a value.
+Bạn còn nhớ từ chương lập trình đồng thời rằng bạn có thể đợi các giá trị được gửi vào channel bằng `myVar := <-ch`. Đây là một lời gọi *chặn* (blocking), vì bạn đang đợi một giá trị.
 
-`select` allows you to wait on _multiple_ channels. The first one to send a value "wins" and the code underneath the `case` is executed.
+`select` cho phép bạn đợi trên *nhiều* channels cùng lúc. Channel nào gửi giá trị về trước sẽ "thắng" và đoạn mã dưới `case` đó sẽ được thực thi.
 
-We use `ping` in our `select` to set up two channels, one for each of our `URL`s. Whichever one writes to its channel first will have its code executed in the `select`, which results in its `URL` being returned (and being the winner).
+Chúng ta sử dụng `ping` trong `select` của mình để tạo hai channels, mỗi cái cho một `URL`. Cái nào ghi vào channel của nó trước sẽ khiến mã của nó được thực thi trong `select`, dẫn đến việc `URL` đó được trả về (và trở thành người thắng cuộc).
 
-After these changes, the intent behind our code is very clear and the implementation is actually simpler.
+Sau các thay đổi này, ý định đằng sau mã nguồn của chúng ta trở nên rất rõ ràng và việc triển khai thực tế thậm chí còn đơn giản hơn.
 
-### Timeouts
+### Timeouts (Hết thời gian chờ)
 
-Our final requirement was to return an error if `Racer` takes longer than 10 seconds.
+Yêu cầu cuối cùng của chúng ta là trả về một lỗi nếu `Racer` tốn nhiều hơn 10 giây.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 func TestRacer(t *testing.T) {
@@ -292,11 +292,11 @@ func TestRacer(t *testing.T) {
 }
 ```
 
-We've made our test servers take longer than 10s to return to exercise this scenario and we are expecting `Racer` to return two values now, the winning URL (which we ignore in this test with `_`) and an `error`.
+Chúng ta đã làm cho các máy chủ kiểm thử mất hơn 10 giây để phản hồi nhằm thử nghiệm kịch bản này và chúng ta kỳ vọng `Racer` sẽ trả về hai giá trị, URL chiến thắng (mà chúng ta bỏ qua trong test này bằng `_`) và một `error`.
 
-Note that we've also handled the error return in our original test, we're using	`_` for now to ensure the tests will run.
+Lưu ý rằng chúng ta cũng đã xử lý việc trả về lỗi trong bản kiểm thử ban đầu của mình, hiện tại chúng ta sử dụng `_` để đảm bảo các bản kiểm thử vẫn chạy được.
 
-## Try to run the test
+## Thử chạy test
 
 `./racer_test.go:37:10: assignment mismatch: 2 variables but Racer returns 1 value`
 
@@ -313,11 +313,11 @@ func Racer(a, b string) (winner string, error error) {
 }
 ```
 
-Change the signature of `Racer` to return the winner and an `error`. Return `nil` for our happy cases.
+Thay đổi signature của `Racer` để trả về người chiến thắng và một `error`. Trả về `nil` cho các trường hợp thành công.
 
-The compiler will complain about your _first test_ only looking for one value so change that line to `got, err := Racer(slowURL, fastURL)`, knowing that we should check we _don't_ get an error in our happy scenario.
+Compiler sẽ phàn nàn về *test đầu tiên* của bạn vì nó chỉ mong đợi một giá trị, vì vậy hãy đổi dòng đó thành `got, err := Racer(slowURL, fastURL)`, lưu ý rằng chúng ta nên kiểm tra xem mình *không* nhận được lỗi trong kịch bản thành công.
 
-If you run it now after 11 seconds it will fail.
+Nếu bạn chạy nó bây giờ, sau 11 giây nó sẽ thất bại.
 
 ```
 --- FAIL: TestRacer (12.00s)
@@ -340,15 +340,15 @@ func Racer(a, b string) (winner string, error error) {
 }
 ```
 
-`time.After` is a very handy function when using `select`. Although it didn't happen in our case you can potentially write code that blocks forever if the channels you're listening on never return a value. `time.After` returns a `chan` (like `ping`) and will send a signal down it after the amount of time you define.
+`time.After` là một hàm rất tiện dụng khi sử dụng `select`. Mặc dù nó không xảy ra trong trường hợp của chúng ta, nhưng bạn có khả năng viết mã nguồn bị chặn mãi mãi nếu các channels bạn đang lắng nghe không bao giờ trả về giá trị. `time.After` trả về một `chan` (giống như `ping`) và sẽ gửi một tín hiệu qua đó sau một khoảng thời gian bạn chỉ định.
 
-For us this is perfect; if `a` or `b` manage to return they win, but if we get to 10 seconds then our `time.After` will send a signal and we'll return an `error`.
+Đối với chúng ta, điều này thật hoàn hảo; nếu `a` hoặc `b` phản hồi kịp, họ sẽ thắng, nhưng nếu đạt đến 10 giây thì `time.After` sẽ gửi một tín hiệu và chúng ta sẽ trả về một lỗi `error`.
 
-### Slow tests
+### Các bản kiểm thử chậm chạp
 
-The problem we have is that this test takes 10 seconds to run. For such a simple bit of logic, this doesn't feel great.
+Vấn đề chúng ta gặp phải là bản kiểm thử này mất 10 giây để chạy. Đối với một đoạn logic đơn giản như vậy, điều này có vẻ không ổn lắm.
 
-What we can do is make the timeout configurable. So in our test, we can have a very short timeout and then when the code is used in the real world it can be set to 10 seconds.
+Những gì chúng ta có thể làm là làm cho thời gian chờ (timeout) có thể cấu hình được. Vì vậy, trong bản kiểm thử của mình, chúng ta có thể đặt một thời gian chờ rất ngắn và sau đó khi mã nguồn được sử dụng trong thế giới thực, nó có thể được đặt là 10 giây.
 
 ```go
 func Racer(a, b string, timeout time.Duration) (winner string, error error) {
@@ -363,14 +363,14 @@ func Racer(a, b string, timeout time.Duration) (winner string, error error) {
 }
 ```
 
-Our tests now won't compile because we're not supplying a timeout.
+Các test của chúng ta bây giờ sẽ không biên dịch được vì chúng ta không cung cấp timeout.
 
-Before rushing in to add this default value to both our tests let's _listen to them_.
+Trước khi vội vàng thêm giá trị mặc định này vào cả hai bản kiểm thử, hãy *lắng nghe chúng*.
 
-- Do we care about the timeout in the "happy" test?
-- The requirements were explicit about the timeout.
+- Chúng ta có quan tâm đến timeout trong bản kiểm thử "thành công" không?
+- Các yêu cầu đã nói rõ ràng về timeout.
 
-Given this knowledge, let's do a little refactoring to be sympathetic to both our tests and the users of our code.
+Với kiến thức này, hãy thực hiện một chút tái cấu trúc để thân thiện với cả các bản kiểm thử và những người sử dụng mã nguồn của chúng ta.
 
 ```go
 var tenSecondTimeout = 10 * time.Second
@@ -391,7 +391,7 @@ func ConfigurableRacer(a, b string, timeout time.Duration) (winner string, error
 }
 ```
 
-Our users and our first test can use `Racer` (which uses `ConfigurableRacer` under the hood) and our sad path test can use `ConfigurableRacer`.
+Người dùng của chúng ta và bản kiểm thử đầu tiên có thể sử dụng `Racer` (hàm này sử dụng `ConfigurableRacer` bên dưới) và bản kiểm thử trường hợp lỗi của chúng ta có thể sử dụng `ConfigurableRacer`.
 
 ```go
 func TestRacer(t *testing.T) {
@@ -432,16 +432,16 @@ func TestRacer(t *testing.T) {
 }
 ```
 
-I added one final check on the first test to verify we don't get an `error`.
+Tôi đã thêm một lần kiểm tra cuối cùng vào bản kiểm thử đầu tiên để xác minh rằng chúng ta không nhận được lỗi `error`.
 
 ## Tổng kết
 
 ### `select`
 
-- Helps you wait on multiple channels.
-- Sometimes you'll want to include `time.After` in one of your `cases` to prevent your system blocking forever.
+- Giúp bạn đợi trên nhiều channels cùng lúc.
+- Đôi khi bạn sẽ muốn bao gồm `time.After` trong một trong các `cases` của mình để ngăn hệ thống bị chặn mãi mãi.
 
 ### `httptest`
 
-- A convenient way of creating test servers so you can have reliable and controllable tests.
-- Uses the same interfaces as the "real" `net/http` servers which is consistent and less for you to learn.
+- Một cách thuận tiện để tạo các máy chủ kiểm thử nhằm có được các bản kiểm thử đáng tin cậy và có thể kiểm soát được.
+- Sử dụng cùng các interface như các máy chủ `net/http` "thật", điều này giúp nhất quán và giảm bớt những thứ bạn cần phải học.
