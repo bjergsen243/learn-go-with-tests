@@ -2,7 +2,7 @@
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/mocking)**
 
-You have been asked to write a program which counts down from 3, printing each number on a new line (with a 1-second pause) and when it reaches zero it will print "Go!" and exit.
+Bạn được yêu cầu viết một chương trình đếm ngược từ 3, in mỗi số trên một dòng mới (với độ trễ 1 giây) và khi đạt đến số 0, nó sẽ in "Go!" và thoát.
 
 ```
 3
@@ -11,7 +11,7 @@ You have been asked to write a program which counts down from 3, printing each n
 Go!
 ```
 
-We'll tackle this by writing a function called `Countdown` which we will then put inside a `main` program so it looks something like this:
+Chúng ta sẽ giải quyết vấn đề này bằng cách viết một hàm gọi là `Countdown`, sau đó đưa nó vào chương trình `main` để nó trông giống như thế này:
 
 ```go
 package main
@@ -21,21 +21,21 @@ func main() {
 }
 ```
 
-While this is a pretty trivial program, to test it fully we will need as always to take an _iterative_, _test-driven_ approach.
+Mặc dù đây là một chương trình khá đơn giản, nhưng để kiểm thử nó một cách đầy đủ, chúng ta sẽ cần phải tiếp cận theo cách *lặp đi lặp lại (iterative)* và *hướng kiểm thử (test-driven)* như mọi khi.
 
-What do I mean by iterative? We make sure we take the smallest steps we can to have _useful software_.
+Ý tôi là gì khi nói lặp đi lặp lại? Chúng ta đảm bảo rằng mình thực hiện các bước nhỏ nhất có thể để có được *phần mềm hữu ích*.
 
-We don't want to spend a long time with code that will theoretically work after some hacking because that's often how developers fall down rabbit holes. **It's an important skill to be able to slice up requirements as small as you can so you can have _working software_.**
+Chúng ta không muốn dành nhiều thời gian cho đoạn mã mà trên lý thuyết sẽ hoạt động sau một hồi "vọc vạch", vì đó thường là cách các nhà phát triển rơi vào bế tắc. **Kỹ năng quan trọng là có thể chia nhỏ các yêu cầu thành mức nhỏ nhất có thể để bạn luôn có *phần mềm hoạt động được*.**
 
-Here's how we can divide our work up and iterate on it:
+Đây là cách chúng ta có thể chia nhỏ công việc và lặp lại trên đó:
 
-- Print 3
-- Print 3, 2, 1 and Go!
-- Wait a second between each line
+- In ra số 3
+- In ra 3, 2, 1 và Go!
+- Đợi một giây giữa mỗi dòng
 
-## Write the test first
+## Viết test trước tiên
 
-Our software needs to print to stdout and we saw how we could use Dependency Injection (DI) to facilitate testing this in the DI section.
+Phần mềm của chúng ta cần in ra stdout và chúng ta đã thấy cách sử dụng Dependency Injection (DI) để hỗ trợ kiểm thử điều này trong phần DI.
 
 ```go
 func TestCountdown(t *testing.T) {
@@ -52,12 +52,12 @@ func TestCountdown(t *testing.T) {
 }
 ```
 
-If anything like `buffer` is unfamiliar to you, re-read [the previous section](dependency-injection.md).
+Nếu bạn thấy `buffer` còn lạ lẫm, hãy đọc lại [phần trước](dependency-injection.md).
 
-We know we want our `Countdown` function to write data somewhere and `io.Writer` is the de-facto way of capturing that as an interface in Go.
+Chúng ta biết mình muốn hàm `Countdown` ghi dữ liệu vào đâu đó và `io.Writer` là cách thực tế để nắm bắt điều đó dưới dạng một interface trong Go.
 
-- In `main` we will send to `os.Stdout` so our users see the countdown printed to the terminal.
-- In test we will send to `bytes.Buffer` so our tests can capture what data is being generated.
+- Trong `main`, chúng ta sẽ gửi đến `os.Stdout` để người dùng thấy bộ đếm ngược được in ra terminal.
+- Trong test, chúng ta sẽ gửi đến `bytes.Buffer` để các bản kiểm thử có thể nắm bắt dữ liệu nào đang được tạo ra.
 
 ## Thử chạy test
 
@@ -65,21 +65,21 @@ We know we want our `Countdown` function to write data somewhere and `io.Writer`
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-Define `Countdown`
+Định nghĩa hàm `Countdown`:
 
 ```go
 func Countdown() {}
 ```
 
-Try again
+Thử lại:
 
-```
+```text
 ./countdown_test.go:11:11: too many arguments in call to Countdown
     have (*bytes.Buffer)
     want ()
 ```
 
-The compiler is telling you what your function signature could be, so update it.
+Compiler đang cho bạn biết signature (chữ ký) hàm của bạn có thể là gì, vì vậy hãy cập nhật nó.
 
 ```go
 func Countdown(out *bytes.Buffer) {}
@@ -87,7 +87,7 @@ func Countdown(out *bytes.Buffer) {}
 
 `countdown_test.go:17: got '' want '3'`
 
-Perfect!
+Hoàn hảo!
 
 ## Viết đủ code để test chạy thành công
 
@@ -97,11 +97,11 @@ func Countdown(out *bytes.Buffer) {
 }
 ```
 
-We're using `fmt.Fprint` which takes an `io.Writer` (like `*bytes.Buffer`) and sends a `string` to it. The test should pass.
+Chúng ta đang sử dụng `fmt.Fprint` nhận một `io.Writer` (như `*bytes.Buffer`) và gửi một `string` đến đó. Test sẽ vượt qua.
 
 ## Refactor
 
-We know that while `*bytes.Buffer` works, it would be better to use a general purpose interface instead.
+Chúng ta biết rằng mặc dù `*bytes.Buffer` hoạt động, nhưng tốt hơn là sử dụng một interface tổng quát thay thế.
 
 ```go
 func Countdown(out io.Writer) {
@@ -109,9 +109,9 @@ func Countdown(out io.Writer) {
 }
 ```
 
-Re-run the tests and they should be passing.
+Chạy lại các test và chúng sẽ vượt qua.
 
-To complete matters, let's now wire up our function into a `main` so we have some working software to reassure ourselves we're making progress.
+Để hoàn tất, hãy kết nối hàm của chúng ta vào `main` để chúng ta có một phần mềm thực sự hoạt động, giúp củng cố niềm tin rằng chúng ta đang tiến bộ.
 
 ```go
 package main
@@ -131,15 +131,15 @@ func main() {
 }
 ```
 
-Try and run the program and be amazed at your handywork.
+Hãy thử chạy chương trình và ngạc nhiên trước công sức của bạn.
 
-Yes this seems trivial but this approach is what I would recommend for any project. **Take a thin slice of functionality and make it work end-to-end, backed by tests.**
+Đúng, điều này có vẻ tầm thường nhưng cách tiếp cận này là những gì tôi khuyên dùng cho bất kỳ dự án nào. **Hãy lấy một lát cắt mỏng của chức năng và làm cho nó hoạt động từ đầu đến cuối (end-to-end), được hỗ trợ bởi các bản kiểm thử.**
 
-Next we can make it print 2,1 and then "Go!".
+Tiếp theo, chúng ta có thể làm cho nó in ra 2, 1 và sau đó là "Go!".
 
-## Write the test first
+## Viết test trước tiên
 
-By investing in getting the overall plumbing working right, we can iterate on our solution safely and easily. We will no longer need to stop and re-run the program to be confident of it working as all the logic is tested.
+Bằng cách đầu tư vào việc làm cho hệ thống "đường ống" tổng thể hoạt động đúng, chúng ta có thể lặp lại giải pháp của mình một cách an toàn và dễ dàng. Chúng ta sẽ không còn cần phải dừng lại và chạy lại chương trình để tin tưởng vào hoạt động của nó vì tất cả logic đã được kiểm thử.
 
 ```go
 func TestCountdown(t *testing.T) {
@@ -159,7 +159,7 @@ Go!`
 }
 ```
 
-The backtick syntax is another way of creating a `string` but lets you include things like newlines, which is perfect for our test.
+Cú pháp dấu huyền (backtick) là một cách khác để tạo `string` nhưng cho phép bạn bao gồm những thứ như dòng mới, điều này hoàn hảo cho test của chúng ta.
 
 ## Thử chạy test
 
@@ -169,6 +169,7 @@ countdown_test.go:21: got '3' want '3
         1
         Go!'
 ```
+
 ## Viết đủ code để test chạy thành công
 
 ```go
@@ -180,11 +181,11 @@ func Countdown(out io.Writer) {
 }
 ```
 
-Use a `for` loop counting backwards with `i--` and use `fmt.Fprintln` to print to `out` with our number followed by a newline character. Finally use `fmt.Fprint` to send "Go!" aftward.
+Sử dụng vòng lặp `for` đếm ngược với `i--` và sử dụng `fmt.Fprintln` để in ra `out` với số của chúng ta kèm theo một ký tự dòng mới. Cuối cùng, sử dụng `fmt.Fprint` để gửi "Go!" sau đó.
 
 ## Refactor
 
-There's not much to refactor other than refactoring some magic values into named constants.
+Không có nhiều thứ để refactor ngoại trừ việc chuyển một số giá trị cụ thể (magic values) thành các hằng số có tên.
 
 ```go
 const finalWord = "Go!"
@@ -198,9 +199,9 @@ func Countdown(out io.Writer) {
 }
 ```
 
-If you run the program now, you should get the desired output but we don't have it as a dramatic countdown with the 1-second pauses.
+Nếu bạn chạy chương trình ngay bây giờ, bạn sẽ nhận được kết quả mong muốn nhưng chúng ta chưa có hiệu ứng đếm ngược kịch tính với khoảng nghỉ 1 giây.
 
-Go lets you achieve this with `time.Sleep`. Try adding it in to our code.
+Go cho phép bạn đạt được điều này với `time.Sleep`. Hãy thử thêm nó vào mã của chúng ta.
 
 ```go
 func Countdown(out io.Writer) {
@@ -213,24 +214,24 @@ func Countdown(out io.Writer) {
 }
 ```
 
-If you run the program it works as we want it to.
+Nếu bạn chạy chương trình, nó sẽ hoạt động theo đúng ý muốn.
 
 ## Mocking
 
-The tests still pass and the software works as intended but we have some problems:
-- Our tests take 3 seconds to run.
-    - Every forward-thinking post about software development emphasises the importance of quick feedback loops.
-    - **Slow tests ruin developer productivity**.
-    - Imagine if the requirements get more sophisticated warranting more tests. Are we happy with 3s added to the test run for every new test of `Countdown`?
-- We have not tested an important property of our function.
+Các test vẫn vượt qua và phần mềm hoạt động như dự định nhưng chúng ta có một số vấn đề:
+- Các test của chúng ta mất 3 giây để chạy.
+    - Mọi bài viết có tầm nhìn xa về phát triển phần mềm đều nhấn mạnh tầm quan trọng của vòng lặp phản hồi nhanh (quick feedback loops).
+    - **Các bản kiểm thử chậm chạp làm hủy hoại năng suất của nhà phát triển**.
+    - Hãy tưởng tượng nếu các yêu cầu trở nên phức tạp hơn, dẫn đến cần nhiều test hơn. Liệu chúng ta có hài lòng với 3 giây cộng thêm vào lần chạy test cho mỗi test mới của `Countdown` không?
+- Chúng ta chưa kiểm thử một đặc tính quan trọng của hàm.
 
-We have a dependency on `Sleep`ing which we need to extract so we can then control it in our tests.
+Chúng ta có một phụ thuộc vào việc `Sleep`, chúng ta cần trích xuất nó ra để có thể kiểm soát nó trong các bản kiểm thử.
 
-If we can _mock_ `time.Sleep` we can use _dependency injection_ to use it instead of a "real" `time.Sleep` and then we can **spy on the calls** to make assertions on them.
+Nếu chúng ta có thể *mock* `time.Sleep`, chúng ta có thể sử dụng *dependency injection* để sử dụng nó thay vì `time.Sleep` "thực" và sau đó chúng ta có thể **spy (theo dõi) các cuộc gọi** để thực hiện các xác nhận (assertions) trên chúng.
 
-## Write the test first
+## Viết test trước tiên
 
-Let's define our dependency as an interface. This lets us then use a _real_ Sleeper in `main` and a _spy sleeper_ in our tests. By using an interface our `Countdown` function is oblivious to this and adds some flexibility for the caller.
+Hãy định nghĩa phụ thuộc của chúng ta dưới dạng một interface. Điều này cho phép chúng ta sử dụng một Sleeper *thực* trong `main` và một *spy sleeper* trong các bản kiểm thử của chúng ta. Bằng cách sử dụng một interface, hàm `Countdown` của chúng ta không quan tâm đến điều này và mang lại sự linh hoạt cho người gọi.
 
 ```go
 type Sleeper interface {
@@ -238,9 +239,9 @@ type Sleeper interface {
 }
 ```
 
-I made a design decision that our `Countdown` function would not be responsible for how long the sleep is. This simplifies our code a little for now at least and means a user of our function can configure that sleepiness however they like.
+Tôi đã đưa ra quyết định thiết kế rằng hàm `Countdown` của chúng ta sẽ không chịu trách nhiệm về thời gian chờ là bao lâu. Điều này làm cho mã của chúng ta đơn giản hơn một chút (ít nhất là bây giờ) và có nghĩa là người dùng hàm của chúng ta có thể cấu hình thời gian chờ đó theo bất kỳ cách nào họ thích.
 
-Now we need to make a _mock_ of it for our tests to use.
+Bây giờ chúng ta cần tạo một *mock* của nó để các test sử dụng.
 
 ```go
 type SpySleeper struct {
@@ -252,9 +253,9 @@ func (s *SpySleeper) Sleep() {
 }
 ```
 
-_Spies_ are a kind of _mock_ which can record how a dependency is used. They can record the arguments sent in, how many times it has been called, etc. In our case, we're keeping track of how many times `Sleep()` is called so we can check it in our test.
+*Spies* (Giám sát) là một loại *mock* có thể ghi lại cách một phụ thuộc được sử dụng. Chúng có thể ghi lại các đối số được truyền vào, số lần nó được gọi, v.v. Trong trường hợp của chúng ta, chúng ta đang theo dõi số lần `Sleep()` được gọi để có thể kiểm tra nó trong test.
 
-Update the tests to inject a dependency on our Spy and assert that the sleep has been called 3 times.
+Cập nhật các test để tiêm (inject) một phụ thuộc vào Spy của chúng ta và xác nhận rằng việc sleep đã được gọi 3 lần.
 
 ```go
 func TestCountdown(t *testing.T) {
@@ -289,7 +290,7 @@ too many arguments in call to Countdown
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-We need to update `Countdown` to accept our `Sleeper`
+Chúng ta cần cập nhật `Countdown` để chấp nhận `Sleeper` của chúng ta.
 
 ```go
 func Countdown(out io.Writer, sleeper Sleeper) {
@@ -302,7 +303,7 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 }
 ```
 
-If you try again, your `main` will no longer compile for the same reason
+Nếu bạn thử lại, `main` của bạn sẽ không còn biên dịch được vì lý do tương tự:
 
 ```
 ./main.go:26:11: not enough arguments in call to Countdown
@@ -310,7 +311,7 @@ If you try again, your `main` will no longer compile for the same reason
     want (io.Writer, Sleeper)
 ```
 
-Let's create a _real_ sleeper which implements the interface we need
+Hãy tạo một sleeper *thực* triển khai interface chúng ta cần:
 
 ```go
 type DefaultSleeper struct{}
@@ -320,7 +321,7 @@ func (d *DefaultSleeper) Sleep() {
 }
 ```
 
-We can then use it in our real application like so
+Sau đó chúng ta có thể sử dụng nó trong ứng dụng thực của mình như sau:
 
 ```go
 func main() {
@@ -331,7 +332,7 @@ func main() {
 
 ## Viết đủ code để test chạy thành công
 
-The test is now compiling but not passing because we're still calling the `time.Sleep` rather than the injected in dependency. Let's fix that.
+Test hiện đã biên dịch được nhưng không vượt qua vì chúng ta vẫn đang gọi `time.Sleep` thay vì phụ thuộc được tiêm vào. Hãy sửa điều đó.
 
 ```go
 func Countdown(out io.Writer, sleeper Sleeper) {
@@ -344,24 +345,24 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 }
 ```
 
-The test should pass and no longer take 3 seconds.
+Test sẽ vượt qua và không còn mất 3 giây nữa.
 
-### Still some problems
+### Vẫn còn một số vấn đề
 
-There's still another important property we haven't tested.
+Vẫn còn một đặc tính quan trọng khác mà chúng ta chưa kiểm thử.
 
-`Countdown` should sleep before each next print, e.g:
+`Countdown` nên chờ trước mỗi lần in tiếp theo, ví dụ:
 
-- `Print N`
-- `Sleep`
-- `Print N-1`
-- `Sleep`
-- `Print Go!`
-- etc
+- `In N`
+- `Chờ`
+- `In N-1`
+- `Chờ`
+- `In Go!`
+- v.v.
 
-Our latest change only asserts that it has slept 3 times, but those sleeps could occur out of sequence.
+Thay đổi mới nhất của chúng ta chỉ xác nhận rằng nó đã chờ 3 lần, nhưng những lần chờ đó có thể xảy ra sai thứ tự.
 
-When writing tests if you're not confident that your tests are giving you sufficient confidence, just break it! (make sure you have committed your changes to source control first though). Change the code to the following
+Khi viết các bản kiểm thử, nếu bạn không tin rằng các bản kiểm thử của mình đang mang lại sự tin cậy đầy đủ, hãy cứ làm cho nó bị lỗi! (hãy đảm bảo rằng bạn đã commit các thay đổi của mình trước đó). Thay đổi mã thành như sau:
 
 ```go
 func Countdown(out io.Writer, sleeper Sleeper) {
@@ -377,11 +378,11 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 }
 ```
 
-If you run your tests they should still be passing even though the implementation is wrong.
+Nếu bạn chạy các test, chúng vẫn sẽ vượt qua mặc dù việc triển khai là sai.
 
-Let's use spying again with a new test to check the order of operations is correct.
+Hãy sử dụng lại kỹ thuật spying với một test mới để kiểm tra xem thứ tự các hoạt động có đúng hay không.
 
-We have two different dependencies and we want to record all of their operations into one list. So we'll create _one spy for them both_.
+Chúng ta có hai phụ thuộc khác nhau và chúng ta muốn ghi lại tất cả các hoạt động của chúng vào một danh sách. Vì vậy, chúng ta sẽ tạo *một spy cho cả hai*.
 
 ```go
 type SpyCountdownOperations struct {
@@ -401,9 +402,9 @@ const write = "write"
 const sleep = "sleep"
 ```
 
-Our `SpyCountdownOperations` implements both `io.Writer` and `Sleeper`, recording every call into one slice. In this test we're only concerned about the order of operations, so just recording them as list of named operations is sufficient.
+`SpyCountdownOperations` của chúng ta triển khai cả `io.Writer` và `Sleeper`, ghi lại mọi cuộc gọi vào một slice. Trong test này, chúng ta chỉ quan tâm đến thứ tự các hoạt động, vì vậy chỉ cần ghi lại chúng dưới dạng danh sách các hoạt động có tên là đủ.
 
-We can now add a sub-test into our test suite which verifies our sleeps and prints operate in the order we hope
+Bây giờ chúng ta có thể thêm một sub-test (test phụ) vào bộ kiểm thử của mình để xác minh rằng các lần chờ và lần in hoạt động theo thứ tự mà chúng ta mong muốn.
 
 ```go
 t.Run("sleep before every print", func(t *testing.T) {
@@ -426,9 +427,9 @@ t.Run("sleep before every print", func(t *testing.T) {
 })
 ```
 
-This test should now fail. Revert `Countdown` back to how it was to fix the test.
+Test này bây giờ sẽ thất bại. Hãy hoàn tác `Countdown` về như cũ để sửa test.
 
-We now have two tests spying on the `Sleeper` so we can now refactor our test so one is testing what is being printed and the other one is ensuring we're sleeping between the prints. Finally, we can delete our first spy as it's not used anymore.
+Hiện tại chúng ta có hai test đang giám sát `Sleeper`, vì vậy bây giờ chúng ta có thể cấu trúc lại test của mình để một cái kiểm thử những gì đang được in ra và cái còn lại đảm bảo rằng chúng ta đang chờ giữa các lần in. Cuối cùng, chúng ta có thể xóa spy đầu tiên của mình vì nó không còn được sử dụng nữa.
 
 ```go
 func TestCountdown(t *testing.T) {
@@ -469,15 +470,15 @@ Go!`
 }
 ```
 
-We now have our function and its 2 important properties properly tested.
+Bây giờ chúng ta có hàm của mình và 2 đặc tính quan trọng của nó đã được kiểm thử đúng cách.
 
-## Extending Sleeper to be configurable
+## Mở rộng Sleeper để có thể cấu hình được
 
-A nice feature would be for the `Sleeper` to be configurable. This means that we can adjust the sleep time in our main program.
+Một tính năng hay sẽ là `Sleeper` có thể cấu hình được. Điều này có nghĩa là chúng ta có thể điều chỉnh thời gian chờ trong chương trình chính của mình.
 
-### Write the test first
+### Viết test trước tiên
 
-Let's first create a new type for `ConfigurableSleeper` that accepts what we need for configuration and testing.
+Đầu tiên hãy tạo một kiểu mới cho `ConfigurableSleeper` chấp nhận những gì chúng ta cần cho cấu hình và kiểm thử.
 
 ```go
 type ConfigurableSleeper struct {
@@ -486,7 +487,7 @@ type ConfigurableSleeper struct {
 }
 ```
 
-We are using `duration` to configure the time slept and `sleep` as a way to pass in a sleep function. The signature of `sleep` is the same as for `time.Sleep` allowing us to use `time.Sleep` in our real implementation and the following spy in our tests:
+Chúng ta đang sử dụng `duration` để cấu hình thời gian chờ và `sleep` như một cách để truyền vào một hàm sleep. Signature của `sleep` giống với `time.Sleep`, cho phép chúng ta sử dụng `time.Sleep` trong quá trình triển khai thực tế và spy sau đây trong các bản kiểm thử:
 
 ```go
 type SpyTime struct {
@@ -498,7 +499,7 @@ func (s *SpyTime) Sleep(duration time.Duration) {
 }
 ```
 
-With our spy in place, we can create a new test for the configurable sleeper.
+Với spy của mình, chúng ta có thể tạo một test mới cho configurable sleeper.
 
 ```go
 func TestConfigurableSleeper(t *testing.T) {
@@ -514,7 +515,7 @@ func TestConfigurableSleeper(t *testing.T) {
 }
 ```
 
-There should be nothing new in this test and it is set up very similar to the previous mock tests.
+Không có gì mới trong test này và nó được thiết lập rất giống với các mock test trước đó.
 
 ### Thử chạy test
 ```
@@ -522,15 +523,15 @@ sleeper.Sleep undefined (type ConfigurableSleeper has no field or method Sleep, 
 
 ```
 
-You should see a very clear error message indicating that we do not have a `Sleep` method created on our `ConfigurableSleeper`.
+Bạn sẽ thấy một thông báo lỗi rất rõ ràng cho thấy chúng ta chưa tạo phương thức `Sleep` cho `ConfigurableSleeper`.
 
-### Write the minimal amount of code for the test to run and check failing test output
+### Viết lượng mã tối thiểu để test chạy và kiểm tra kết quả lỗi
 ```go
 func (c *ConfigurableSleeper) Sleep() {
 }
 ```
 
-With our new `Sleep` function implemented we have a failing test.
+Với hàm `Sleep` mới được triển khai, chúng ta có một test thất bại.
 
 ```
 countdown_test.go:56: should have slept for 5s but slept for 0s
@@ -538,7 +539,7 @@ countdown_test.go:56: should have slept for 5s but slept for 0s
 
 ### Viết đủ code để test chạy thành công
 
-All we need to do now is implement the `Sleep` function for `ConfigurableSleeper`.
+Tất cả những gì chúng ta cần làm lúc này là triển khai hàm `Sleep` cho `ConfigurableSleeper`.
 
 ```go
 func (c *ConfigurableSleeper) Sleep() {
@@ -546,11 +547,11 @@ func (c *ConfigurableSleeper) Sleep() {
 }
 ```
 
-With this change all of the tests should be passing again and you might wonder why all the hassle as the main program didn't change at all. Hopefully it becomes clear after the following section.
+Với thay đổi này, tất cả các test sẽ vượt qua trở lại và bạn có thể tự hỏi tại sao lại phiền phức như vậy khi chương trình chính không thay đổi chút nào. Hy vọng nó sẽ trở nên rõ ràng sau phần sau.
 
-### Cleanup and refactor
+### Tối ưu hóa và tái cấu trúc (Cleanup and refactor)
 
-The last thing we need to do is to actually use our `ConfigurableSleeper` in the main function.
+Điều cuối cùng chúng ta cần làm là thực sự sử dụng `ConfigurableSleeper` trong hàm main.
 
 ```go
 func main() {
@@ -559,89 +560,89 @@ func main() {
 }
 ```
 
-If we run the tests and the program manually, we can see that all the behavior remains the same.
+Nếu chúng ta chạy các test và chương trình theo cách thủ công, chúng ta có thể thấy rằng tất cả hành vi đều giữ nguyên.
 
-Since we are using the `ConfigurableSleeper`, it is now safe to delete the `DefaultSleeper` implementation. Tổng kết our program and having a more [generic](https://stackoverflow.com/questions/19291776/whats-the-difference-between-abstraction-and-generalization) Sleeper with arbitrary long countdowns.
+Vì chúng ta đang sử dụng `ConfigurableSleeper`, bây giờ chúng ta có thể an tâm xóa implementation của `DefaultSleeper`. Tổng kết lại chương trình của chúng ta và có một Sleeper [tổng quát (generic)](https://stackoverflow.com/questions/19291776/whats-the-difference-between-abstraction-and-generalization) hơn với thời gian đếm ngược tùy ý.
 
-## But isn't mocking evil?
+## Nhưng chẳng phải Mocking là "quỷ dữ" sao?
 
-You may have heard mocking is evil. Just like anything in software development it can be used for evil, just like [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
+Bạn có thể đã nghe nói rằng mocking là quỷ dữ. Giống như bất kỳ điều gì trong phát triển phần mềm, nó có thể được sử dụng sai mục đích, giống như [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
 
-People normally get in to a bad state when they don't _listen to their tests_ and are _not respecting the refactoring stage_.
+Mọi người thường rơi vào tình trạng tồi tệ khi họ không *lắng nghe các bản kiểm thử* và *không tôn trọng giai đoạn tái cấu trúc (refactoring stage)*.
 
-If your mocking code is becoming complicated or you are having to mock out lots of things to test something, you should _listen_ to that bad feeling and think about your code. Usually it is a sign of
+Nếu mã mocking của bạn đang trở nên phức tạp hoặc bạn phải mock rất nhiều thứ để kiểm thử một điều gì đó, bạn nên *lắng nghe* cảm giác không ổn đó và suy nghĩ về mã của mình. Thông thường đó là dấu hiệu của:
 
-- The thing you are testing is having to do too many things (because it has too many dependencies to mock)
-  - Break the module apart so it does less
-- Its dependencies are too fine-grained
-  - Think about how you can consolidate some of these dependencies into one meaningful module
-- Your test is too concerned with implementation details
-  - Favour testing expected behaviour rather than the implementation
+- Thứ bạn đang kiểm thử phải làm quá nhiều việc (vì nó có quá nhiều phụ thuộc cần mock).
+  - Hãy chia nhỏ module ra để nó làm ít việc hơn.
+- Các phụ thuộc của nó quá phân tán (too fine-grained).
+  - Hãy nghĩ về cách bạn có thể hợp nhất một số phụ thuộc này thành một module có ý nghĩa.
+- Test của bạn quá quan tâm đến các chi tiết thực hiện (implementation details).
+  - Hãy ưu tiên kiểm thử hành vi mong đợi thay vì cách thức thực hiện.
 
-Normally a lot of mocking points to _bad abstraction_ in your code.
+Thông thường việc mock quá nhiều chỉ ra sự *trừu tượng tồi (bad abstraction)* trong mã của bạn.
 
-**What people see here is a weakness in TDD but it is actually a strength**, more often than not poor test code is a result of bad design or put more nicely, well-designed code is easy to test.
+**Những gì mọi người thấy ở đây là một điểm yếu trong TDD nhưng thực chất nó là một điểm mạnh**, thông thường mã kiểm thử kém là kết quả của thiết kế tồi, hay nói cách khác, mã được thiết kế tốt thì dễ kiểm thử.
 
-### But mocks and tests are still making my life hard!
+### Nhưng mock và test vẫn đang làm khó tôi!
 
-Ever run into this situation?
+Bạn đã bao giờ rơi vào tình huống này chưa?
 
-- You want to do some refactoring
-- To do this you end up changing lots of tests
-- You question TDD and make a post on Medium titled "Mocking considered harmful"
+- Bạn muốn tái cấu trúc một chút mã.
+- Để làm điều này, bạn cuối cùng phải thay đổi rất nhiều test.
+- Bạn nghi ngờ TDD và viết một bài trên Medium có tiêu đề "Mocking considered harmful".
 
-This is usually a sign of you testing too much _implementation detail_. Try to make it so your tests are testing _useful behaviour_ unless the implementation is really important to how the system runs.
+Đây thường là dấu hiệu cho thấy bạn đang kiểm thử quá nhiều *chi tiết thực hiện*. Hãy cố gắng làm cho các test của bạn kiểm thử *hành vi hữu ích* trừ khi việc thực hiện là thực sự quan trọng đối với cách hệ thống vận hành.
 
-It is sometimes hard to know _what level_ to test exactly but here are some thought processes and rules I try to follow:
+Đôi khi thật khó để biết *mức độ nào* để kiểm thử chính xác nhưng đây là một số quá trình suy nghĩ và quy tắc tôi cố gắng tuân theo:
 
-- **The definition of refactoring is that the code changes but the behaviour stays the same**. If you have decided to do some refactoring in theory you should be able to make the commit without any test changes. So when writing a test ask yourself
-  - Am I testing the behaviour I want, or the implementation details?
-  - If I were to refactor this code, would I have to make lots of changes to the tests?
-- Although Go lets you test private functions, I would avoid it as private functions are implementation detail to support public behaviour. Test the public behaviour. Sandi Metz describes private functions as being "less stable" and you don't want to couple your tests to them.
-- I feel like if a test is working with **more than 3 mocks then it is a red flag** - time for a rethink on the design
-- Use spies with caution. Spies let you see the insides of the algorithm you are writing which can be very useful but that means a tighter coupling between your test code and the implementation. **Be sure you actually care about these details if you're going to spy on them**
+- **Định nghĩa của việc tái cấu trúc (refactoring) là mã thay đổi nhưng hành vi vẫn giữ nguyên**. Nếu bạn đã quyết định thực hiện một số hoạt động tái cấu trúc, trên lý thuyết bạn nên có thể tạo commit mà không cần thay đổi bất kỳ bản kiểm thử nào. Vì vậy khi viết một test, hãy tự hỏi:
+  - Tôi đang kiểm thử hành vi mình muốn, hay các chi tiết thực hiện?
+  - Nếu tôi tái cấu trúc mã này, tôi có phải thay đổi nhiều ở các bản kiểm thử không?
+- Mặc dù Go cho phép bạn kiểm thử các hàm private, tôi khuyên bạn nên tránh điều đó vì các hàm private là chi tiết thực hiện để hỗ trợ hành vi public. Hãy kiểm thử hành vi public. Sandi Metz mô tả các hàm private là "kém ổn định hơn" và bạn không muốn liên kết các bản kiểm thử của mình với chúng.
+- Tôi cảm thấy rằng nếu một test làm việc với **nhiều hơn 3 mock thì đó là một dấu hiệu cảnh báo (red flag)** - đã đến lúc phải suy nghĩ lại về thiết kế.
+- Sử dụng spies cẩn thận. Spies cho phép bạn nhìn thấy bên trong thuật toán bạn đang viết, điều này có thể rất hữu ích nhưng đồng nghĩa với việc liên kết chặt chẽ hơn giữa mã kiểm thử và mã triển khai. **Hãy chắc chắn rằng bạn thực sự quan tâm đến những chi tiết này nếu bạn định spy lên chúng.**
 
-#### Can't I just use a mocking framework?
+#### Tôi có thể sử dụng một framework mocking không?
 
-Mocking requires no magic and is relatively simple; using a framework can make mocking seem more complicated than it is. We don't use automocking in this chapter so that we get:
+Mocking không đòi hỏi phép thuật gì và tương đối đơn giản; việc sử dụng một framework có thể làm cho mocking có vẻ phức tạp hơn thực tế. Chúng ta không sử dụng automocking trong chương này để chúng ta:
 
-- a better understanding of how to mock
-- practice implementing interfaces
+- hiểu rõ hơn về cách mock.
+- thực hành triển khai các interface.
 
-In collaborative projects there is value in auto-generating mocks. In a team, a mock generation tool codifies consistency around the test doubles. This will avoid inconsistently written test doubles which can translate to inconsistently written tests.
+Trong các dự án hợp tác, việc tự động tạo mock có giá trị riêng. Trong một nhóm, một công cụ tạo mock sẽ thống nhất tính nhất quán xung quanh các "test doubles". Điều này sẽ tránh việc các test doubles được viết không nhất quán, có thể dẫn đến các bản kiểm thử không nhất quán.
 
-You should only use a mock generator that generates test doubles against an interface. Any tool that overly dictates how tests are written, or that use lots of 'magic', can get in the sea.
+Bạn chỉ nên sử dụng một trình tạo mock dựa trên một interface. Bất kỳ công cụ nào đưa ra quá nhiều quy định về cách viết test, hoặc sử dụng nhiều "phép thuật", đều không đáng dùng.
 
 ## Tổng kết
 
-### More on TDD approach
+### Tìm hiểu thêm về cách tiếp cận TDD
 
-- When faced with less trivial examples, break the problem down into "thin vertical slices". Try to get to a point where you have _working software backed by tests_ as soon as you can, to avoid getting in rabbit holes and taking a "big bang" approach.
-- Once you have some working software it should be easier to _iterate with small steps_ until you arrive at the software you need.
+- Khi đối mặt với các ví dụ ít tầm thường hơn, hãy chia nhỏ vấn đề thành các "lát cắt dọc mỏng" (thin vertical slices). Hãy cố gắng đạt đến điểm mà bạn có *phần mềm hoạt động được hỗ trợ bởi các bản kiểm thử* càng sớm càng tốt, để tránh rơi vào bế tắc và áp dụng cách tiếp cận "vụ nổ lớn" (big bang).
+- Khi bạn đã có một số phần mềm hoạt động được, việc *lặp lại với các bước nhỏ* sẽ dễ dàng hơn cho đến khi bạn đạt được phần mềm mình cần.
 
-> "When to use iterative development? You should use iterative development only on projects that you want to succeed."
-
-Martin Fowler.
+> "Khi nào nên sử dụng phát triển lặp đi lặp lại? Bạn chỉ nên sử dụng phát triển lặp đi lặp lại trong các dự án mà bạn muốn thành công."
+>
+> Martin Fowler.
 
 ### Mocking
 
-- **Without mocking important areas of your code will be untested**. In our case we would not be able to test that our code paused between each print but there are countless other examples. Calling a service that _can_ fail? Wanting to test your system in a particular state? It is very hard to test these scenarios without mocking.
-- Without mocks you may have to set up databases and other third parties things just to test simple business rules. You're likely to have slow tests, resulting in **slow feedback loops**.
-- By having to spin up a database or a webservice to test something you're likely to have **fragile tests** due to the unreliability of such services.
+- **Nếu không có mocking, các phần quan trọng trong mã của bạn sẽ không được kiểm thử**. Trong trường hợp của chúng ta, chúng ta sẽ không thể kiểm thử rằng mã của mình đã tạm dừng giữa mỗi lần in, và còn vô số ví dụ khác. Gọi một dịch vụ *có thể* thất bại? Muốn kiểm thử hệ thống của bạn ở một trạng thái cụ thể? Rất khó để kiểm thử các kịch bản này mà không có mocking.
+- Nếu không có mock, bạn có thể phải thiết đặt cơ sở dữ liệu và những thứ của bên thứ ba khác chỉ để kiểm thử các quy tắc nghiệp vụ đơn giản. Bạn có thể sẽ gặp các bản kiểm thử chậm chạp, dẫn đến **vòng lặp phản hồi chậm**.
+- Bằng việc phải khởi động một cơ sở dữ liệu hoặc một dịch vụ web để kiểm thử điều gì đó, bạn có khả năng gặp phải **các bản kiểm thử dễ gãy (fragile tests)** do sự không đáng tin cậy của các dịch vụ đó.
 
-Once a developer learns about mocking it becomes very easy to over-test every single facet of a system in terms of the _way it works_ rather than _what it does_. Always be mindful about **the value of your tests** and what impact they would have in future refactoring.
+Một khi nhà phát triển tìm hiểu về mocking, họ rất dễ sa đà vào việc kiểm thử quá mức từng khía cạnh nhỏ của một hệ thống về *cách thức nó hoạt động* thay vì *những gì nó làm*. Luôn lưu tâm về **giá trị của các bản kiểm thử của bạn** và tác động của chúng đối với việc tái cấu trúc trong tương lai.
 
-In this post about mocking we have only covered **Spies**, which are a kind of mock. Mocks are a type of "test double."
+Trong bài viết này về mocking, chúng ta mới chỉ đề cập đến **Spies**, một loại của mock. Mocks là một loại của "test double."
 
-> [Test Double is a generic term for any case where you replace a production object for testing purposes.](https://martinfowler.com/bliki/TestDouble.html)
+> [Test Double là một thuật ngữ chung cho bất kỳ trường hợp nào bạn thay thế một đối tượng thực (production object) cho mục đích kiểm thử.](https://martinfowler.com/bliki/TestDouble.html)
 
-Under test doubles, there are various types like stubs, spies and indeed mocks! Check out [Martin Fowler's post](https://martinfowler.com/bliki/TestDouble.html) for more detail.
+Dưới test doubles, có nhiều loại khác nhau như stubs, spies và thực sự là mocks! Hãy xem bài viết của [Martin Fowler](https://martinfowler.com/bliki/TestDouble.html) để biết thêm chi tiết.
 
-## Bonus - Example of iterators from go 1.23
+## Bonus - Ví dụ về iterators từ Go 1.23
 
-In Go 1.23 [iterators were introduced](https://tip.golang.org/doc/go1.23). We can use iterators in various ways, in this instance we can make a `countdownFrom` iterator, which will return the numbers to countdown in reverse order.
+Trong Go 1.23 [iterators đã được giới thiệu](https://tip.golang.org/doc/go1.23). Chúng ta có thể sử dụng iterators theo nhiều cách khác nhau, trong trường hợp này chúng ta có thể tạo một iterator `countdownFrom`, nó sẽ trả về các số để đếm ngược theo thứ tự đảo ngược.
 
-Before we get into how we write custom iterators, let's see how we use them. Rather than writing a fairly imperative looking loop to count down from a number, we can make this code look more expressive by `range`-ing over our custom `countdownFrom` iterator.
+Trước khi đi sâu vào cách viết các iterator tùy chỉnh, hãy xem cách sử dụng chúng. Thay vì viết một vòng lặp trông khá khô khan để đếm ngược từ một số, chúng ta có thể làm cho đoạn mã này trở nên ý nghĩa hơn bằng cách dùng `range` trên iterator `countdownFrom` tùy chỉnh của chúng ta.
 
 ```go
 func Countdown(out io.Writer, sleeper Sleeper) {
@@ -654,16 +655,16 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 }
 ```
 
-To write an iterator like `countDownFrom`, you need to write a function in a particular way. From the docs:
+Để viết một iterator như `countDownFrom`, bạn cần viết một hàm theo một cách cụ thể. Từ tài liệu:
 
-    The “range” clause in a “for-range” loop now accepts iterator functions of the following types
+    Mệnh đề "range" trong vòng lặp "for-range" giờ đây chấp nhận các hàm iterator thuộc các kiểu sau:
         func(func() bool)
         func(func(K) bool)
         func(func(K, V) bool)
 
-(The `K` and `V` stand for key and value types, respectively.)
+(Phần `K` và `V` lần lượt đại diện cho các kiểu key và value.)
 
-In our case, we don't have keys, just values. Go also provides a convenience type `iter.Seq[T]` which is a type alias for `func(func(T) bool)`.
+Trong trường hợp của chúng ta, chúng ta không có key, chỉ có các giá trị. Go cũng cung cấp một kiểu tiện lợi `iter.Seq[T]`, là một bí danh kiểu cho `func(func(T) bool)`.
 
 ```go
 func countDownFrom(from int) iter.Seq[int] {
@@ -677,4 +678,4 @@ func countDownFrom(from int) iter.Seq[int] {
 }
 ```
 
-This is a simple iterator, which will yield numbers in reverse order, starting from, `from` - perfect for our usecase. 
+Đây là một iterator đơn giản, nó sẽ cung cấp các số theo thứ tự đảo ngược, bắt đầu từ `from` - hoàn hảo cho trường hợp sử dụng của chúng ta.
