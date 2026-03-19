@@ -72,7 +72,7 @@ Ngoài ra, để làm việc hiệu quả hơn, bạn nên làm quen với các 
 - **Xem định nghĩa của hàm**. Nếu vẫn chưa rõ một hàm hoạt động thế nào, bạn nên biết cách mở mã nguồn của nó để tìm hiểu.
 - **Tìm tất cả vị trí sử dụng của một symbol**. Biết được vị trí và cách một hàm được sử dụng sẽ giúp bạn đưa ra quyết định chính xác hơn khi refactoring.
 
-Mastering your tools will help you concentrate on the code and reduce context switching.
+Làm chủ công cụ của bạn sẽ giúp bạn tập trung vào code và giảm thiểu sự gián đoạn khi chuyển đổi ngữ cảnh.
 
 ## Tổng kết
 

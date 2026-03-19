@@ -108,7 +108,7 @@ Chạy lệnh `go test` trong terminal. Lúc này nó sẽ chạy thành công. 
 
 Bạn có thể thấy rằng không cần phải lựa chọn giữa nhiều framework test khác nhau hay tìm cách cài đặt chúng. Mọi thứ cần thiết đều được tích hợp sẵn trong ngôn ngữ Go, và cú pháp test cũng giống với phần còn lại của mã bạn viết.
 
-### Writing tests
+### Viết test
 
 Viết một test trong Go cũng giống như viết một hàm bình thường, nhưng cần tuân theo một số quy tắc sau:
 
@@ -125,7 +125,7 @@ Chúng ta vừa đề cập đến một số khái niệm mới:
 
 Câu lệnh `if` trong Go hoạt động tương tự như đa số ngôn ngữ lập trình khác.
 
-#### Declaring variables
+#### Khai báo biến
 
 Chúng ta có thể khai báo biến bằng cú pháp `varName := value`. Cách này giúp tái sử dụng giá trị trong test, làm cho mã dễ đọc hơn.
 
