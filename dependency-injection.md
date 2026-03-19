@@ -2,18 +2,18 @@
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/di)**
 
-It is assumed that you have read the [structs section](./structs-methods-and-interfaces.md) before as some understanding of interfaces will be needed for this.
+Chương này giả định rằng bạn đã đọc [phần structs](./structs-methods-and-interfaces.md) trước đó vì chúng ta sẽ cần hiểu biết về interfaces.
 
-There are _a lot_ of misunderstandings around dependency injection around the programming community. Hopefully, this guide will show you how
+Có *rất nhiều* hiểu lầm xung quanh Dependency Injection (tiêm phụ thuộc) trong cộng đồng lập trình. Hy vọng hướng dẫn này sẽ cho bạn thấy rằng:
 
-* You don't need a framework
-* It does not overcomplicate your design
-* It facilitates testing
-* It allows you to write great, general-purpose functions.
+* Bạn không cần một framework nào cả.
+* Nó không làm thiết kế của bạn quá phức tạp.
+* Nó hỗ trợ việc kiểm thử (testing).
+* Nó cho phép bạn viết các hàm tổng quát, tuyệt vời.
 
-We want to write a function that greets someone, just like we did in the hello-world chapter but this time we are going to be testing the _actual printing_.
+Chúng ta muốn viết một hàm để chào hỏi ai đó, giống như chúng ta đã làm trong chương hello-world, nhưng lần này chúng ta sẽ kiểm thử việc *in thực tế*.
 
-Just to recap, here is what that function could look like
+Để nhắc lại, đây là giao diện của hàm đó:
 
 ```go
 func Greet(name string) {
@@ -21,26 +21,26 @@ func Greet(name string) {
 }
 ```
 
-But how can we test this? Calling `fmt.Printf` prints to stdout, which is pretty hard for us to capture using the testing framework.
+Nhưng làm sao chúng ta có thể kiểm thử điều này? Việc gọi `fmt.Printf` sẽ in ra stdout (đầu ra tiêu chuẩn), điều này khá khó để chúng ta nắm bắt bằng framework testing.
 
-What we need to do is to be able to **inject** \(which is just a fancy word for pass in\) the dependency of printing.
+Những gì chúng ta cần làm là có thể **inject** (tiêm - thực chất chỉ là một từ hoa mỹ cho việc truyền vào) phụ thuộc của việc in ấn.
 
-**Our function doesn't need to care _where_ or _how_ the printing happens, so we should accept an _interface_ rather than a concrete type.**
+**Hàm của chúng ta không cần quan tâm việc in ấn diễn ra *ở đâu* hay *như thế nào*, vì vậy chúng ta nên chấp nhận một *interface* thay vì một kiểu cụ thể.**
 
-If we do that, we can then change the implementation to print to something we control so that we can test it. In "real life" you would inject in something that writes to stdout.
+Nếu chúng ta làm vậy, chúng ta có thể thay đổi implementation (cách triển khai) để in ra một thứ gì đó mà chúng ta kiểm soát để có thể kiểm thử nó. Trong "đời thực", bạn sẽ tiêm vào một thứ gì đó ghi ra stdout.
 
-If you look at the source code of [`fmt.Printf`](https://pkg.go.dev/fmt#Printf) you can see a way for us to hook in
+Nếu bạn nhìn vào mã nguồn của [`fmt.Printf`](https://pkg.go.dev/fmt#Printf), bạn có thể thấy một cách để chúng ta can thiệp:
 
 ```go
-// It returns the number of bytes written and any write error encountered.
+// Nó trả về số byte đã ghi và bất kỳ lỗi ghi nào gặp phải.
 func Printf(format string, a ...interface{}) (n int, err error) {
 	return Fprintf(os.Stdout, format, a...)
 }
 ```
 
-Interesting! Under the hood `Printf` just calls `Fprintf` passing in `os.Stdout`.
+Thú vị! Bên dưới lớp vỏ, `Printf` chỉ gọi `Fprintf` và truyền vào `os.Stdout`.
 
-What exactly _is_ an `os.Stdout`? What does `Fprintf` expect to get passed to it for the 1st argument?
+Chính xác thì `os.Stdout` *là* cái gì? `Fprintf` mong đợi tham số đầu tiên là gì?
 
 ```go
 func Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
@@ -52,7 +52,7 @@ func Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 }
 ```
 
-An `io.Writer`
+Đó là một `io.Writer`:
 
 ```go
 type Writer interface {
@@ -60,13 +60,13 @@ type Writer interface {
 }
 ```
 
-From this we can infer that `os.Stdout` implements `io.Writer`; `Printf` passes `os.Stdout` to `Fprintf` which expects an `io.Writer`.
+Từ đây chúng ta có thể suy ra rằng `os.Stdout` triển khai `io.Writer`; `Printf` truyền `os.Stdout` cho `Fprintf`, nơi mong đợi một `io.Writer`.
 
-As you write more Go code you will find this interface popping up a lot because it's a great general purpose interface for "put this data somewhere".
+Khi bạn viết nhiều mã Go hơn, bạn sẽ thấy interface này xuất hiện rất nhiều vì đây là một interface tổng quát tuyệt vời cho việc "đưa dữ liệu này đến đâu đó".
 
-So we know under the covers we're ultimately using `Writer` to send our greeting somewhere. Let's use this existing abstraction to make our code testable and more reusable.
+Vì vậy, chúng ta biết rằng thực tế chúng ta đang sử dụng `Writer` để gửi lời chào của mình đến một nơi nào đó. Hãy sử dụng trừu tượng (abstraction) hiện có này để làm cho mã của chúng ta có thể kiểm thử được và dễ tái sử dụng hơn.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 func TestGreet(t *testing.T) {
@@ -82,13 +82,13 @@ func TestGreet(t *testing.T) {
 }
 ```
 
-The `Buffer` type from the `bytes` package implements the `Writer` interface, because it has the method `Write(p []byte) (n int, err error)`.
+Kiểu `Buffer` từ package `bytes` triển khai interface `Writer`, vì nó có phương thức `Write(p []byte) (n int, err error)`.
 
-So we'll use it in our test to send in as our `Writer` and then we can check what was written to it after we invoke `Greet`
+Vì vậy, chúng ta sẽ sử dụng nó trong test để truyền vào dưới dạng `Writer` của mình, sau đó chúng ta có thể kiểm tra những gì đã được ghi vào đó sau khi gọi `Greet`.
 
 ## Thử chạy test
 
-The test will not compile
+Test sẽ không biên dịch được:
 
 ```text
 ./di_test.go:10:2: undefined: Greet
@@ -96,7 +96,7 @@ The test will not compile
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-_Listen to the compiler_ and fix the problem.
+*Hãy lắng nghe compiler* và khắc phục vấn đề.
 
 ```go
 func Greet(writer *bytes.Buffer, name string) {
@@ -106,11 +106,11 @@ func Greet(writer *bytes.Buffer, name string) {
 
 `Hello, Chris di_test.go:16: got '' want 'Hello, Chris'`
 
-The test fails. Notice that the name is getting printed out, but it's going to stdout.
+Test thất bại. Lưu ý rằng tên đang được in ra, nhưng nó đi ra stdout.
 
 ## Viết đủ code để test chạy thành công
 
-Use the writer to send the greeting to the buffer in our test. Remember `fmt.Fprintf` is like `fmt.Printf` but instead takes a `Writer` to send the string to, whereas `fmt.Printf` defaults to stdout.
+Sử dụng writer để gửi lời chào đến buffer trong test của chúng ta. Hãy nhớ `fmt.Fprintf` giống như `fmt.Printf` nhưng thay vào đó nhận một `Writer` để gửi chuỗi đến, trong khi `fmt.Printf` mặc định gửi đến stdout.
 
 ```go
 func Greet(writer *bytes.Buffer, name string) {
@@ -118,13 +118,13 @@ func Greet(writer *bytes.Buffer, name string) {
 }
 ```
 
-The test now passes.
+Test bây giờ đã vượt qua.
 
 ## Refactor
 
-Earlier the compiler told us to pass in a pointer to a `bytes.Buffer`. This is technically correct but not very useful.
+Trước đó compiler đã bảo chúng ta truyền vào một con trỏ tới `bytes.Buffer`. Điều này về mặt kỹ thuật là đúng nhưng không hữu ích lắm.
 
-To demonstrate this, try wiring up the `Greet` function into a Go application where we want it to print to stdout.
+Để chứng minh điều này, hãy thử kết nối hàm `Greet` vào một ứng dụng Go nơi chúng ta muốn nó in ra stdout.
 
 ```go
 func main() {
@@ -134,9 +134,9 @@ func main() {
 
 `./di.go:14:7: cannot use os.Stdout (type *os.File) as type *bytes.Buffer in argument to Greet`
 
-As discussed earlier `fmt.Fprintf` allows you to pass in an `io.Writer` which we know both `os.Stdout` and `bytes.Buffer` implement.
+Như đã thảo luận trước đó, `fmt.Fprintf` cho phép bạn truyền vào một `io.Writer`, mà chúng ta biết cả `os.Stdout` và `bytes.Buffer` đều triển khai.
 
-If we change our code to use the more general purpose interface we can now use it in both tests and in our application.
+Nếu chúng ta thay đổi mã của mình để sử dụng interface tổng quát hơn, chúng ta có thể sử dụng nó trong cả test và trong ứng dụng của mình.
 
 ```go
 package main
@@ -156,13 +156,13 @@ func main() {
 }
 ```
 
-## More on io.Writer
+## Tìm hiểu thêm về io.Writer
 
-What other places can we write data to using `io.Writer`? Just how general purpose is our `Greet` function?
+Những nơi khác chúng ta có thể ghi dữ liệu bằng `io.Writer` là gì? Hàm `Greet` của chúng ta tổng quát đến mức nào?
 
-### The Internet
+### Internet
 
-Run the following
+Chạy đoạn sau:
 
 ```go
 package main
@@ -187,32 +187,32 @@ func main() {
 }
 ```
 
-Run the program and go to [http://localhost:5001](http://localhost:5001). You'll see your greeting function being used.
+Chạy chương trình và truy cập [http://localhost:5001](http://localhost:5001). Bạn sẽ thấy hàm chào hỏi của mình đang được sử dụng.
 
-HTTP servers will be covered in a later chapter so don't worry too much about the details.
+HTTP server sẽ được đề cập trong một chương sau nên đừng lo lắng quá nhiều về chi tiết.
 
-When you write an HTTP handler, you are given an `http.ResponseWriter` and the `http.Request` that was used to make the request. When you implement your server you _write_ your response using the writer.
+Khi bạn viết một HTTP handler, bạn được cung cấp một `http.ResponseWriter` và `http.Request` được sử dụng để tạo request. Khi bạn triển khai server của mình, bạn *ghi* phản hồi của mình bằng cách sử dụng writer.
 
-You can probably guess that `http.ResponseWriter` also implements `io.Writer` so this is why we could re-use our `Greet` function inside our handler.
+Bạn có lẽ có thể đoán rằng `http.ResponseWriter` cũng triển khai `io.Writer`, vì vậy đây là lý do tại sao chúng ta có thể tái sử dụng hàm `Greet` của mình bên trong handler.
 
 ## Tổng kết
 
-Our first round of code was not easy to test because it wrote data to somewhere we couldn't control.
+Đoạn mã đầu tiên của chúng ta không dễ kiểm thử vì nó ghi dữ liệu đến nơi mà chúng ta không thể kiểm soát.
 
-_Motivated by our tests_ we refactored the code so we could control _where_ the data was written by **injecting a dependency** which allowed us to:
+*Được thúc đẩy bởi các bản kiểm thử*, chúng ta đã cấu trúc lại mã để có thể kiểm soát được *nơi* dữ liệu được ghi bằng cách **injecting a dependency** (tiêm một phụ thuộc), điều này cho phép chúng ta:
 
-* **Test our code** If you can't test a function _easily_, it's usually because of dependencies hard-wired into a function _or_ global state. If you have a global database connection pool for instance that is used by some kind of service layer, it is likely going to be difficult to test and they will be slow to run. DI will motivate you to inject in a database dependency \(via an interface\) which you can then mock out with something you can control in your tests.
-* **Separate our concerns**, decoupling _where the data goes_ from _how to generate it_. If you ever feel like a method/function has too many responsibilities \(generating data _and_ writing to a db? handling HTTP requests _and_ doing domain level logic?\) DI is probably going to be the tool you need.
-* **Allow our code to be re-used in different contexts** The first "new" context our code can be used in is inside tests. But further on if someone wants to try something new with your function they can inject their own dependencies.
+* **Kiểm thử mã của mình**: Nếu bạn không thể kiểm thử một hàm *dễ dàng*, thường là do các phụ thuộc (dependencies) được gắn cứng vào một hàm *hoặc* do trạng thái toàn cục (global state). Ví dụ: nếu bạn có một pool kết nối cơ sở dữ liệu toàn cục được sử dụng bởi một lớp dịch vụ nào đó, nó có thể sẽ khó kiểm thử và sẽ chạy chậm. DI sẽ thúc đẩy bạn tiêm phụ thuộc cơ sở dữ liệu vào (thông qua một interface), sau đó bạn có thể mock bằng một thứ gì đó mà bạn có thể kiểm soát trong test.
+* **Tách biệt các mối quan tâm (Separate concerns)**: Tách rời việc *dữ liệu đi đâu* và *cách tạo ra dữ liệu*. Nếu bạn từng cảm thấy một phương thức/hàm có quá nhiều trách nhiệm (vừa tạo dữ liệu *vừa* ghi vào cơ sở dữ liệu? vừa xử lý HTTP request *vừa* thực hiện logic nghiệp vụ?), DI có lẽ là công cụ bạn cần.
+* **Cho phép mã của chúng ta được tái sử dụng trong các ngữ cảnh khác nhau**: Ngữ cảnh "mới" đầu tiên mã của chúng ta có thể được sử dụng là bên trong các bản kiểm thử. Nhưng xa hơn nữa, nếu ai đó muốn thử một điều gì đó mới với hàm của bạn, họ có thể tiêm các phụ thuộc của riêng họ.
 
-### What about mocking? I hear you need that for DI and also it's evil
+### Còn về mocking? Tôi nghe nói bạn cần điều đó cho DI và nó cũng là "quỷ dữ"
 
-Mocking will be covered in detail later \(and it's not evil\). You use mocking to replace real things you inject with a pretend version that you can control and inspect in your tests. In our case though, the standard library had something ready for us to use.
+Mocking sẽ được đề cập chi tiết sau (và nó không phải quỷ dữ). Bạn sử dụng mocking để thay thế những thứ thực tế bạn tiêm vào bằng một phiên bản giả định mà bạn có thể kiểm soát và kiểm tra trong test. Tuy nhiên trong trường hợp của chúng ta, thư viện chuẩn đã có sẵn thứ gì đó để chúng ta sử dụng.
 
-### The Go standard library is really good, take time to study it
+### Thư viện chuẩn của Go thực sự rất tốt, hãy dành thời gian để nghiên cứu nó
 
-By having some familiarity with the `io.Writer` interface we are able to use `bytes.Buffer` in our test as our `Writer` and then we can use other `Writer`s from the standard library to use our function in a command line app or in web server.
+Bằng cách làm quen với interface `io.Writer`, chúng ta có thể sử dụng `bytes.Buffer` trong test của mình dưới dạng `Writer` và sau đó chúng ta có thể sử dụng các `Writer` khác từ thư viện chuẩn để sử dụng hàm của mình trong một ứng dụng dòng lệnh hoặc trong máy chủ web.
 
-The more familiar you are with the standard library the more you'll see these general purpose interfaces which you can then re-use in your own code to make your software reusable in a number of contexts.
+Càng quen thuộc với thư viện chuẩn, bạn sẽ càng thấy nhiều interface tổng quát này, sau đó bạn có thể tái sử dụng chúng trong mã của chính mình để làm cho phần mềm của bạn có thể tái sử dụng trong nhiều ngữ cảnh khác nhau.
 
-This example is heavily influenced by a chapter in [The Go Programming language](https://www.amazon.co.uk/Programming-Language-Addison-Wesley-Professional-Computing/dp/0134190440), so if you enjoyed this, go buy it!
+Ví dụ này chịu ảnh hưởng lớn từ một chương trong [The Go Programming Language](https://www.amazon.co.uk/Programming-Language-Addison-Wesley-Professional-Computing/dp/0134190440), vì vậy nếu bạn thích điều này, hãy mua cuốn sách đó!
