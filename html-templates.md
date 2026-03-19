@@ -1,26 +1,26 @@
 # HTML Templates
 
-**[You can find all the code here](https://github.com/quii/learn-go-with-tests/tree/main/blogrenderer)**
+**[Bạn có thể tìm thấy toàn bộ mã nguồn tại đây](https://github.com/quii/learn-go-with-tests/tree/main/blogrenderer)**
 
-We live in a world where everyone wants to build web applications with the latest flavour of the month frontend framework built upon gigabytes of transpiled JavaScript, working with a Byzantine build system; [but maybe that's not always necessary](https://quii.dev/The_Web_I_Want).  
+Chúng ta đang sống trong một thế giới mà mọi người đều muốn xây dựng các ứng dụng web với các framework frontend mới nhất của tháng, được xây dựng trên hàng gigabyte JavaScript đã qua chuyển đổi (transpiled), hoạt động với một hệ thống build phức tạp; [nhưng có lẽ điều đó không phải lúc nào cũng cần thiết](https://quii.dev/The_Web_I_Want).
 
-I'd say most Go developers value a simple, stable & fast toolchain but the frontend world frequently fails to deliver on this front.
+Tôi muốn nói rằng hầu hết các nhà phát triển Go đều coi trọng một chuỗi công cụ (toolchain) đơn giản, ổn định và nhanh chóng nhưng thế giới frontend thường xuyên thất bại trong việc mang lại điều này.
 
-Many websites do not need to be an [SPA](https://en.wikipedia.org/wiki/Single-page_application). **HTML and CSS are fantastic ways of delivering content** and you can use Go to make a website to deliver HTML. 
+Nhiều trang web không cần phải là một [SPA](https://en.wikipedia.org/wiki/Single-page_application). **HTML và CSS là những cách tuyệt vời để phân phối nội dung** và bạn có thể sử dụng Go để tạo một trang web phân phối HTML.
 
-If you wish to still have some dynamic elements, you can still sprinkle in some client side JavaScript, or you may even want to try experimenting with [Hotwire](https://hotwired.dev) which allows you to deliver a dynamic experience with a server-side approach. 
+Nếu bạn vẫn muốn có một số yếu tố động, bạn vẫn có thể thêm vào một chút JavaScript phía client, hoặc bạn thậm chí có thể muốn thử nghiệm với [Hotwire](https://hotwired.dev) cho phép bạn mang lại trải nghiệm động với cách tiếp cận phía server.
 
-You can generate your HTML in Go with elaborate usage of [`fmt.Fprintf`](https://pkg.go.dev/fmt#Fprintf), but in this chapter you'll learn that Go's standard library has some tools to generate HTML in a simpler and more maintainable way. You'll also learn more effective ways of testing this kind of code that you may not have run in to before.
+Bạn có thể tạo HTML trong Go bằng cách sử dụng công phu [`fmt.Fprintf`](https://pkg.go.dev/fmt#Fprintf), nhưng trong chương này, bạn sẽ học được rằng thư viện tiêu chuẩn của Go có một số công cụ để tạo HTML một cách đơn giản và dễ bảo trì hơn. Bạn cũng sẽ học được những cách kiểm thử loại mã nguồn này hiệu quả hơn mà bạn có thể chưa từng thấy trước đây.
 
-## What we're going to build
+## Những gì chúng ta sẽ xây dựng
 
-In the [Reading Files](/reading-files.md) chapter we wrote some code that would take an [`fs.FS`](https://pkg.go.dev/io/fs)  (a file-system), and return a slice of `Post` for each markdown file it encountered.
+Trong chương [Đọc file](/reading-files.md), chúng ta đã viết một số mã nguồn nhận vào một [`fs.FS`](https://pkg.go.dev/io/fs) (một hệ thống file) và trả về một slice các `Post` cho mỗi file markdown mà nó gặp.
 
 ```go
 posts, err := blogposts.NewPostsFromFS(os.DirFS("posts"))
 ```
 
-Here is how we defined `Post`
+Đây là cách chúng ta định nghĩa `Post`
 
 ```go
 type Post struct {
@@ -29,7 +29,7 @@ type Post struct {
 }
 ```
 
-Here's an example of one of the markdown files that can be parsed.
+Đây là một ví dụ về một trong các file markdown có thể được phân tích.
 
 ```markdown
 Title: Welcome to my blog
@@ -40,32 +40,32 @@ Tags: cooking, family, live-laugh-love
 Welcome to my **amazing recipe blog**. I am going to write about my family recipes, and make sure I write a long, irrelevant and boring story about my family before you get to the actual instructions.
 ```
 
-If we continue our journey of writing blog software, we'd take this data and generate HTML from it for our web server to return in response to HTTP requests.
+Nếu tiếp tục hành trình viết phần mềm blog, chúng ta sẽ lấy dữ liệu này và tạo HTML từ đó để web server trả về khi phản hồi các yêu cầu HTTP.
 
-For our blog, we want to generate two kinds of page:
+Đối với blog của mình, chúng ta muốn tạo hai loại trang:
 
-1. **View post**. Renders a specific post. The `Body` field in `Post` is a string containing markdown so that should be converted to HTML. 
-2. **Index**. Lists all of the posts, with hyperlinks to view the specific post.
+1. **Xem bài đăng**. Hiển thị một bài đăng cụ thể. Trường `Body` trong `Post` là một chuỗi chứa markdown, vì vậy nó nên được chuyển đổi sang HTML.
+2. **Trang chủ (Index)**. Liệt kê tất cả các bài đăng, với các siêu liên kết để xem bài đăng cụ thể.
 
-We'll also want a consistent look and feel across our site, so for each page we'll have the usual HTML furniture like `<html>` and a `<head>` containing links to CSS stylesheets and whatever else we may want.
+Chúng ta cũng muốn có một giao diện nhất quán trên toàn bộ trang web của mình, vì vậy đối với mỗi trang, chúng ta sẽ có các thành phần HTML thông thường như `<html>` và `<head>` chứa các liên kết đến các bản định kiểu (stylesheets) CSS và bất kỳ thứ gì khác mà chúng ta muốn.
 
-When you're building blog software you have a few options in terms of approach of how you build and send HTML to the user's browser. 
+Khi bạn xây dựng phần mềm blog, bạn có một vài tùy chọn về cách tiếp cận cách xây dựng và gửi HTML đến trình duyệt của người dùng.
 
-We'll design our code so it accepts an `io.Writer`. This means the caller of our code has the flexibility to:
+Chúng ta sẽ thiết kế mã nguồn của mình để nó chấp nhận một `io.Writer`. Điều này có nghĩa là người gọi mã nguồn của chúng ta có sự linh hoạt để:
 
-- Write them to an [os.File](https://pkg.go.dev/os#File) , so they can be statically served
-- Write out the HTML directly to a [`http.ResponseWriter`](https://pkg.go.dev/net/http#ResponseWriter)
-- Or just write them to anything really! So long as it implements `io.Writer` the user can generate some HTML from a `Post`
+- Ghi chúng vào một [os.File](https://pkg.go.dev/os#File), để chúng có thể được phục vụ tĩnh
+- Ghi trực tiếp HTML ra một [`http.ResponseWriter`](https://pkg.go.dev/net/http#ResponseWriter)
+- Hoặc chỉ cần ghi chúng vào bất cứ thứ gì! Miễn là nó triển khai `io.Writer`, người dùng có thể tạo một số HTML từ một `Post`
 
-## Write the test first
+## Viết test trước tiên
 
-As always, it's important to think about requirements before diving in too fast. How can we take this large-ish set of requirements and break it down in to a small, achievable step that we can focus on?
+Như mọi khi, điều quan trọng là phải suy nghĩ về các yêu cầu trước khi dấn thân quá nhanh. Làm thế nào chúng ta có thể lấy tập hợp các yêu cầu có vẻ lớn như thế này và chia nó thành các bước nhỏ, có thể đạt được mà chúng ta có thể tập trung vào?
 
-In my view, actually viewing content is higher priority than an index page. We could launch this product and share direct links to our wonderful content. An index page which can't link to the actual content isn't useful.
+Theo quan điểm của tôi, việc thực sự xem nội dung có ưu tiên cao hơn một trang chủ. Chúng ta có thể khởi chạy sản phẩm này và chia sẻ các liên kết trực tiếp đến nội dung tuyệt vời của mình. Một trang chủ mà không thể liên kết đến nội dung thực tế thì không hữu ích.
 
-Still, rendering a post as described earlier still feels big. All the HTML furniture, converting the body markdown into HTML, listing tags, e.t.c. 
+Tuy nhiên, việc hiển thị một bài đăng như mô tả ở trên vẫn có cảm giác là quá lớn. Toàn bộ khung HTML, chuyển đổi markdown nội dung thành HTML, liệt kê các thẻ, v.v.
 
-At this stage I'm not overly concerned with the specific markup, and an easy first step would be just to check we can render the post's title as an `<h1>`. This *feels* like the smallest first step that can move us forward a bit.
+Tại giai đoạn này, tôi không quá bận tâm đến markup cụ thể, và một bước đầu tiên dễ dàng sẽ là chỉ cần kiểm tra xem chúng ta có thể hiển thị tiêu đề của bài đăng dưới dạng một thẻ `<h1>` hay không. Điều này mang lại *cảm giác* là bước đi đầu tiên nhỏ nhất có thể giúp chúng ta tiến về phía trước một chút.
 
 ```go
 package blogrenderer_test
@@ -103,22 +103,22 @@ func TestRender(t *testing.T) {
 }
 ```
 
-Our decision to accept an `io.Writer` also makes testing simple, in this case we're writing to a [`bytes.Buffer`](https://pkg.go.dev/bytes#Buffer) which we can then later inspect the contents.
+Quyết định của chúng ta chấp nhận một `io.Writer` cũng làm cho việc kiểm thử trở nên đơn giản, trong trường hợp này chúng ta đang ghi vào một [`bytes.Buffer`](https://pkg.go.dev/bytes#Buffer) mà sau đó chúng ta có thể kiểm tra nội dung của nó.
 
-## Try to run the test
+## Thử chạy test
 
-If you've read the previous chapters of this book you should be well-practiced at this now. You won't be able to run the test because we don't have the package defined or the `Render` function. Try and follow the compiler messages yourself and get to a state where you can run the test and see that it fails with a clear message. 
+Nếu bạn đã đọc các chương trước của cuốn sách này, bây giờ bạn hẳn đã thực hành thuần thục điều này. Bạn sẽ không thể chạy bản kiểm thử vì chúng ta chưa định nghĩa package hoặc hàm `Render`. Hãy thử tự mình làm theo các thông báo của trình biên dịch và đưa mã nguồn về trạng thái có thể chạy được bản kiểm thử và thấy rằng nó thất bại với một thông báo rõ ràng.
 
-It's really important that you exercise your tests failing, you'll thank yourself when you accidentally make a test fail 6 months later that you put in the effort *now* to check it fails with a clear message.
+Điều thực sự quan trọng là bạn phải thực hành việc các bản kiểm thử của mình thất bại, bạn sẽ cảm ơn bản thân khi vô tình làm một bản kiểm thử thất bại sau 6 tháng mà bạn đã bỏ công sức *ngay bây giờ* để kiểm tra xem nó có thất bại với một thông báo rõ ràng hay không.
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-This is the minimal code to get the test running
+Đây là lượng mã nguồn tối thiểu để bản kiểm thử có thể chạy được
 
 ```go
 package blogrenderer
 
-// if you're continuing from the read files chapter, you shouldn't redefine this
+// nếu bạn đang tiếp tục từ chương đọc file, bạn không nên định nghĩa lại cái này
 type Post struct {
 	Title, Description, Body string
 	Tags                     []string
@@ -129,7 +129,7 @@ func Render(w io.Writer, p Post) error {
 }
 ```
 
-The test should complain that an empty string doesn't equal what we want.
+Bản kiểm thử sẽ phàn nàn rằng một chuỗi rỗng không bằng những gì chúng ta muốn.
 
 ## Viết đủ code để test chạy thành công
 
@@ -140,17 +140,17 @@ func Render(w io.Writer, p Post) error {
 }
 ```
 
-Remember, software development is primarily a learning activity. In order to discover and learn as we work, we need to work in a way that gives us frequent, high-quality feedback loops, and the easiest way to do that is work in small steps. 
+Hãy nhớ rằng, phát triển phần mềm chủ yếu là một hoạt động học tập. Để khám phá và học hỏi khi làm việc, chúng ta cần làm việc theo cách mang lại cho mình những vòng lặp phản hồi thường xuyên, chất lượng cao, và cách dễ nhất để làm điều đó là làm việc theo từng bước nhỏ.
 
-So we're not worrying about using any templating libraries right now. You can make HTML just with "normal" string templating just fine, and by skipping the template part we can validate a small bit of useful behaviour and we've done a small bit of design work for our package's API.
+Vì vậy, chúng ta không cần lo lắng về việc sử dụng bất kỳ thư viện templating nào ngay bây giờ. Bạn có thể tạo HTML chỉ với templating chuỗi "thông thường" một cách hoàn toàn tốt, và bằng cách bỏ qua phần template, chúng ta có thể xác thực một phần nhỏ hành vi hữu ích và chúng ta đã thực hiện một phần nhỏ công việc thiết kế cho API của package.
 
 ## Refactor
 
-Not much to refactor yet, so let's move to the next iteration
+Chưa có gì nhiều để tái cấu trúc, vì vậy hãy chuyển sang lần lặp lại tiếp theo
 
-## Write the test first
+## Viết test trước tiên
 
-Now we have a very basic version working, we can now iterate on the test to expand on the functionality. In this case, rendering more information from the `Post`.
+Bây giờ chúng ta đã có một phiên bản cơ bản hoạt động, chúng ta có thể lặp lại bản kiểm thử để mở rộng chức năng. Trong trường hợp này, hiển thị thêm thông tin từ `Post`.
 
 ```go
 	t.Run("it converts a single post into HTML", func(t *testing.T) {
@@ -172,17 +172,17 @@ Tags: <ul><li>go</li><li>tdd</li></ul>`
 	})
 ```
 
-Notice that writing this, *feels* awkward. Seeing all that markup in the test feels bad, and we haven't even put the body in, or the actual HTML we'd want with all of the `<head>` content and whatever page furniture we need.
+Lưu ý rằng khi viết điều này, bạn sẽ *cảm thấy* kỳ cục. Nhìn thấy tất cả các markup đó trong bản kiểm thử cảm thấy không ổn, và chúng ta còn chưa đưa phần nội dung vào, hoặc HTML thực tế mà chúng ta muốn với tất cả nội dung của `<head>` và bất kỳ thành phần trang web nào chúng ta cần.
 
-Nonetheless, let's put up with the pain *for now*.
+Tuy nhiên, hãy chấp nhận sự đau đớn đó *lúc này*.
 
-## Try to run the test
+## Thử chạy test
 
-It should fail, complaining it doesn't have the string we expect, as we're not rendering the description and tags. 
+Nó sẽ thất bại, phàn nàn rằng nó không có chuỗi mà chúng ta mong đợi, vì chúng ta không hiển thị mô tả và các thẻ.
 
 ## Viết đủ code để test chạy thành công
 
-Try and do this yourself rather than copying the code. What you should find is that making this test pass _is a bit annoying_! When I tried, my first attempt got this error
+Hãy thử tự mình làm điều này thay vì sao chép mã nguồn. Những gì bạn sẽ thấy là làm cho bản kiểm thử này vượt qua *là một chút khó chịu*! Khi tôi thử, lần thử đầu tiên của tôi đã gặp lỗi này
 
 ```
 === RUN   TestRender
@@ -192,7 +192,7 @@ Try and do this yourself rather than copying the code. What you should find is t
         Tags: <ul><li>go</li><li></li></ul>'
 ```
 
-New lines! Who cares? Well, our test does, because it's matching on an exact string value. Should it? I removed the newlines for now just to get the test passing.
+Các dòng mới! Ai quan tâm chứ? Bản kiểm thử của chúng ta có quan tâm, vì nó khớp chính xác trên một giá trị chuỗi. Có nên như vậy không? Tôi đã tạm thời xóa các dòng mới chỉ để đưa bản kiểm thử vượt qua.
 
 ```go
 func Render(w io.Writer, p Post) error {
@@ -222,33 +222,33 @@ func Render(w io.Writer, p Post) error {
 }
 ```
 
-**Yikes**. Not the nicest code i've written, and we're still only at a very early implementation of our markup. We'll need so much more content and things on our page, we're quickly seeing that this approach is not appropriate. 
+**Yikes**. Không phải là đoạn mã nguồn đẹp nhất mà tôi từng viết, và chúng ta mới chỉ đang ở giai đoạn triển khai markup rất sớm. Chúng ta sẽ cần thêm rất nhiều nội dung và các thứ khác trên trang web của mình, chúng ta nhanh chóng nhận ra rằng cách tiếp cận này là không phù hợp.
 
-Crucially though, we have a passing test; we have working software.
+Tuy nhiên, quan trọng nhất là chúng ta có một bản kiểm thử đã vượt qua; chúng ta có phần mềm đang hoạt động.
 
 ## Refactor
 
-With the safety-net of a passing test for working code, we can now think about changing our implementation approach at the refactoring stage. 
+Với tấm lưới an toàn của một bản kiểm thử đã vượt qua cho mã nguồn đang hoạt động, bây giờ chúng ta có thể nghĩ về việc thay đổi cách tiếp cập triển khai của mình ở giai đoạn tái cấu trúc.
 
-### Introducing templates
+### Giới thiệu về template
 
-Go has two templating packages [text/template](https://pkg.go.dev/text/template) and [html/template](https://pkg.go.dev/html/template) and they share the same interface.  What they both do is allow you to combine a template and some data to produce a string. 
+Go có hai package templating [text/template](https://pkg.go.dev/text/template) và [html/template](https://pkg.go.dev/html/template) và chúng chia sẻ cùng một interface. Những gì cả hai làm là cho phép bạn kết hợp một mẫu (template) và một số dữ liệu để tạo ra một chuỗi.
 
-What's the difference with the HTML version?
+Sự khác biệt với phiên bản HTML là gì?
 
-> Package template (html/template) implements data-driven templates for generating HTML output safe against code injection. It provides the same interface as package text/template and should be used instead of text/template whenever the output is HTML.
+> Package template (html/template) triển khai các mẫu dựa trên dữ liệu để tạo đầu ra là HTML an toàn trước các cuộc tấn công tiêm mã (code injection). Nó cung cấp cùng một interface như package text/template và nên được sử dụng thay vì text/template bất cứ khi nào đầu ra là HTML.
 
-The templating language is very similar to [Mustache](https://mustache.github.io) and allows you to dynamically generate content in a very clean fashion with a nice separation of concerns. Compared to other templating languages you may have used, it is very constrained or "logic-less" as Mustache likes to say. This is an important, **and deliberate** design decision.
+Ngôn ngữ templating rất giống với [Mustache](https://mustache.github.io) và cho phép bạn tạo nội dung động một cách rất sạch sẽ với sự tách biệt rõ ràng các mối quan tâm (separation of concerns). So với các ngôn ngữ templating khác mà bạn có thể đã sử dụng, nó bị hạn chế hoặc "logic-less" (không logic) như Mustache thường nói. Đây là một quyết định thiết kế quan trọng **và có chủ đích**.
 
-Whilst we're focusing on generating HTML here, if your project is doing complex string concatenations and incantations, you might want to reach for `text/template` to clean up your code.
+Mặc dù ở đây chúng ta tập trung vào việc tạo HTML, nhưng nếu dự án của bạn đang thực hiện các việc nối chuỗi phức tạp, bạn có thể muốn sử dụng `text/template` để làm sạch mã nguồn của mình.
 
-### Back to the code
+### Quay lại với mã nguồn
 
-Here is a template for our blog: 
+Đây là một mẫu cho blog của chúng ta:
 
 `<h1>{{.Title}}</h1><p>{{.Description}}</p>Tags: <ul>{{range .Tags}}<li>{{.}}</li>{{end}}</ul>`
 
-Where do we define this string? Well, we have a few options, but to keep the steps small, let's just start with a plain old string
+Chúng ta định nghĩa chuỗi này ở đâu? Có một vài lựa chọn, nhưng để thực hiện các bước nhỏ, hãy bắt đầu với một chuỗi bình thường cũ
 
 ```go
 package blogrenderer
@@ -276,27 +276,27 @@ func Render(w io.Writer, p Post) error {
 }
 ```
 
-We create a new template with a name, and then parse our template string. We can then use the `Execute` method on it, passing in our data, in this case the `Post`. 
+Chúng ta tạo một mẫu mới với một cái tên, và sau đó phân tích (parse) chuỗi mẫu của mình. Sau đó, chúng ta có thể sử dụng phương thức `Execute` trên đó, truyền vào dữ liệu của mình, trong trường hợp này là `Post`.
 
-The template will substitute things like `{{.Description}}` with the content of `p.Description`. Templates also give you some programming primitives like `range` to loop over values, and `if`. You can find more details in the [text/template documentation](https://pkg.go.dev/text/template).
+Mẫu sẽ thay thế những thứ như `{{.Description}}` bằng nội dung của `p.Description`. Các mẫu cũng cung cấp cho bạn một số nguyên hàm lập trình như `range` để lặp qua các giá trị, và `if`. Bạn có thể tìm thêm chi tiết trong [tài liệu text/template](https://pkg.go.dev/text/template).
 
-*This should be a pure refactor.* We shouldn't need to change our tests and they should continue to pass. Importantly, our code is easier to read and has far less annoying error handling to contend with. 
+*Đây nên là một lần tái cấu trúc thuần túy (pure refactor).* Chúng ta không cần thay đổi các bản kiểm thử và chúng nên tiếp tục vượt qua. Quan trọng hơn, mã nguồn của chúng ta dễ đọc hơn và ít phải đối mặt với các vấn đề xử lý lỗi khó chịu hơn.
 
-Frequently people complain about the verbosity of error handling in Go, but you might find you can find better ways to write your code so it's less error-prone in the first place, like here.
+Mọi người thường xuyên phàn nàn về sự rườm rà của việc xử lý lỗi trong Go, nhưng bạn có thể thấy rằng mình có thể tìm ra những cách tốt hơn để viết mã nguồn sao cho ban đầu nó ít gây ra lỗi hơn, như ở đây.
 
-### More refactoring
+### Tái cấu trúc thêm nữa
 
-Using the `html/template` has definitely been an improvement, but having it as a string constant in our code isn't great:
+Việc sử dụng `html/template` chắc chắn đã là một sự cải tiến, nhưng việc để nó dưới dạng hằng số chuỗi trong mã nguồn của chúng ta không phải là điều tuyệt vời:
 
-- It's still quite difficult to read.
-- It's not IDE/editor friendly. No syntax highlighting, ability to reformat, refactor, e.t.c.
-- It looks like HTML, but you can't really work with it like you could a "normal" HTML file
+- Nó vẫn khá khó đọc.
+- Nó không thân thiện với IDE/trình soạn thảo mã nguồn. Không có cú pháp tô màu (syntax highlighting), khả năng định dạng lại, tái cấu trúc, v.v.
+- Nó trông giống HTML, nhưng bạn không thực sự có thể làm việc với nó như một file HTML "thông thường"
 
-What we'd like to do is have our templates live in separate files so we can better organise them, and work with them as if they're HTML files.
+Điều chúng ta muốn làm là để các mẫu của mình nằm trong các file riêng biệt để chúng ta có thể tổ chức chúng tốt hơn và làm việc với chúng như thể chúng là các file HTML.
 
-Create a folder called "templates" and inside it make a file called `blog.gohtml`, paste our template into the file.
+Tạo một thư mục tên là "templates" và bên trong đó tạo một file tên là `blog.gohtml`, dán mẫu của chúng ta vào file đó.
 
-Now change our code to embed the file systems using the [embedding functionality included in go 1.16](https://pkg.go.dev/embed).
+Bây giờ hãy thay đổi mã nguồn của chúng ta để nhúng (embed) các hệ thống file bằng cách sử dụng [chức năng nhúng được bao gồm trong go 1.16](https://pkg.go.dev/embed).
 
 ```go
 package blogrenderer
@@ -326,27 +326,27 @@ func Render(w io.Writer, p Post) error {
 }
 ```
 
-By embedding a "file system" into our code, we can load multiple templates and combine them freely. This will become useful when we want to share rendering logic across different templates, such as a header for the top of the HTML page and a footer.
+Bằng cách nhúng một "hệ thống file" vào mã nguồn của mình, chúng ta có thể tải nhiều mẫu và kết hợp chúng một cách tự do. Điều này sẽ trở nên hữu ích khi chúng ta muốn chia sẻ logic hiển thị giữa các mẫu khác nhau, chẳng hạn như phần header cho đầu trang HTML và phần footer.
 
-### Embed?
+### Nhúng (Embed)?
 
-Embed was lightly touched on in [reading files](reading-files.md). The [documentation from the standard library explains](https://pkg.go.dev/embed)
+Nhúng đã được đề cập nhẹ nhàng trong chương [Đọc file](reading-files.md). [Tài liệu từ thư viện tiêu chuẩn giải thích](https://pkg.go.dev/embed)
 
-> Package embed provides access to files embedded in the running Go program.
+> Package embed cung cấp quyền truy cập vào các file được nhúng trong chương trình Go đang chạy.
 >
-> Go source files that import "embed" can use the //go:embed directive to initialize a variable of type string, []byte, or FS with the contents of files read from the package directory or subdirectories at compile time.
+> Các file nguồn Go import "embed" có thể sử dụng chỉ thị //go:embed để khởi tạo các biến kiểu string, []byte, hoặc FS với nội dung của các file được đọc từ thư mục của package đó hoặc các thư mục con tại thời điểm biên dịch.
 
-Why would we want to use this? Well the alternative is that we _can_ load our templates from a "normal" file system. However this means we'd have to make sure that the templates are in the correct file path wherever we want to use this software. In your job you may have various environments like development, staging and live. For this to work, you'd need to make sure your templates are copied to the correct place. 
+Tại sao chúng ta lại muốn sử dụng điều này? Một giải pháp thay thế là chúng ta *có thể* tải các mẫu của mình từ một hệ thống file "thông thường". Tuy nhiên, điều này có nghĩa là chúng ta phải đảm bảo rằng các mẫu nằm đúng đường dẫn file ở bất cứ nơi nào chúng ta muốn sử dụng phần mềm này. Trong công việc của mình, bạn có thể có nhiều môi trường khác nhau như phát triển (development), thử nghiệm (staging) và thực tế (live). Để điều này hoạt động, bạn cần đảm bảo rằng các mẫu của mình được sao chép đến đúng nơi.
 
-With embed, the files are included in your Go program when you build it. This means once you've built your program (which you should only do once), the files are always available to you. 
+Với embed, các file được bao gồm trong chương trình Go của bạn khi bạn xây dựng (build) nó. Điều này có nghĩa là một khi bạn đã xây dựng chương trình của mình (việc này bạn chỉ nên làm một lần), các file luôn có sẵn cho bạn.
 
-What's handy is you can not only embed individual files, but also file systems; and that filesystem implements [io/fs](https://pkg.go.dev/io/fs) which means your code doesn't need to care what kind of file system it is working with.
+Điều tiện lợi là bạn không chỉ có thể nhúng các file riêng lẻ mà còn cả hệ thống file; và hệ thống file đó triển khai [io/fs](https://pkg.go.dev/io/fs), điều này có nghĩa là mã nguồn của bạn không cần quan tâm nó đang làm việc với loại hệ thống file nào.
 
-If you wish to use different templates depending on configuration though, you may wish to stick to loading templates from disk in the more conventional way.
+Tuy nhiên, nếu bạn muốn sử dụng các mẫu khác nhau tùy thuộc vào cấu hình, bạn có thể muốn tiếp tục tải các mẫu từ ổ đĩa theo cách thông thường hơn.
 
-## Next: Make the template "nice"
+## Tiếp theo: Làm cho mẫu trở nên "đẹp"
 
-We don't really want our template to be defined as a one line string. We want to be able to space it out to make it easier to read and work with, something like this:
+Chúng ta không thực sự muốn mẫu của mình được định nghĩa dưới dạng một chuỗi dài một dòng. Chúng ta muốn có thể giãn cách nó ra để làm cho nó dễ đọc và dễ làm việc hơn, đại loại như thế này:
 
 ```handlebars
 <h1>{{.Title}}</h1>
@@ -356,19 +356,19 @@ We don't really want our template to be defined as a one line string. We want to
 Tags: <ul>{{range .Tags}}<li>{{.}}</li>{{end}}</ul>
 ```
 
-But if we do this, our test fails. This is because our test is expecting a very specific string to be returned. 
+Nhưng nếu chúng ta làm điều này, bản kiểm thử của chúng ta sẽ thất bại. Điều này là do bản kiểm thử của chúng ta đang mong đợi một chuỗi rất cụ thể được trả về.
 
-But really, we don't actually care about whitespace. Maintaining this test will become a nightmare if we have to keep painstakingly updating the assertion string every time we make minor changes to the markup. As the template grows, these kind of edits become harder to manage and the costs of work will spiral out of control.
+Nhưng thực sự, chúng ta không quan tâm đến khoảng trắng. Việc duy trì bản kiểm thử này sẽ trở thành một cơn ác mộng nếu chúng ta liên tục phải cập nhật chuỗi xác nhận một cách tỉ mỉ mỗi khi chúng ta thực hiện các thay đổi nhỏ đối với markup. Khi mẫu phát triển lên, những loại chỉnh sửa này trở nên khó quản lý hơn và chi phí công việc sẽ vượt quá tầm kiểm soát.
 
-## Introducing Approval Tests
+## Giới thiệu Approval Tests
 
 [Go Approval Tests](https://github.com/approvals/go-approval-tests)
 
-> ApprovalTests allows for easy testing of larger objects, strings and anything else that can be saved to a file (images, sounds, CSV, etc...)
+> ApprovalTests cho phép dễ dàng kiểm thử các đối tượng lớn, chuỗi và bất kỳ thứ gì khác có thể được lưu vào một file (hình ảnh, âm thanh, CSV, v.v.)
 
-The idea is similar to "golden" files, or snapshot testing. Rather than awkwardly maintaining strings within a test file, the approval tool can compare the output for you with an "approved" file you created. You then simply copy over the new version if you approve it. Re-run the test and you're back to green.
+Ý tưởng tương tự như các file "vàng" (golden files), hoặc kiểm thử snapshot (snapshot testing). Thay vì duy trì các chuỗi một cách vụng về trong một file kiểm thử, công cụ phê duyệt (approval tool) có thể so sánh đầu ra cho bạn với một file "đã phê duyệt" (approved file) mà bạn đã tạo. Sau đó, bạn chỉ cần sao chép phiên bản mới qua nếu bạn phê duyệt nó. Chạy lại bản kiểm thử và bạn sẽ quay lại trạng thái xanh (vượt qua).
 
-Add a dependency to `"github.com/approvals/go-approval-tests"` to your project and edit the test to the following
+Thêm một phụ thuộc vào `"github.com/approvals/go-approval-tests"` vào dự án của bạn và chỉnh sửa bản kiểm thử thành như sau:
 
 ```go
 func TestRender(t *testing.T) {
@@ -393,7 +393,7 @@ func TestRender(t *testing.T) {
 }
 ```
 
-The first time you run it, it will fail because we haven't approved anything yet
+Lần đầu tiên bạn chạy nó, nó sẽ thất bại vì chúng ta chưa phê duyệt bất cứ thứ gì
 
 ```
 === RUN   TestRender
@@ -401,16 +401,16 @@ The first time you run it, it will fail because we haven't approved anything yet
     renderer_test.go:29: Failed Approval: received does not match approved.
 ```
 
-It will have created two files, that look like the following
+Nó sẽ tạo ra hai file, trông giống như sau:
 
 - `renderer_test.TestRender.it_converts_a_single_post_into_HTML.received.txt`
 - `renderer_test.TestRender.it_converts_a_single_post_into_HTML.approved.txt`
 
-The received file has the new, unapproved version of the output. Copy that into the empty approved file and re-run the test.
+File "received" chứa phiên bản mới, chưa được phê duyệt của đầu ra. Sao chép nội dung đó vào file "approved" đang trống và chạy lại bản kiểm thử.
 
-By copying the new version you have "approved" the change, and the test now passes.
+Bằng cách sao chép phiên bản mới, bạn đã "phê duyệt" thay đổi, và bản kiểm thử giờ đây đã vượt qua.
 
-To see the workflow in action, edit the template to how we discussed to make it easier to read (but semantically, it's the same).
+Để thấy quy trình làm việc thực tế, hãy chỉnh sửa mẫu theo cách chúng ta đã thảo luận để làm nó dễ đọc hơn (nhưng về mặt ngữ nghĩa, nó vẫn như cũ).
 
 ```handlebars
 <h1>{{.Title}}</h1>
@@ -420,41 +420,41 @@ To see the workflow in action, edit the template to how we discussed to make it 
 Tags: <ul>{{range .Tags}}<li>{{.}}</li>{{end}}</ul>
 ```
 
-Re-run the test. A new "received" file will be generated because the output of our code differs to the approved version. Give them a look, and if you're happy with the changes, simply copy over the new version and re-run the test. Be sure to commit the approved files to source control.
+Chạy lại bản kiểm thử. Một file "received" mới sẽ được tạo ra vì đầu ra mã nguồn của chúng ta khác với phiên bản đã phê duyệt. Hãy xem qua chúng, và nếu bạn hài lòng với những thay đổi, chỉ cần sao chép phiên bản mới qua và chạy lại bản kiểm thử. Hãy nhớ commit các file đã phê duyệt vào hệ thống quản lý mã nguồn.
 
-This approach makes managing changes to big ugly things like HTML far simpler. You can use a diff tool to view and manage the differences, and it keeps your test code cleaner.
+Cách tiếp cận này làm cho việc quản lý các thay đổi đối với những thứ lớn và lộn xộn như HTML trở nên đơn giản hơn nhiều. Bạn có thể sử dụng một công cụ diff để xem và quản lý những sự khác biệt, và nó giữ cho mã kiểm thử của bạn sạch sẽ hơn.
 
-![Use diff tool to manage changes](https://i.imgur.com/0MoNdva.png)
+![Sử dụng công cụ diff để quản lý các thay đổi](https://i.imgur.com/0MoNdva.png)
 
-This is actually a fairly minor usage of approval tests, which are an extremely useful tool in your testing arsenal. [Emily Bache](https://twitter.com/emilybache) has an [interesting video where she uses approval tests to add an incredibly extensive set of tests to a complicated codebase that has zero tests](https://www.youtube.com/watch?v=zyM2Ep28ED8). "Combinatorial Testing" is definitely something worth looking into.
+Đây thực sự là một cách sử dụng khá nhỏ đối với approval tests, một công cụ cực kỳ hữu ích trong kho vũ khí kiểm thử của bạn. [Emily Bache](https://twitter.com/emilybache) có một [video thú vị nơi cô ấy sử dụng approval tests để thêm một bộ kiểm thử cực kỳ sâu rộng vào một mã nguồn phức tạp không có bản kiểm thử nào](https://www.youtube.com/watch?v=zyM2Ep28ED8). "Combinatorial Testing" chắc chắn là thứ đáng để tìm hiểu.
 
-Now that we have made this change, we still benefit from having our code well-tested, but the tests won't get in the way too much when we're tinkering with the markup.
+Bây giờ chúng ta đã thực hiện thay đổi này, chúng ta vẫn được hưởng lợi từ việc mã nguồn được kiểm thử tốt, nhưng các bản kiểm thử sẽ không gây cản trở quá nhiều khi chúng ta đang chỉnh sửa markup.
 
-### Are we still doing TDD?
+### Chúng ta có còn đang làm TDD không?
 
-An interesting side-effect of this approach is it takes us away from TDD. Of course you _could_ manually edit the approved files to the state you want, run your tests and then fix the templates so they output what you defined. 
+Một tác dụng phụ thú vị của cách tiếp cận này là nó đưa chúng ta rời xa TDD. Tất nhiên bạn *có thể* chỉnh sửa thủ công các file đã phê duyệt về trạng thái bạn muốn, chạy các bản kiểm thử và sau đó sửa các mẫu sao cho chúng xuất ra những gì bạn đã định nghĩa.
 
-But that's just silly! TDD is a method for doing work, specifically designing; but that doesn't mean we have to dogmatically use it for **everything**. 
+Nhưng điều đó thật ngớ ngẩn! TDD là một phương pháp để thực hiện công việc, cụ thể là thiết kế; nhưng điều đó không có nghĩa là chúng ta phải sử dụng nó cho **mọi thứ** một cách giáo điều.
 
-The important thing is, we've done the right thing and used TDD as a **design tool** to design our package's API. For templates changes our process can be:
+Điều quan trọng là, chúng ta đã làm đúng việc và sử dụng TDD như một **công cụ thiết kế** để thiết kế API cho package của mình. Đối với các thay đổi về mẫu, quy trình của chúng ta có thể là:
 
-- Make a small change to the template
-- Run the approval test
-- Eyeball the output to check it looks correct
-- Make the approval
-- Repeat
+- Thực hiện một thay đổi nhỏ đối với mẫu
+- Chạy bản kiểm thử phê duyệt (approval test)
+- Quan sát đầu ra để kiểm tra xem nó trông có đúng không
+- Thực hiện phê duyệt
+- Lặp lại
 
-We still shouldn't give up the value of working in small achievable steps. Try to find ways to make the changes small and keep re-running the tests to get real feedback on what you're doing.
+Chúng ta vẫn không nên từ bỏ giá trị của việc làm việc theo từng bước nhỏ có thể đạt được. Hãy cố gắng tìm cách làm cho các thay đổi nhỏ và tiếp tục chạy lại các bản kiểm thử để nhận được phản hồi thực tế về những gì bạn đang làm.
 
-If we start doing things like changing the code _around_ the templates, then of course that may warrant going back to our TDD method of work. 
+Nếu chúng ta bắt đầu làm những việc như thay đổi mã nguồn *xung quanh* các mẫu, thì tất nhiên điều đó có thể đảm bảo việc quay lại phương pháp làm việc TDD của chúng ta.
 
-## Expand the markup
+## Mở rộng markup
 
-Most websites have richer HTML than we have right now. For starters, a `html` element, along with a `head`, perhaps some `nav` too. Usually there's an idea of a footer too.
+Hầu hết các trang web đều có markup HTML phong phú hơn những gì chúng ta đang có lúc này. Chẳng hạn, một phần tử `html`, cùng với một `head`, có lẽ cả một số `nav` nữa. Thường cũng có ý tưởng về một phần footer (chân trang).
 
-If our site is going to have different pages, we'd want to define these things in one place to keep our site looking consistent. Go templates support us defining sections which we can then import in to other templates.
+Nếu trang web của chúng ta sẽ có nhiều trang khác nhau, chúng ta muốn định nghĩa những thứ này ở một nơi duy nhất để giữ cho trang web của mình trông nhất quán. Go template hỗ trợ chúng ta định nghĩa các phần (sections) mà sau đó chúng ta có thể nhập vào các mẫu khác.
 
-Edit our existing template to import a top and bottom template
+Chỉnh sửa mẫu hiện có của chúng ta để nhập mẫu trên cùng (top) và dưới cùng (bottom)
 
 ```handlebars
 {{template "top" .}}
@@ -466,7 +466,7 @@ Tags: <ul>{{range .Tags}}<li>{{.}}</li>{{end}}</ul>
 {{template "bottom" .}}
 ```
 
-Then create `top.gohtml` with the following
+Sau đó tạo `top.gohtml` với nội dung sau:
 
 ```handlebars
 {{define "top"}}
@@ -492,7 +492,7 @@ Then create `top.gohtml` with the following
 {{end}}
 ```
 
-And `bottom.gohtml`
+Và `bottom.gohtml`
 
 ```handlebars
 {{define "bottom"}}
@@ -508,9 +508,9 @@ And `bottom.gohtml`
 {{end}}
 ```
 
-(Obviously, feel free to put whatever markup you like!)
+(Đương nhiên, hãy thoải mái đặt bất cứ markup nào bạn thích!)
 
-We now need to specify a specific template to run. In the blog renderer, change the `Execute` command to `ExecuteTemplate`
+Bây giờ chúng ta cần chỉ định một mẫu cụ thể để chạy. Trong trình hiển thị blog, hãy thay đổi lệnh `Execute` thành `ExecuteTemplate`
 
 ```go
 if err := templ.ExecuteTemplate(w, "blog.gohtml", p); err != nil {
@@ -518,11 +518,11 @@ if err := templ.ExecuteTemplate(w, "blog.gohtml", p); err != nil {
 }
 ```
 
-Re-run your test. A new "received" file should be made and the test will fail. Check it over and if you're happy, approve it by copying it over the old version. Re-run the test again and it should pass.
+Chạy lại bản kiểm thử của bạn. Một file "received" mới nên được tạo ra và bản kiểm thử sẽ thất bại. Hãy kiểm tra lại và nếu bạn hài lòng, hãy phê duyệt nó bằng cách sao chép nó qua phiên bản cũ. Chạy lại bản kiểm thử một lần nữa và nó sẽ vượt qua.
 
-## An excuse to mess around with Benchmarking
+## Lý do để tò mò với Benchmarking
 
-Before pressing on, let's consider what our code does.
+Trước khi tiếp tục, hãy xem xét mã nguồn của chúng ta đang làm gì.
 
 ```go
 func Render(w io.Writer, p Post) error {
@@ -539,12 +539,12 @@ func Render(w io.Writer, p Post) error {
 }
 ```
 
-- Parse the templates
-- Use the template to render a post to an `io.Writer`
+- Phân tích (Parse) các mẫu.
+- Sử dụng mẫu để hiển thị một bài đăng ra một `io.Writer`.
 
-Whilst the performance impact of re-parsing the templates for each post in most cases will be fairly negligible, the effort to *not* do this is also pretty negligible and should tidy the code up a bit too.
+Mặc dù tác động hiệu năng của việc phân tích lại các mẫu cho mỗi bài đăng trong hầu hết các trường hợp sẽ khá không đáng kể, nhưng nỗ lực để *không* làm điều này cũng rất ít và sẽ giúp mã nguồn gọn gàng hơn một chút.
 
-To see the impact of not doing this parsing over and over, we can use the benchmarking tool to see how fast our function is.
+Để thấy tác động của việc không thực hiện phân tích này lặp đi lặp lại, chúng ta có thể sử dụng công cụ benchmarking để xem hàm của chúng ta nhanh như thế nào.
 
 ```go
 func BenchmarkRender(b *testing.B) {
@@ -564,13 +564,13 @@ func BenchmarkRender(b *testing.B) {
 }
 ```
 
-On my computer, here are the results
+Trên máy tính của tôi, đây là kết quả:
 
 ```
 BenchmarkRender-8 22124 53812 ns/op
 ```
 
-To stop us having to re-parse the templates over and over, we'll create a type that'll hold the parsed template, and that'll have a method to do the rendering
+Để ngăn chúng ta phải phân tích lại các mẫu lặp đi lặp lại, chúng ta sẽ tạo một kiểu dữ liệu giữ mẫu đã được phân tích, và kiểu đó sẽ có một phương thức để thực hiện việc hiển thị.
 
 ```go
 type PostRenderer struct {
@@ -596,7 +596,7 @@ func (r *PostRenderer) Render(w io.Writer, p Post) error {
 }
 ```
 
-This does change the interface of our code, so we'll need to update our test
+Điều này có làm thay đổi interface mã nguồn của chúng ta, vì vậy chúng ta cần cập nhật bản kiểm thử:
 
 ```go
 func TestRender(t *testing.T) {
@@ -627,7 +627,7 @@ func TestRender(t *testing.T) {
 }
 ```
 
-And our benchmark
+Và bản benchmark của chúng ta:
 
 ```go
 func BenchmarkRender(b *testing.B) {
@@ -653,21 +653,21 @@ func BenchmarkRender(b *testing.B) {
 }
 ```
 
-The test should continue to pass. How about our benchmark?
+Bản kiểm thử nên tiếp tục vượt qua. Thế còn bản benchmark của chúng ta thì sao?
 
-`BenchmarkRender-8 362124 3131 ns/op`. The old NS per op were `53812 ns/op`, so this is a decent improvement! As we add other methods to render, say an Index page, it should simplify the code as we don't need to duplicate the template parsing.
+`BenchmarkRender-8 362124 3131 ns/op`. Các giá trị cũ là `53812 ns/op`, vì vậy đây là một sự cải thiện đáng kể! Khi chúng ta thêm các phương thức khác để hiển thị, ví dụ như một trang Index, nó sẽ làm đơn giản hóa mã nguồn vì chúng ta không cần lặp lại việc phân tích mẫu.
 
-## Back to the real work
+## Quay lại với công việc thực tế
 
-In terms of rendering posts, the important part left is actually rendering the `Body`. If you recall, that should be markdown that the author has written, so it'll need converting to HTML. 
+Về việc hiển thị các bài đăng, phần quan trọng còn lại là thực sự hiển thị trường `Body`. Nếu bạn còn nhớ, đó nên là markdown mà tác giả đã viết, vì vậy nó cần được chuyển đổi sang HTML.
 
-We'll leave this as an exercise for you, the reader. You should be able to find a Go library to do this for you. Use the approval test to validate what you're doing. 
+Chúng tôi sẽ để phần này làm bài tập cho bạn, người đọc. Bạn nên có thể tìm thấy một thư viện Go để làm việc này cho bạn. Hãy sử dụng approval test để xác thực những gì bạn đang làm.
 
-### On testing 3rd-party libraries
+### Về việc kiểm thử các thư viện bên thứ ba (3rd-party libraries)
 
-**Chú ý**. Be careful not to worry too much about explicitly testing how a 3rd party library behaves in unit tests. 
+**Ghi chú**. Cẩn thận đừng lo lắng quá nhiều về việc kiểm thử rõ ràng cách một thư viện bên thứ ba hoạt động trong các bản kiểm thử đơn vị (unit tests).
 
-Writing tests against code you don't control is wasteful and adds maintenance overhead. Sometimes you may wish to use [dependency injection](./dependency-injection.md) to control a dependency and mock its behaviour for a test.
+Viết các bản kiểm thử cho mã nguồn mà bạn không kiểm soát là lãng phí và thêm gánh nặng bảo trì. Đôi khi bạn có thể muốn sử dụng [dependency injection](./dependency-injection.md) to control a dependency and mock its behaviour for a test.
 
 In this case though, I view converting the markdown into HTML as implementation detail of rendering, and our approval tests should give us enough confidence.
 
@@ -699,12 +699,12 @@ t.Run("it renders an index of posts", func(t *testing.T) {
 })
 ```
 
-1. We're using the `Post`'s title field as a part of the path of the URL, but we don't really want spaces in the URL so we're replacing them with hyphens.
-2. We've added a `RenderIndex` method to our `PostRenderer` that again takes an `io.Writer` and a slice of `Post`.
+1. Chúng ta đang sử dụng trường tiêu đề (title) của `Post` làm một phần đường dẫn của URL, nhưng chúng ta thực sự không muốn có khoảng trắng trong URL vì vậy chúng ta đang thay thế chúng bằng các dấu gạch nối.
+2. Chúng ta đã thêm một phương thức `RenderIndex` vào `PostRenderer` cũng nhận vào một `io.Writer` và một slice các `Post`.
 
-If we had stuck with a test-after, approval tests approach here we would not be answering these questions in a controlled environment. **Tests give us space to think**. 
+Nếu chúng ta bám vào phương pháp test-after, approval tests ở đây, chúng ta sẽ không trả lời được những câu hỏi này trong một môi trường được kiểm soát. **Các bản kiểm thử cho chúng ta không gian để suy nghĩ**.
 
-## Try to run the test
+## Thử chạy test
 
 ```
 ./renderer_test.go:41:13: undefined: blogrenderer.RenderIndex
@@ -718,7 +718,7 @@ func (r *PostRenderer) RenderIndex(w io.Writer, posts []Post) error {
 }
 ```
 
-The above should get the following test failure
+Ở trên nên nhận kết quả thất bại bản kiểm thử sau:
 
 ```
 === RUN   TestRender
@@ -729,7 +729,7 @@ The above should get the following test failure
 
 ## Viết đủ code để test chạy thành công
 
-Even though this _feels_ like it should be easy, it is a bit awkward. I did it in multiple steps
+Mặc dù điều này *có cảm giác* là nó nên dễ dàng, nhưng nó hơi khó xử một chút. Tôi đã làm nó trong nhiều bước.
 
 ```go
 func (r *PostRenderer) RenderIndex(w io.Writer, posts []Post) error {
@@ -748,9 +748,9 @@ func (r *PostRenderer) RenderIndex(w io.Writer, posts []Post) error {
 }
 ```
 
-I didn't want to bother with separate template files at first, I just wanted to get it working. I view the upfront template parsing and separation as refactoring I can do later. 
+Tôi chưa muốn bận tâm đến các file mẫu riêng biệt ngay từ đầu, tôi chỉ muốn làm cho nó hoạt động. Tôi xem việc phân tích mẫu ngay từ đầu và tách biệt nó là việc tái cấu trúc mà tôi có thể thực hiện sau này.
 
-This doesn't pass, but it's close.
+Cái này chưa vượt qua, nhưng nó đã khá gần.
 
 ```
 === RUN   TestRender
@@ -760,11 +760,11 @@ This doesn't pass, but it's close.
     --- FAIL: TestRender/it_renders_an_index_of_posts (0.00s)
 ```
 
-You can see that the templating code is escaping the spaces in the `href` attributes. We need a way to do a string replace of spaces with hyphens. We can't just loop through the `[]Post` and replace them in-memory because we still want the spaces displayed to the user in the anchors. 
+Bạn có thể thấy mã nguồn templating đang thoát (escape) các khoảng trắng trong các thuộc tính `href`. Chúng ta cần một cách để thực hiện thay thế (replace) chuỗi khoảng trắng bằng dấu gạch nối. Chúng ta không thể chỉ lặp qua `[]Post` và thay thế chúng trong bộ nhớ vì chúng ta vẫn muốn các khoảng trắng được hiển thị cho người dùng trong các thẻ link (anchors).
 
-We have a few options. The first one we'll explore is passing a function in to our template. 
+Chúng ta có một vài lựa chọn. Cách đầu tiên chúng ta sẽ khám phá là truyền một hàm vào mẫu của mình.
 
-### Passing functions into templates 
+### Truyền các hàm vào template
 
 ```go
 func (r *PostRenderer) RenderIndex(w io.Writer, posts []Post) error {
@@ -787,33 +787,33 @@ func (r *PostRenderer) RenderIndex(w io.Writer, posts []Post) error {
 }
 ```
 
-_Before you parse a template_ you can add a `template.FuncMap` into your template, which allows you to define functions that can be called within your template. In this case we've made a `sanitiseTitle` function which we then call inside our template with `{{sanitiseTitle .Title}}`.
+*Trước khi bạn phân tích một mẫu*, bạn có thể thêm một `template.FuncMap` vào mẫu của mình, cho phép bạn định nghĩa các hàm có thể được gọi bên trong mẫu của mình. Trong trường hợp này, chúng ta đã tạo một hàm `sanitiseTitle`, sau đó chúng ta gọi nó bên trong mẫu của mình bằng `{{sanitiseTitle .Title}}`.
 
-This is a powerful feature, being able to send functions in to your template will allow you to do some very cool things, but, should you? Going back to the principles of Mustache and logic-less templates, why did they advocate for logic-less? **What is wrong with logic in templates?** 
+Đây là một tính năng mạnh mẽ, việc có thể gửi các hàm vào mẫu sẽ cho phép bạn làm một số điều rất thú vị, nhưng, bạn có nên làm thế không? Quay lại các nguyên tắc của Mustache và các logic-less template, tại sao họ lại ủng hộ logic-less? **Có vấn đề gì với logic trong mẫu?**
 
-As we've shown, in order to test our templates, *we've had to introduce a whole different kind of testing*. 
+Như chúng ta đã chỉ ra, để kiểm thử các mẫu của mình, *chúng ta đã phải giới thiệu một loại kiểm thử hoàn toàn khác*.
 
-Imagine you introduce a function into a template which has a few different permutations of behaviour and edge cases, **how will you test it**? With this current design, your only means of testing this logic is by _rendering HTML and comparing strings_. This is not an easy or sane way of testing logic, and definitely not what you'd want for _important_ business logic. 
+Hãy tưởng tượng bạn đưa một hàm vào một mẫu có một vài hoán vị hành vi và các trường hợp biên, **bạn sẽ kiểm thử nó như thế nào**? Với thiết kế hiện tại này, phương tiện kiểm thử logic duy nhất của bạn là bằng cách *hiển thị HTML và so sánh chuỗi*. Đây không phải là một cách dễ dàng hay lành mạnh để kiểm thử logic, và chắc chắn không phải là những gì bạn muốn cho logic nghiệp vụ *quan trọng*.
 
-Even though the approval tests technique has reduced the cost of maintaining these tests, they're still more expensive to maintain than most unit tests you'll write. They're still sensitive to any minor markup changes you might make, it's just we've made it easier to manage. We should still strive to architect our code so we don't have to write many tests around our templates, and try and separate concerns so any logic that doesn't need to live inside our rendering code is properly separated.
+Mặc dù kỹ thuật approval tests đã làm giảm chi phí duy trì các bản kiểm thử này, chúng vẫn đắt đỏ để duy trì hơn hầu hết các bản kiểm thử đơn vị mà bạn sẽ viết. Chúng vẫn nhạy cảm với bất kỳ thay đổi markup nhỏ nào bạn thực hiện, chỉ là chúng ta đã làm cho việc quản lý dễ dàng hơn. Chúng ta vẫn nên cố gắng kiến trúc mã nguồn của mình sao cho không phải viết nhiều bản kiểm thử xung quanh các mẫu, và cố gắng tách biệt các mối quan tâm để bất kỳ logic nào không cần thiết phải nằm trong mã nguồn hiển thị đều được tách biệt một cách hợp lý.
 
-What Mustache-influenced templating engines give you is a useful constraint, don't try to circumvent it too often; **don't go against the grain**. Instead, embrace the idea of [view models](https://stackoverflow.com/a/11074506/3193), where you construct specific types that contain the data you need to render, in a way that's convenient for the templating language. 
+Những gì các engine templating chịu ảnh hưởng từ Mustache mang lại cho bạn là một sự ràng buộc hữu ích, đừng cố gắng lách qua nó quá thường xuyên; **đừng đi ngược lại xu thế**. Thay vào đó, hãy đón nhận ý tưởng về [view models](https://stackoverflow.com/a/11074506/3193), nơi bạn xây dựng các kiểu dữ liệu cụ thể chứa dữ liệu bạn cần hiển thị, theo cách thuận tiện cho ngôn ngữ templating.
 
-This way, whatever important business logic you use to generate that bag of data can be unit tested separately, away from the messy world of HTML and templating. 
+Bằng cách này, bất kỳ logic nghiệp vụ quan trọng nào bạn sử dụng để tạo túi dữ liệu đó đều có thể được kiểm thử đơn vị một cách riêng biệt, tránh xa thế giới lộn xộn của HTML và templating.
 
-### Separating concerns
+### Tách biệt các mối quan tâm (Separating concerns)
 
-So what could we do instead?
+Vậy chúng ta có thể làm gì thay thế?
 
-#### Add a method to `Post` and then call that in the template
+#### Thêm một phương thức vào `Post` và sau đó gọi nó trong mẫu
 
-We can call methods in our templating code on the types we send, so we could add a `SanitisedTitle` method to `Post`. This would simplify the template and we could easily unit test this logic separately if we wish. This is probably the easiest solution, although not necessarily the simplest.  
+Chúng ta có thể gọi các phương thức trong mã nguồn templating trên các kiểu dữ liệu chúng ta gửi đi, vì vậy chúng ta có thể thêm một phương thức `SanitisedTitle` vào `Post`. Điều này sẽ đơn giản hóa mẫu và chúng ta có thể dễ dàng kiểm thử đơn vị logic này một cách riêng biệt nếu muốn. Đây có lẽ là giải pháp dễ dàng nhất, mặc dù không hẳn là đơn giản nhất.
 
-A downside to this approach is that this is still _view_ logic. It's not interesting to the rest of the system but it now becomes a part of the API for a core domain object. This kind of approach over time can lead to you creating [God Objects](https://en.wikipedia.org/wiki/God_object).
+Một mặt trái của cách tiếp cận này là đây vẫn là logic của *view*. Nó không thú vị đối với phần còn lại của hệ thống nhưng giờ đây nó trở thành một phần API cho một core domain object. Loại cách tiếp cận này theo thời gian có thể dẫn đến việc bạn tạo ra các [God Objects](https://en.wikipedia.org/wiki/God_object).
 
-#### Create a dedicated view model type, such as `PostViewModel` with exactly the data we need
+#### Tạo một view model chuyên dụng, chẳng hạn như `PostViewModel` với chính xác dữ liệu chúng ta cần
 
-Rather than our rendering code being coupled to the domain object, `Post`, it instead takes a view model.
+Thay vì mã nguồn hiển thị của chúng ta bị ràng buộc vào domain object, `Post`, thay vào đó nó nhận một view model.
 
 ```go
 type PostViewModel struct {
@@ -822,13 +822,13 @@ type PostViewModel struct {
 }
 ```
 
-Callers of our code would have to map from `[]Post` to `[]PostView`, generating the `SanitizedTitle`. A way to keep this clean would be to have a `func NewPostView(p Post) PostView` which would encapsulate the mapping.
+Người gọi mã nguồn của chúng ta sẽ phải ánh xạ (map) từ `[]Post` sang `[]PostView`, tạo ra `SanitisedTitle`. Một cách để giữ cho việc này sạch sẽ là có một `func NewPostView(p Post) PostView` để đóng gói việc ánh xạ.
 
-This would keep our rendering code logic-less and is probably the strictest separation of concerns we could do, but the trade-off is a slightly more convoluted process to get our posts rendered.
+Điều này sẽ giữ cho mã nguồn hiển thị của chúng ta không có logic (logic-less) và có lẽ là sự tách biệt các mối quan tâm nghiêm ngặt nhất mà chúng ta có thể thực hiện, nhưng sự đánh đổi là một quy trình rắc rối hơn một chút để hiển thị bài đăng của mình.
 
-Both options are fine, in this case I am tempted to go with the first. As you evolve the system you should be wary of adding more and more ad-hoc methods just to grease the wheels of rendering; dedicated view models become more useful when the transformation between the domain object and view becomes more involved.
+Cả hai tùy chọn đều ổn, trong trường hợp này tôi đang bị cám dỗ chọn phương án đầu tiên. Khi bạn phát triển hệ thống, bạn nên thận trọng khi thêm ngày càng nhiều phương thức ad-hoc chỉ để làm mượt quá trình hiển thị; các view model chuyên dụng trở nên hữu ích hơn khi việc chuyển đổi giữa domain object và view trở nên phức tạp hơn.
 
-So we can add our method to `Post`
+Vì vậy chúng ta có thể thêm phương thức của mình vào `Post`:
 
 ```go
 func (p Post) SanitisedTitle() string {
@@ -836,7 +836,7 @@ func (p Post) SanitisedTitle() string {
 }
 ```
 
-And then we can go back to a simpler world in our rendering code
+Và sau đó chúng ta có thể quay lại một thế giới đơn giản hơn trong mã nguồn hiển thị của mình:
 
 ```go
 func (r *PostRenderer) RenderIndex(w io.Writer, posts []Post) error {
@@ -857,7 +857,7 @@ func (r *PostRenderer) RenderIndex(w io.Writer, posts []Post) error {
 
 ## Refactor
 
-Finally the test should be passing. We can now move our template into a file (`templates/index.gohtml`) and load it once, when we construct our renderer.
+Cuối cùng thì bản kiểm thử cũng nên vượt qua. Bây giờ chúng ta có thể di chuyển mẫu của mình vào một file (`templates/index.gohtml`) và tải nó một lần duy nhất khi chúng ta xây dựng renderer của mình.
 
 ```go
 package blogrenderer
@@ -895,11 +895,11 @@ func (r *PostRenderer) RenderIndex(w io.Writer, posts []Post) error {
 }
 ```
 
-By parsing more than one template into `templ` we now have to call `ExecuteTemplate` and specify _which_ template we wish to render as appropriate, but hopefully you'll agree the code we've arrived at looks great.
+Bằng cách phân tích nhiều hơn một mẫu vào `templ`, bây giờ chúng ta phải gọi `ExecuteTemplate` và chỉ định mẫu *nào* chúng ta muốn hiển thị cho phù hợp, nhưng hy vọng bạn sẽ đồng ý rằng mã nguồn mà chúng ta đạt được trông thật tuyệt vời.
 
-There is a _slight_ risk if someone renames one of the template files, it would introduce a bug, but our fast to run unit tests would catch this quickly. 
+Có một rủi ro *nhẹ* nếu ai đó đổi tên một trong các file mẫu, nó sẽ gây ra lỗi, nhưng các bản kiểm thử đơn vị chạy nhanh của chúng ta sẽ phát hiện ra điều này một cách nhanh chóng.
 
-Now we're happy with our package's API design and got some basic behaviour driven out with TDD, let's change our test to use approvals.
+Bây giờ chúng ta đã hài lòng với thiết kế API cho package của mình và có một số hành vi cơ bản được dẫn dắt bởi TDD, hãy thay đổi bản kiểm thử của chúng ta để sử dụng approvals.
 
 ```go
 	t.Run("it renders an index of posts", func(t *testing.T) {
@@ -914,9 +914,9 @@ Now we're happy with our package's API design and got some basic behaviour drive
 	})
 ```
 
-Remember to run the test to see it fail, and then approve the change. 
+Hãy nhớ chạy bản kiểm thử để thấy nó thất bại, và sau đó phê duyệt thay đổi.
 
-Finally we can add our page furniture to our index page:
+Cuối cùng, chúng ta có thể thêm khung trang (page furniture) vào trang chủ (index page):
 
 ```handlebars
 {{template "top" .}}
@@ -924,11 +924,11 @@ Finally we can add our page furniture to our index page:
 {{template "bottom" .}}
 ```
 
-Re-run the test, approve the change and we're done with the index!
+Chạy lại bản kiểm thử, phê duyệt thay đổi và chúng ta đã hoàn tất phần trang chủ!
 
-## Rendering the markdown body
+## Hiển thị thân bài markdown
 
-I encouraged you to try it yourself, here's the approach I ended up taking.
+Tôi đã khuyến khích bạn tự mình thử sức, đây là cách tiếp cận mà tôi đã kết thúc việc triển khai.
 
 ```go
 package blogrenderer
@@ -983,27 +983,27 @@ func newPostVM(p Post, r *PostRenderer) postViewModel {
 }
 ```
 
-I used the excellent [gomarkdown](https://github.com/gomarkdown/markdown) library which worked exactly how I'd hope. 
+Tôi đã sử dụng thư viện [gomarkdown](https://github.com/gomarkdown/markdown) xuất sắc hoạt động chính xác theo những gì tôi hy vọng.
 
-If you tried to do this yourself you may have found that your body render had the HTML escaped. This is a security feature of Go's html/template package to stop malicious 3rd-party HTML being outputted. 
+Nếu bạn tự mình thử làm điều này, bạn có thể thấy rằng phần hiển thị thân bài của mình đã bị thoát (escaped) HTML. Đây là một tính năng bảo mật của package html/template của Go để ngăn chặn HTML bên thứ ba độc hại bị xuất ra.
 
-To circumvent this, in the type you send to the render, you'll need to wrap your trusted HTML in [template.HTML](https://pkg.go.dev/html/template#HTML)
+Để giải quyết vấn đề này, trong kiểu dữ liệu bạn gửi để hiển thị, bạn cần bọc đoạn HTML tin cậy của mình trong [template.HTML](https://pkg.go.dev/html/template#HTML).
 
-> HTML encapsulates a known safe HTML document fragment. It should not be used for HTML from a third-party, or HTML with unclosed tags or comments. The outputs of a sound HTML sanitiser and a template escaped by this package are fine for use with HTML.
+> HTML đóng gói một đoạn tài liệu HTML an toàn đã biết. Nó không nên được sử dụng cho HTML từ bên thứ ba, hoặc HTML với các thẻ hoặc nhận xét chưa đóng. Đầu ra của một sanitizer HTML lành mạnh và một mẫu được thoát bởi package này sẽ tốt để sử dụng với HTML.
 >
-> Use of this type presents a security risk: the encapsulated content should come from a trusted source, as it will be included verbatim in the template output.
+> Việc sử dụng kiểu dữ liệu này có rủi ro bảo mật: nội dung đóng gói nên đến từ một nguồn đáng tin cậy, vì nó sẽ được bao gồm nguyên văn trong đầu ra của mẫu.
 
-So I created an **unexported** view model (`postViewModel`), because I still viewed this as internal implementation detail to rendering. I have no need to test this separately and I don't want it polluting my API. 
+Vì vậy, tôi đã tạo một view model **không được xuất bản** (unexported) (`postViewModel`), vì tôi vẫn coi đây là chi tiết triển khai nội bộ của việc hiển thị. Tôi không cần phải kiểm thử việc này riêng biệt và tôi không muốn nó làm vấy bẩn API của mình.
 
-I construct one when rendering so I can parse the `Body` into `HTMLBody` and then I use that field in the template to render the HTML.
+Tôi xây dựng một cái khi hiển thị để có thể phân tích `Body` thành `HTMLBody` và sau đó tôi sử dụng trường đó trong mẫu để hiển thị HTML.
 
 ## Tổng kết
 
-If you combine your learnings of the [reading files](reading-files.md) chapter and this one, you can comfortably make a well-tested, simple, static site generator and spin up a blog of your own. Find some CSS tutorials and you can make it look nice too. 
+Nếu bạn kết hợp các bài học về chương [đọc file](reading-files.md) và chương này, bạn có thể thoải mái tạo ra một trình tạo trang web tĩnh đơn giản, được kiểm thử tốt và tự mình khởi chạy một blog của riêng mình. Tìm thêm một số hướng dẫn về CSS và bạn có thể làm cho nó trông đẹp mắt nữa.
 
-This approach extends beyond blogs. Taking data from any source, be it a database, an API or a file-system and converting it into HTML and returning it from a server is a simple technique spanning many decades. People like to bemoan the complexity of modern web development but are you sure you're not just inflicting the complexity on yourself?
+Cách tiếp cận này mở rộng ra ngoài các blog. Lấy dữ liệu từ bất kỳ nguồn nào, có thể là cơ sở dữ liệu, một API hoặc một hệ thống file và chuyển đổi nó thành HTML và trả về từ một server là một kỹ thuật đơn giản kéo dài hàng thập kỷ. Mọi người thích than phiền về sự phức tạp của phát triển web hiện đại nhưng bạn có chắc mình không chỉ đang tự gây ra sự phức tạp cho chính mình không?
 
-Go is wonderful for web development, especially when you think clearly about what your real requirements are for the website you're making. Generating HTML on the server is often a better, simpler and more performant approach than creating a "web application" with technologies like React.
+Go là tuyệt vời cho phát triển web, especially when you think clearly about what your real requirements are for the website you're making. Generating HTML on the server is often a better, simpler and more performant approach than creating a "web application" with technologies like React.
 
 ### What we've learned
 
@@ -1024,3 +1024,4 @@ Remember that go has `text/template` to generate other kinds of data from a temp
 
 - [John Calhoun's 'Learn Web Development with Go'](https://www.calhoun.io/intro-to-templates-p1-contextual-encoding/) has a number of excellent articles on templating.
 - [Hotwire](https://hotwired.dev) - You can use these techniques to create Hotwire web applications. It has been built by Basecamp who are primarily a Ruby on Rails shop, but because it is server-side, we can use it with Go. 
+

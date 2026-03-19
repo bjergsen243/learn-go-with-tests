@@ -22,7 +22,7 @@
 * [Giới thiệu về property based tests](roman-numerals.md)
 * [Toán học](math.md)
 * [Đọc file](reading-files.md)
-* [Templating](html-templates.md)
+* [HTML Templates](html-templates.md)
 * [Generics](generics.md)
 * [Revisiting arrays and slices with generics](revisiting-arrays-and-slices-with-generics.md)
 
