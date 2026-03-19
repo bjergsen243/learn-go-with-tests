@@ -2,11 +2,11 @@
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/structs)**
 
-Suppose that we need some geometry code to calculate the perimeter of a rectangle given a height and width. We can write a `Perimeter(width float64, height float64)` function, where `float64` is for floating-point numbers like `123.45`.
+Giả sử chúng ta cần một số code hình học để tính chu vi của hình chữ nhật với chiều cao và chiều rộng cho trước. Chúng ta có thể viết hàm `Perimeter(width float64, height float64)`, trong đó `float64` dành cho các số dấu phẩy động như `123.45`.
 
-The TDD cycle should be pretty familiar to you by now.
+Chu trình TDD giờ chắc hẳn đã quen thuộc với bạn.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 func TestPerimeter(t *testing.T) {
@@ -19,9 +19,9 @@ func TestPerimeter(t *testing.T) {
 }
 ```
 
-Notice the new format string? The `f` is for our `float64` and the `.2` means print 2 decimal places.
+Chú ý format string mới? Chữ `f` là cho `float64` và `.2` có nghĩa là in 2 chữ số thập phân.
 
-## Try to run the test
+## Thử chạy test
 
 `./shapes_test.go:6:9: undefined: Perimeter`
 
@@ -33,7 +33,7 @@ func Perimeter(width float64, height float64) float64 {
 }
 ```
 
-Results in `shapes_test.go:10: got 0.00 want 40.00`.
+Kết quả: `shapes_test.go:10: got 0.00 want 40.00`.
 
 ## Viết đủ code để test chạy thành công
 
@@ -43,11 +43,11 @@ func Perimeter(width float64, height float64) float64 {
 }
 ```
 
-So far, so easy. Now let's create a function called `Area(width, height float64)` which returns the area of a rectangle.
+Đến đây, khá đơn giản. Giờ hãy tạo hàm `Area(width, height float64)` trả về diện tích hình chữ nhật.
 
-Try to do it yourself, following the TDD cycle.
+Hãy tự thực hiện theo chu trình TDD.
 
-You should end up with tests like this
+Cuối cùng bạn sẽ có test như sau:
 
 ```go
 func TestPerimeter(t *testing.T) {
@@ -69,7 +69,7 @@ func TestArea(t *testing.T) {
 }
 ```
 
-And code like this
+Và code như sau:
 
 ```go
 func Perimeter(width float64, height float64) float64 {
@@ -83,13 +83,13 @@ func Area(width float64, height float64) float64 {
 
 ## Refactor
 
-Our code does the job, but it doesn't contain anything explicit about rectangles. An unwary developer might try to supply the width and height of a triangle to these functions without realising they will return the wrong answer.
+Code của chúng ta đúng, nhưng không có gì rõ ràng về hình chữ nhật. Một developer thiếu cẩn thận có thể truyền chiều rộng và chiều cao của tam giác vào các hàm này mà không nhận ra sẽ nhận được kết quả sai.
 
-We could just give the functions more specific names like `RectangleArea`. A neater solution is to define our own _type_ called `Rectangle` which encapsulates this concept for us.
+Chúng ta có thể đặt tên hàm cụ thể hơn như `RectangleArea`. Nhưng giải pháp gọn hơn là định nghĩa _kiểu_ riêng tên `Rectangle` để đóng gói khái niệm cho chúng ta.
 
-We can create a simple type using a **struct**. [A struct](https://golang.org/ref/spec#Struct_types) is just a named collection of fields where you can store data.
+Chúng ta có thể tạo kiểu đơn giản bằng **struct**. [Struct](https://golang.org/ref/spec#Struct_types) là một tập hợp các trường có tên để lưu dữ liệu.
 
-Declare a struct like this
+Khai báo struct như sau:
 
 ```go
 type Rectangle struct {
@@ -98,7 +98,7 @@ type Rectangle struct {
 }
 ```
 
-Now let's refactor the tests to use `Rectangle` instead of plain `float64`s.
+Giờ hãy refactor test để dùng `Rectangle` thay vì `float64` thuần túy.
 
 ```go
 func TestPerimeter(t *testing.T) {
@@ -122,7 +122,7 @@ func TestArea(t *testing.T) {
 }
 ```
 
-Remember to run your tests before attempting to fix. The tests should show a helpful error like
+Nhớ chạy test trước khi cố sửa. Test sẽ hiển thị lỗi hữu ích như:
 
 ```text
 ./shapes_test.go:7:18: not enough arguments in call to Perimeter
@@ -130,9 +130,9 @@ Remember to run your tests before attempting to fix. The tests should show a hel
     want (float64, float64)
 ```
 
-You can access the fields of a struct with the syntax of `myStruct.field`.
+Bạn có thể truy cập các trường của struct với cú pháp `myStruct.field`.
 
-Change the two functions to fix the test.
+Sửa hai hàm để test pass:
 
 ```go
 func Perimeter(rectangle Rectangle) float64 {
@@ -144,11 +144,11 @@ func Area(rectangle Rectangle) float64 {
 }
 ```
 
-I hope you'll agree that passing a `Rectangle` to a function conveys our intent more clearly, but there are more benefits of using structs that we will cover later.
+Hy vọng bạn đồng ý rằng truyền `Rectangle` vào hàm thể hiện ý định rõ ràng hơn, nhưng structs còn có nhiều lợi ích khác sẽ được đề cập sau.
 
-Our next requirement is to write an `Area` function for circles.
+Yêu cầu tiếp theo là viết hàm `Area` cho hình tròn.
 
-## Write the test first
+## Viết test trước tiên
 
 ```go
 func TestArea(t *testing.T) {
@@ -176,17 +176,15 @@ func TestArea(t *testing.T) {
 }
 ```
 
-As you can see, the `f` has been replaced by `g`, with good reason.
-Use of `g` will print a more precise decimal number in the error message \([fmt options](https://golang.org/pkg/fmt/)\).
-For example, using a radius of 1.5 in a circle area calculation, `f` would show `7.068583` whereas `g` would show `7.0685834705770345`.
+Như bạn thấy, `f` đã được thay bằng `g`, và có lý do. Dùng `g` sẽ in số thập phân chính xác hơn trong thông báo lỗi \([fmt options](https://golang.org/pkg/fmt/)\). Ví dụ, với bán kính 1.5 trong tính diện tích hình tròn, `f` sẽ hiển thị `7.068583` trong khi `g` sẽ hiển thị `7.0685834705770345`.
 
-## Try to run the test
+## Thử chạy test
 
 `./shapes_test.go:28:13: undefined: Circle`
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-We need to define our `Circle` type.
+Chúng ta cần định nghĩa kiểu `Circle`.
 
 ```go
 type Circle struct {
@@ -194,36 +192,35 @@ type Circle struct {
 }
 ```
 
-Now try to run the tests again
+Bây giờ thử chạy test lại
 
 `./shapes_test.go:29:14: cannot use circle (type Circle) as type Rectangle in argument to Area`
 
-Some programming languages allow you to do something like this:
+Một số ngôn ngữ lập trình cho phép làm như sau:
 
 ```go
 func Area(circle Circle) float64       {}
 func Area(rectangle Rectangle) float64 {}
 ```
 
-But you cannot in Go
+Nhưng trong Go thì không thể
 
 `./shapes.go:20:32: Area redeclared in this block`
 
-We have two choices:
+Chúng ta có hai lựa chọn:
 
-* You can have functions with the same name declared in different _packages_. So we could create our `Area(Circle)` in a new package, but that feels overkill here.
-* We can define [_methods_](https://golang.org/ref/spec#Method_declarations) on our newly defined types instead.
+* Có thể khai báo các hàm cùng tên trong các _package_ khác nhau. Vì vậy chúng ta có thể tạo `Area(Circle)` trong một package mới, nhưng điều đó có vẻ quá mức ở đây.
+* Chúng ta có thể định nghĩa [_methods_](https://golang.org/ref/spec#Method_declarations) trên các kiểu mới định nghĩa.
 
-### What are methods?
+### Method là gì?
 
-So far we have only been writing _functions_ but we have been using some methods. When we call `t.Errorf` we are calling the method `Errorf` on the instance of our `t` \(`testing.T`\).
+Cho đến nay chúng ta chỉ viết _functions_ nhưng cũng đã dùng một số methods. Khi gọi `t.Errorf`, chúng ta đang gọi method `Errorf` trên instance `t` \(`testing.T`\).
 
-A method is a function with a receiver.
-A method declaration binds an identifier, the method name, to a method, and associates the method with the receiver's base type.
+Method là function có receiver. Khai báo method gắn một tên với method đó và liên kết method với base type của receiver.
 
-Methods are very similar to functions but they are called by invoking them on an instance of a particular type. Where you can just call functions wherever you like, such as `Area(rectangle)` you can only call methods on "things".
+Method rất giống functions nhưng được gọi bằng cách invoke trên instance của một kiểu cụ thể. Trong khi bạn có thể gọi functions ở bất kỳ đâu như `Area(rectangle)`, bạn chỉ có thể gọi methods trên "đối tượng".
 
-An example will help so let's change our tests first to call methods instead and then fix the code.
+Hãy đổi test để gọi methods thay vì functions rồi sửa code.
 
 ```go
 func TestArea(t *testing.T) {
@@ -251,7 +248,7 @@ func TestArea(t *testing.T) {
 }
 ```
 
-If we try to run the tests, we get
+Nếu thử chạy test, chúng ta sẽ nhận được:
 
 ```text
 ./shapes_test.go:19:19: rectangle.Area undefined (type Rectangle has no field or method Area)
@@ -260,11 +257,11 @@ If we try to run the tests, we get
 
 > type Circle has no field or method Area
 
-I would like to reiterate how great the compiler is here. It is so important to take the time to slowly read the error messages you get, it will help you in the long run.
+Điều quan trọng là phải dành thời gian đọc kỹ thông báo lỗi. Làm quen điều này sẽ giúp ích cho bạn lâu dài.
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-Let's add some methods to our types
+Hãy thêm một số methods vào các kiểu của chúng ta:
 
 ```go
 type Rectangle struct {
@@ -285,21 +282,21 @@ func (c Circle) Area() float64 {
 }
 ```
 
-The syntax for declaring methods is almost the same as functions and that's because they're so similar. The only difference is the syntax of the method receiver `func (receiverName ReceiverType) MethodName(args)`.
+Cú pháp khai báo methods gần giống với functions vì chúng rất giống nhau. Sự khác biệt duy nhất là cú pháp của method receiver `func (receiverName ReceiverType) MethodName(args)`.
 
-When your method is called on a variable of that type, you get your reference to its data via the `receiverName` variable. In many other programming languages this is done implicitly and you access the receiver via `this`.
+Khi method được gọi trên biến của kiểu đó, bạn lấy tham chiếu đến dữ liệu của nó thông qua biến `receiverName`. Trong nhiều ngôn ngữ lập trình khác, điều này được thực hiện ngầm định và bạn truy cập receiver qua `this`.
 
-It is a convention in Go to have the receiver variable be the first letter of the type.
+Theo quy ước trong Go, biến receiver là chữ cái đầu tiên của kiểu.
 
 ```
 r Rectangle
 ```
 
-If you try to re-run the tests they should now compile and give you some failing output.
+Nếu thử chạy lại test, chúng sẽ biên dịch được và cho một số kết quả thất bại.
 
 ## Viết đủ code để test chạy thành công
 
-Now let's make our rectangle tests pass by fixing our new method
+Bây giờ hãy làm cho test rectangle pass bằng cách sửa method mới của chúng ta:
 
 ```go
 func (r Rectangle) Area() float64 {
@@ -307,9 +304,9 @@ func (r Rectangle) Area() float64 {
 }
 ```
 
-If you re-run the tests the rectangle tests should be passing but circle should still be failing.
+Nếu chạy lại test, test rectangle sẽ pass nhưng circle vẫn fail.
 
-To make circle's `Area` function pass we will borrow the `Pi` constant from the `math` package \(remember to import it\).
+Để làm cho hàm `Area` của circle pass, chúng ta sẽ dùng hằng số `Pi` từ package `math` \(nhớ import nó\).
 
 ```go
 func (c Circle) Area() float64 {
@@ -319,17 +316,17 @@ func (c Circle) Area() float64 {
 
 ## Refactor
 
-There is some duplication in our tests.
+Có một số sự trùng lặp trong các test của chúng ta.
 
-All we want to do is take a collection of _shapes_, call the `Area()` method on them and then check the result.
+Tất cả những gì chúng ta muốn làm là lấy một tập hợp các _shapes_, gọi method `Area()` trên chúng rồi kiểm tra kết quả.
 
-We want to be able to write some kind of `checkArea` function that we can pass both `Rectangle`s and `Circle`s to, but fail to compile if we try to pass in something that isn't a shape.
+Chúng ta muốn có thể viết hàm `checkArea` nhận cả `Rectangle` và `Circle`, nhưng thất bại biên dịch nếu chúng ta cố truyền thứ gì đó không phải là shape.
 
-With Go, we can codify this intent with **interfaces**.
+Với Go, chúng ta có thể mã hóa ý định này bằng **interfaces**.
 
-[Interfaces](https://golang.org/ref/spec#Interface_types) are a very powerful concept in statically typed languages like Go because they allow you to make functions that can be used with different types and create highly-decoupled code whilst still maintaining type-safety.
+[Interfaces](https://golang.org/ref/spec#Interface_types) là một khái niệm rất mạnh trong các ngôn ngữ kiểu tĩnh như Go vì chúng cho phép tạo các functions dùng được với nhiều kiểu khác nhau và tạo ra code decoupled cao trong khi vẫn duy trì type-safety.
 
-Let's introduce this by refactoring our tests.
+Hãy giới thiệu điều này bằng cách refactor test:
 
 ```go
 func TestArea(t *testing.T) {
@@ -355,9 +352,9 @@ func TestArea(t *testing.T) {
 }
 ```
 
-We are creating a helper function like we have in other exercises but this time we are asking for a `Shape` to be passed in. If we try to call this with something that isn't a shape, then it will not compile.
+Chúng ta đang tạo hàm helper như trong các bài tập khác, nhưng lần này yêu cầu `Shape` được truyền vào. Nếu gọi với thứ gì đó không phải shape, nó sẽ không biên dịch được.
 
-How does something become a shape? We just tell Go what a `Shape` is using an interface declaration
+Làm thế nào để một thứ trở thành shape? Chúng ta chỉ cần nói với Go `Shape` là gì bằng khai báo interface:
 
 ```go
 type Shape interface {
@@ -365,34 +362,34 @@ type Shape interface {
 }
 ```
 
-We're creating a new `type` just like we did with `Rectangle` and `Circle` but this time it is an `interface` rather than a `struct`.
+Chúng ta đang tạo một `type` mới giống như đã làm với `Rectangle` và `Circle`, nhưng lần này là `interface` thay vì `struct`.
 
-Once you add this to the code, the tests will pass.
+Sau khi thêm vào code, test sẽ pass.
 
-### Wait, what?
+### Chờ đã, sao vậy?
 
-This is quite different to interfaces in most other programming languages. Normally you have to write code to say `My type Foo implements interface Bar`.
+Điều này khá khác với interfaces trong hầu hết các ngôn ngữ lập trình khác. Thông thường bạn phải viết code để nói `My type Foo implements interface Bar`.
 
-But in our case
+Nhưng trong trường hợp này:
 
-* `Rectangle` has a method called `Area` that returns a `float64` so it satisfies the `Shape` interface
-* `Circle` has a method called `Area` that returns a `float64` so it satisfies the `Shape` interface
-* `string` does not have such a method, so it doesn't satisfy the interface
-* etc.
+* `Rectangle` có method tên `Area` trả về `float64` nên nó thỏa mãn interface `Shape`
+* `Circle` có method tên `Area` trả về `float64` nên nó thỏa mãn interface `Shape`
+* `string` không có method như vậy nên nó không thỏa mãn interface
+* v.v.
 
-In Go **interface resolution is implicit**. If the type you pass in matches what the interface is asking for, it will compile.
+Trong Go **interface resolution là implicit**. Nếu kiểu bạn truyền vào khớp với những gì interface yêu cầu, nó sẽ biên dịch được.
 
-### Decoupling
+### Decoupling (Tách rời)
 
-Notice how our helper does not need to concern itself with whether the shape is a `Rectangle` or a `Circle` or a `Triangle`. By declaring an interface, the helper is _decoupled_ from the concrete types and only has the method it needs to do its job.
+Chú ý cách helper của chúng ta không cần quan tâm đến việc shape là `Rectangle`, `Circle` hay `Triangle`. Bằng cách khai báo interface, helper được _decoupled_ khỏi các kiểu cụ thể và chỉ có method cần thiết để thực hiện công việc.
 
-This kind of approach of using interfaces to declare **only what you need** is very important in software design and will be covered in more detail in later sections.
+Cách tiếp cận dùng interfaces để khai báo **chỉ những gì bạn cần** rất quan trọng trong thiết kế phần mềm và sẽ được đề cập chi tiết hơn trong các phần sau.
 
-## Further refactoring
+## Refactor thêm
 
-Now that you have some understanding of structs we can introduce "table driven tests".
+Giờ bạn đã hiểu về structs, hãy giới thiệu "table driven tests".
 
-[Table driven tests](https://go.dev/wiki/TableDrivenTests) are useful when you want to build a list of test cases that can be tested in the same manner.
+[Table driven tests](https://go.dev/wiki/TableDrivenTests) hữu ích khi bạn muốn xây dựng danh sách các test case có thể được kiểm thử theo cùng một cách.
 
 ```go
 func TestArea(t *testing.T) {
@@ -415,20 +412,19 @@ func TestArea(t *testing.T) {
 }
 ```
 
-The only new syntax here is creating an "anonymous struct", `areaTests`. We are declaring a slice of structs by using `[]struct` with two fields, the `shape` and the `want`. Then we fill the slice with cases.
+Cú pháp mới duy nhất ở đây là tạo "anonymous struct", `areaTests`. Chúng ta khai báo slice of structs bằng `[]struct` với hai trường, `shape` và `want`. Sau đó điền vào slice với các test case.
 
-We then iterate over them just like we do any other slice, using the struct fields to run our tests.
+Chúng ta lặp qua chúng như bất kỳ slice nào, dùng các trường struct để chạy test.
 
-You can see how it would be very easy for a developer to introduce a new shape, implement `Area` and then add it to the test cases. In addition, if a bug is found with `Area` it is very easy to add a new test case to exercise it before fixing it.
+Bạn có thể thấy sẽ rất dễ dàng cho developer thêm shape mới, implement `Area` rồi thêm vào test case. Thêm vào đó, nếu bug được tìm thấy với `Area`, rất dễ thêm test case mới để tái tạo bug trước khi sửa.
 
-Table driven tests can be a great item in your toolbox, but be sure that you have a need for the extra noise in the tests.
-They are a great fit when you wish to test various implementations of an interface, or if the data being passed in to a function has lots of different requirements that need testing.
+Table driven tests có thể là công cụ tuyệt vời, nhưng hãy chắc rằng bạn thực sự cần chúng. Chúng rất phù hợp khi bạn muốn kiểm thử nhiều cách implement của một interface, hoặc khi data truyền vào hàm có nhiều yêu cầu khác nhau cần kiểm thử.
 
-Let's demonstrate all this by adding another shape and testing it; a triangle.
+Hãy minh hoạ tất cả điều này bằng cách thêm shape mới và test nó: tam giác.
 
-## Write the test first
+## Viết test trước tiên
 
-Adding a new test for our new shape is very easy. Just add `{Triangle{12, 6}, 36.0},` to our list.
+Thêm test mới cho shape mới rất dễ. Chỉ cần thêm `{Triangle{12, 6}, 36.0},` vào danh sách.
 
 ```go
 func TestArea(t *testing.T) {
@@ -452,15 +448,15 @@ func TestArea(t *testing.T) {
 }
 ```
 
-## Try to run the test
+## Thử chạy test
 
-Remember, keep trying to run the test and let the compiler guide you toward a solution.
+Nhớ, hãy tiếp tục thử chạy test và để compiler dẫn dắt bạn đến giải pháp.
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 `./shapes_test.go:25:4: undefined: Triangle`
 
-We have not defined `Triangle` yet
+Chúng ta chưa định nghĩa `Triangle`
 
 ```go
 type Triangle struct {
@@ -469,14 +465,14 @@ type Triangle struct {
 }
 ```
 
-Try again
+Thử lại
 
 ```text
 ./shapes_test.go:25:8: cannot use Triangle literal (type Triangle) as type Shape in field value:
     Triangle does not implement Shape (missing Area method)
 ```
 
-It's telling us we cannot use a `Triangle` as a shape because it does not have an `Area()` method, so add an empty implementation to get the test working
+Nó cho chúng ta biết không thể dùng `Triangle` như shape vì nó không có method `Area()`, vì vậy hãy thêm implementation rỗng để chạy được test:
 
 ```go
 func (t Triangle) Area() float64 {
@@ -484,7 +480,7 @@ func (t Triangle) Area() float64 {
 }
 ```
 
-Finally the code compiles and we get our error
+Cuối cùng code biên dịch được và chúng ta nhận lỗi:
 
 `shapes_test.go:31: got 0.00 want 36.00`
 
@@ -496,13 +492,13 @@ func (t Triangle) Area() float64 {
 }
 ```
 
-And our tests pass!
+Và test của chúng ta pass!
 
 ## Refactor
 
-Again, the implementation is fine but our tests could do with some improvement.
+Một lần nữa, implementation ổn nhưng test của chúng ta có thể cải thiện.
 
-When you scan this
+Khi bạn nhìn vào:
 
 ```
 {Rectangle{12, 6}, 72.0},
@@ -510,11 +506,11 @@ When you scan this
 {Triangle{12, 6}, 36.0},
 ```
 
-It's not immediately clear what all the numbers represent and you should be aiming for your tests to be easily understood.
+Không rõ ngay các số đại diện cho gì và bạn nên hướng tới test dễ hiểu.
 
-So far you've only been shown syntax for creating instances of structs `MyStruct{val1, val2}` but you can optionally name the fields.
+Cho đến nay bạn chỉ được thấy cú pháp tạo struct `MyStruct{val1, val2}` nhưng bạn có thể đặt tên các trường một cách tùy chọn.
 
-Let's see what it looks like
+Hãy xem kết quả:
 
 ```
         {shape: Rectangle{Width: 12, Height: 6}, want: 72.0},
@@ -522,30 +518,27 @@ Let's see what it looks like
         {shape: Triangle{Base: 12, Height: 6}, want: 36.0},
 ```
 
-In [Test-Driven Development by Example](https://g.co/kgs/yCzDLF) Kent Beck refactors some tests to a point and asserts:
+Trong [Test-Driven Development by Example](https://g.co/kgs/yCzDLF), Kent Beck refactor một số test đến một điểm và khẳng định:
 
-> The test speaks to us more clearly, as if it were an assertion of truth, **not a sequence of operations**
+> Test nói với chúng ta rõ ràng hơn, như thể là một khẳng định về sự thật, **không phải một chuỗi các thao tác**
 
-\(emphasis in the quote is mine\)
+\(phần nhấn mạnh trong trích dẫn là của tôi\)
 
-Now our tests - rather, the list of test cases - make assertions of truth about shapes and their areas.
+Giờ test của chúng ta — đúng hơn là danh sách test case — tạo ra các khẳng định về sự thật về shapes và diện tích của chúng.
 
-## Make sure your test output is helpful
+## Đảm bảo output test của bạn hữu ích
 
-Remember earlier when we were implementing `Triangle` and we had the failing test? It printed `shapes_test.go:31: got 0.00 want 36.00`.
+Nhớ lại khi chúng ta implement `Triangle` và có test fail? Nó in `shapes_test.go:31: got 0.00 want 36.00`.
 
-We knew this was in relation to `Triangle` because we were just working with it.
-But what if a bug slipped in to the system in one of 20 cases in the table?
-How would a developer know which case failed?
-This is not a great experience for the developer, they will have to manually look through the cases to find out which case actually failed.
+Chúng ta biết đây liên quan đến `Triangle` vì chúng ta vừa làm việc với nó. Nhưng nếu bug xảy ra trong một trong 20 test case của bảng thì sao? Developer sẽ phải xem qua thủ công để tìm case thực sự fail.
 
-We can change our error message into `%#v got %g want %g`. The `%#v` format string will print out our struct with the values in its field, so the developer can see at a glance the properties that are being tested.
+Chúng ta có thể đổi thông báo lỗi thành `%#v got %g want %g`. Chuỗi format `%#v` sẽ in ra struct với các giá trị trong trường, giúp developer có thể khi nhìn vào thấy ngay các thuộc tính đang được test.
 
-To increase the readability of our test cases further, we can rename the `want` field into something more descriptive like `hasArea`.
+Để tăng tính đọc được của test case, chúng ta có thể đổi tên trường `want` thành cái gì mô tả hơn như `hasArea`.
 
-One final tip with table driven tests is to use `t.Run` and to name the test cases.
+Một mẹo cuối cùng với table driven tests là dùng `t.Run` và đặt tên cho test case.
 
-By wrapping each case in a `t.Run` you will have clearer test output on failures as it will print the name of the case
+Bằng cách bọc mỗi case trong `t.Run`, bạn sẽ có output test rõ ràng hơn khi fail vì nó sẽ in tên của case:
 
 ```text
 --- FAIL: TestArea (0.00s)
@@ -553,9 +546,9 @@ By wrapping each case in a `t.Run` you will have clearer test output on failures
         shapes_test.go:33: main.Rectangle{Width:12, Height:6} got 72.00 want 72.10
 ```
 
-And you can run specific tests within your table with `go test -run TestArea/Rectangle`.
+Và bạn có thể chạy các test cụ thể trong bảng với `go test -run TestArea/Rectangle`.
 
-Here is our final test code which captures this
+Đây là code test cuối cùng:
 
 ```go
 func TestArea(t *testing.T) {
@@ -586,15 +579,15 @@ func TestArea(t *testing.T) {
 
 ## Tổng kết
 
-This was more TDD practice, iterating over our solutions to basic mathematic problems and learning new language features motivated by our tests.
+Đây là nhiều thực hành TDD hơn, lặp qua các giải pháp cho các bài toán toán học cơ bản và học các tính năng ngôn ngữ mới được thúc đẩy bởi test.
 
-* Declaring structs to create your own data types which lets you bundle related data together and make the intent of your code clearer
-* Declaring interfaces so you can define functions that can be used by different types \([parametric polymorphism](https://en.wikipedia.org/wiki/Parametric_polymorphism)\)
-* Adding methods so you can add functionality to your data types and so you can implement interfaces
-* Table driven tests to make your assertions clearer and your test suites easier to extend & maintain
+* Khai báo structs để tạo kiểu dữ liệu riêng giúp nhóm dữ liệu liên quan lại và làm rõ ý định code
+* Khai báo interfaces để định nghĩa functions có thể dùng với nhiều kiểu khác nhau \([parametric polymorphism](https://en.wikipedia.org/wiki/Parametric_polymorphism)\)
+* Thêm methods để thêm chức năng vào kiểu dữ liệu và implement interfaces
+* Table driven tests để làm assertions rõ ràng hơn và dễ mở rộng & bảo trì hơn
 
-This was an important chapter because we are now starting to define our own types. In statically typed languages like Go, being able to design your own types is essential for building software that is easy to understand, to piece together and to test.
+Đây là chương quan trọng vì chúng ta bắt đầu định nghĩa các kiểu của riêng mình. Trong các ngôn ngữ kiểu tĩnh như Go, khả năng thiết kế kiểu riêng là điều cần thiết để xây dựng phần mềm dễ hiểu, dễ ghép nối và dễ test.
 
-Interfaces are a great tool for hiding complexity away from other parts of the system. In our case our test helper _code_ did not need to know the exact shape it was asserting on, only how to "ask" for its area.
+Interfaces là công cụ tuyệt vời để ẩn sự phức tạp khỏi các phần khác của hệ thống. Trong trường hợp của chúng ta, code helper _test_ không cần biết chính xác shape nó đang kiểm tra, chỉ cần biết cách "hỏi" diện tích của nó.
 
-As you become more familiar with Go you will start to see the real strength of interfaces and the standard library. You'll learn about interfaces defined in the standard library that are used _everywhere_ and by implementing them against your own types, you can very quickly re-use a lot of great functionality.
+Khi bạn quen hơn với Go, bạn sẽ thấy sức mạnh thực sự của interfaces và thư viện chuẩn. Bạn sẽ học về interfaces được định nghĩa trong thư viện chuẩn được dùng _ở khắp nơi_ và bằng cách implement chúng cho các kiểu của mình, bạn có thể nhanh chóng tái sử dụng rất nhiều chức năng tuyệt vời.
