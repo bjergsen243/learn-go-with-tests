@@ -1,167 +1,166 @@
-# Learn Go with Tests - Scaling Acceptance Tests (and light intro to gRPC)
+# Học Go qua các bài Kiểm thử (Learn Go with Tests) - Kiểm thử chấp nhận mở rộng (và lướt qua gRPC một chút)
 
-This chapter is a follow-up to [Intro to acceptance tests](https://quii.gitbook.io/learn-go-with-tests/testing-fundamentals/intro-to-acceptance-tests). You can find [the finished code for this chapter on GitHub](https://github.com/quii/go-specs-greet).
+Chương này là phần tiếp theo của chương [Giới thiệu về Kiểm thử chấp nhận (Intro to acceptance tests)](https://quii.gitbook.io/learn-go-with-tests/testing-fundamentals/intro-to-acceptance-tests). Bạn có thể tìm thấy [mã nguồn hoàn chỉnh cho chương này trên GitHub](https://github.com/quii/go-specs-greet).
 
-Acceptance tests are essential, and they directly impact your ability to confidently evolve your system over time, with a reasonable cost of change.
+Kiểm thử chấp nhận (Acceptance tests) cực kỳ thiết yếu, và chúng có tác động trực tiếp đến khả năng bạn có thể tự tin phát triển hệ thống của mình theo thời gian, với một chi phí cải tiến và bảo trì hợp lý.
 
-They're also a fantastic tool to help you work with legacy code. When faced with a poor codebase without any tests, please resist the temptation to start refactoring. Instead, write some acceptance tests to give you a safety net to freely change the system's internals without affecting its functional external behaviour. ATs need not be concerned with internal quality, so they're a great fit in these situations.
+Chúng cũng là một công cụ tuyệt vời để giúp bạn làm việc với mã nguồn cũ (legacy code). Khi phải đối mặt với một cơ sở mã tồi tàn mà không có lấy một bài test nào, xin bạn hãy cố nén cái mong muốn hăm hở ngồi tái cấu trúc (refactoring) ngay lập tức. Thay vào đó, hãy viết một vài bản kiểm thử chấp nhận để tạo cho mình một mạng lưới an toàn (safety net) hòng dễ bề thay đổi các cấu trúc bên trong của hệ thống một cách thoải mái mà không lo ảnh hưởng đến hành vi chức năng đã lộ ra ở bên ngoài của nó. Các bài ATs (Acceptance Tests) không cần quan tâm đến chất lượng nội tại, nên chúng rất phù hợp trong các tình huống chữa cháy kiểu này.
 
-After reading this, you'll appreciate that acceptance tests are useful for verification and can also be used in the development process by helping us change our system more deliberately and methodically, reducing wasted effort.
+Sau khi đọc bài này xong, bạn sẽ thấy thấu cảm hơn rằng kiểm thử chấp nhận không chỉ hữu ích cho việc xác minh tính đúng đắn mà còn có thể được sử dụng khéo léo vào quy trình phát triển bằng cách vạch luồng lạch chỉ đường chúng ta thay đổi hệ thống một cách có chủ ý và có phương pháp hơn, giảm bớt nỗ lực đổ sông đổ biển.
 
-## Prerequisite material
+## Tài liệu nền tảng
 
-The inspiration for this chapter is borne of many years of frustration with acceptance tests. Two videos I would recommend you watch are:
+Cảm hứng cho chương này được sinh ra từ nhiều năm bực bội tột đỉnh với các bài kiểm thử chấp nhận. Hai video mà tôi khuyên bạn nên mổ băng xem ngay là:
 
-- Dave Farley - [How to write acceptance tests](https://www.youtube.com/watch?v=JDD5EEJgpHU)
-- Nat Pryce - [E2E functional tests that can run in milliseconds](https://www.youtube.com/watch?v=Fk4rCn4YLLU)
+- Dave Farley - [Cách để viết các bài kiểm thử chấp nhận hiệu quả (How to write acceptance tests)](https://www.youtube.com/watch?v=JDD5EEJgpHU)
+- Nat Pryce - [Các bài test chức năng đầu-cuối (E2E) chỉ trong chớp mắt mili-giây (E2E functional tests that can run in milliseconds)](https://www.youtube.com/watch?v=Fk4rCn4YLLU)
 
-"Growing Object Oriented Software" (GOOS) is such an important book for many software engineers, including myself. The approach it prescribes is the one I coach engineers I work with to follow.
+"Growing Object Oriented Software" (GOOS) là một cuốn sách vô cùng quan trọng đối với nhiều kỹ sư phần mềm, trong đó có tôi. Hướng tiếp cận mà nó rạch ra là lộ trình mà tôi luôn huấn luyện các anh em kỹ sư làm chung với mình tuân theo.
 
-- [GOOS](http://www.growing-object-oriented-software.com) - Nat Pryce & Steve Freeman
+- [GOOS](http://www.growing-object-oriented-software.com) - Dưới ngòi bút của Nat Pryce & Steve Freeman
 
-Finally, [Riya Dattani](https://twitter.com/dattaniriya) and I spoke about this topic in the context of BDD in our talk, [Acceptance tests, BDD and Go](https://www.youtube.com/watch?v=ZMWJCk_0WrY).
+Cuối cùng, tôi và [Riya Dattani](https://twitter.com/dattaniriya) đã đàm luận về chủ đề này trong hệ quy chiếu của BDD (Phát triển Dựa trên Hành vi) qua buổi phỏng vấn chung, [Kiểm thử chấp nhận, BDD và đại diện là Go (Acceptance tests, BDD and Go)](https://www.youtube.com/watch?v=ZMWJCk_0WrY).
 
-## Recap
+## Gói ghém lại (Recap)
 
-We're talking about "black-box" tests that verify your system behaves as expected from the outside, from a "**business perspective**". The tests do not have access to the innards of the system it tests; they're only concerned with **what** your system does rather than **how**.
+Chúng ta đang nói về kiểu kiểm thử "hộp đen" (black-box) chuyên để xác minh hệ thống của bạn hành xử đúng như mong muốn từ góc nhìn bên ngoài, nhìn dưới khía cạnh "**nhãn quan kinh doanh**" (business perspective). Các bài kiểm thử loại này không có cái quyền xoi mói vào ruột gan lục phủ của hệ thống; chúng chỉ bận tâm tới việc hệ thống của bạn làm được cái **gì (what)** thay vì đào bới **bằng cách nào (how)**.
 
-## Anatomy of bad acceptance tests
+## Mổ xẻ các bài kiểm thử bị hỏng cấu trúc
 
-Over many years, I've worked for several companies and teams. Each of them recognised the need for acceptance tests; some way to test a system from a user's point of view and to verify it works how it's intended, but almost without exception, the cost of these tests became a real problem for the team.
+Hơn chục năm ròng rã, tôi đã kinh qua rất nhiều công ty và nhóm phát triển. Cả đám bọn họ đều nhận thức rõ ràng nhu cầu cần có các bản ATs; vài hình thức nôm na nào đó để nhắm đến test thử coi hệ thống vận hành trôi chảy điêu luyện hay không dưới vai khách qua đường, song lại nhục nhằn mang tính truyền thống (hầu như không tránh khỏi) là chuyện trả giá đổ vào các bài AT này phình to quá lố và đè nặng lên lưng của team dev:
 
-- Slow to run
-- Brittle
-- Flaky
-- Expensive to maintain, and seem to make changing the software harder than it ought to be
-- Can only run in a particular environment, causing slow and poor feedback loops
+- Mất thời gian để chạy
+- Khá giòn (Dễ hỏng hóc)
+- Chập chờn lúc được lúc không (Flaky)
+- Đắt đỏ để bảo trì, và có vẻ như làm cho quá trình thay đổi phần mềm khó như lên trời trong khi đáng lẽ ra nó phải dễ hơn thế
+- Chỉ có thể ỳ xèo hoạt động gói gọn ở môi trường chuyên dụng, gây ra chu trình phản hồi chậm rì với tỷ lệ tin cậy kém cỏi
 
-Let's say you intend to write an acceptance test around a website you're building. You decide to use a headless web browser (like [Selenium](https://www.selenium.dev)) to simulate a user clicking buttons on your website to verify it does what it needs to do.
+Giả thử bạn định viết một bản test AT nhắm vào cái website nhào lặn bấy lâu. Bạn phệt ngay một cái khung headless browser (kiểu như [Selenium](https://www.selenium.dev)) dùng thế lính đóng vai cày người dùng đi thọc gõ nút chọt nút cạch vào chức năng trang nhằm mong chứng tỏ website lết ổn đúng bài.
 
-Over time, your website's markup has to change as new features are discovered, and engineers bike-shed over whether something should be an `<article>` or a `<section>` for the billionth time.
+Tháng năm trôi, phần HTML/Markup cho web đổi chóng mặt khi có mấy ổng bự múa chức năng thêm mắm gọt muối, các tay code tha hồ cãi tay đôi cho kỳ được cái khối nọ nên chèn `<article>` hay nhét `<section>` tỷ lần vẫn vậy.
 
-Even though your team are only making minor changes to the system, barely noticeable to the actual user, you find yourself wasting lots of time updating your ATs.
+Chẵng qua các huynh đệ sửa lặt vặt (minor changes), khéo user mắt mờ vẫn chẳng thể bóc trần khác biệt, nhưng thảm thê thay bạn vùi rục xương ra cập nhật nguyên con hệ dàn trận ATs vừa chọc lúc nãy.
 
-### Tight-coupling
+### Tính liên kết chặt (Tight-coupling)
 
-Think about what prompts acceptance tests to change:
+Ngồi mà nghĩ coi cái gì xúi giục việc update các bài kiểm định ATs này:
 
-- An external behaviour change. If you want to change what the system does, changing the acceptance test suite seems reasonable, if not desirable.
-- An implementation detail change / refactoring. Ideally, this shouldn't prompt a change, or if it does, a minor one.
+- Biến động về hành vi mặt ngoài (An external behaviour change). Chừng nào mà thứ tạo ra (business) được đổi màu đổi vị, cập nhật mớ kịch bản ATs nghe có lý, và đáng bị mong chờ tới.
+- Mảng logic bưng bít phía sau hay việc đảo refactor hệ thống (An implementation detail/refactoring). Có thánh mới cho là mấy chuyện động trời này lại là động cơ thúc máy test phải bị nhòm ngó, nếu sửa khéo nó thuộc hàng li ti xíu.
 
-Too often, though, the latter is the reason acceptance tests have to change. To the point where engineers even become reluctant to change their system because of the perceived effort of updating tests!
+Thế nhưng mà, 90% thì các nguyên gốc do yếu tố sau chót luôn ngặn ngò lôi các bài ATs nhà ta làm bia chịu trận cần chắp vá. Đạt đỉnh điểm nhát sợ (nhát ma sờ) khiến cho dân coding còn ko chịu chỉnh ứng dụng do có tâm lý mợ nó ngán đụng đến bầy đàn sớ bài test kia!
 
-![Riya and myself talking about separating concerns in our tests](https://i.imgur.com/bbG6z57.png)
+![Riya và tôi đang nói chuyện về việc tách biệt những vấn đề trong khâu test hiện giờ](https://i.imgur.com/bbG6z57.png)
 
-These problems stem from not applying well-established and practised engineering habits written by the authors mentioned above. **You can't write acceptance tests like unit tests**; they require more thought and different practices.
+Cội nguồn những cái điên rồ này vốn lòi ra do lỗi hệ tư duy yếu mềm chểnh mảng mấy phép vận hành kỹ thuật được hun đúc chuẩn bị mà những "cây cao bóng cả" phía trên kia nắn nót ghi truyền. **Có đùa không mà bạn lôi công thức nắn unit tests bốc thuốc vào trò acceptance tests**; xin cho cái là ATs sinh ra đi liền với lối gõ và hướng suy khác bọt luôn.
 
-## Anatomy of good acceptance tests
+## Giải mổ cấu trúc một bản Acceptance tests thơm hương (good tests)
 
-If we want acceptance tests that only change when we change behaviour and not implementation detail, it stands to reason that we need to separate those concerns.
+Khát khao những bài ATs chỉ thèm chuyển mình khi hệ tính năng hành vi thay hướng chứ thèm để tâm dăm ba cái kiểu mần code, hợp tình thuận lý nhất là đem bóc tụi nó thành 2 mảng cô lập khỏi nhau (thứ cần xử).
 
-### On types of complexity
+### Bàn về các hệ hình độ phức tạp (types of complexity)
 
-As software engineers, we have to deal with two kinds of complexity.
+Làm kiếp kỹ sư, ta chẳng thoát cái dây duyên nợ mà nhằn chung 2 kiểu phiền hàm sau:
 
-- **Accidental complexity** is the complexity we have to deal with because we're working with computers, stuff like networks, disks, APIs, etc.
+- **Độ phức tạp phụ trợ ẩn tàng (Accidental complexity)** mớ bòng bong do gánh thêm cùm nợ là thiết bị cứng bưng, điển hình phần mạng mẹo, lưu kho disk, các loại api đính, v.v..
+- **Độ phức tạp sống còn (Essential complexity)** đâu kia ngợi danh bằng cái tiếng "Luật lệ cốt cán" (domain logic). Đích thực thứ nhào nặn nên chân lí với nguyên lý mà mảng kinh doanh/vùng domain đòi tróc nã.
+  - Nghe này nghen, "Ví dụ trường hợp 1 quý tài khoản rút một lượng đạn xanh bự hơn ví đang cất, gán mác luôn tài khoản mòn đít". Phát ngôn đó liên quan quái chi đến thiết bị tính toán đâu chớ; nó thành quy chuẩn vàng cho trần đời trước lúc tụi làm app lồng thiết bị vào kho ngân lượng cho bank!
 
-- **Essential complexity** is sometimes referred to as "domain logic". It's the particular rules and truths within your domain.
-  - For example, "if an account owner withdraws more money than is available, they are overdrawn". This statement says nothing about computers; this statement was true before computers were even used in banks!
+Vào lúc cái gọi Essential complexity cần giải nghĩa rõ cho dăm ba cậu tay mơ công nghệ hiểu được, tính báu vật sẽ rất cực đỉnh nếu như bạn bưng tụi nó lên bản họa qua khu code thuần "domain", rồi bê nó vào mớ kiểm soát nghiệp vụ acceptance tests.
 
-Essential complexity should be expressible to a non-technical person, and it's valuable to have modelled it in our "domain" code, and in our acceptance tests.
+### Phân rã theo trách nhiệm (Separation of concerns)
 
-### Separation of concerns
+Đạo lý cụ Dave Farley phán trong dĩa băng phía trên, theo Riya và tôi đàm đạo chặp, chúng ta nên dựng kịch bản với luồng kim chỉ nam lấy tên là **Đặc tả kịch bản (specifications)**. Thông só kỹ thật Specification rêu rao về mảng lối hành xử mà chúng ta cầu khát, tránh đụng độ hay đèo bòng vào mấy vũng bùn dơ Accidental complexity với tầng thực thi implementation detail giấu sau lớp phông.
 
-What Dave Farley proposed in the video earlier, and what Riya and I also discussed, is we should have the idea of **specifications**. Specifications describe the behaviour of the system we want without being coupled with accidental complexity or implementation detail.
+Cái phác đồ kia gõ tai cho lọt đấy. Trong mấy đợt sào sản phẩm chạy live, chúng ta điên cuồng trầy xát mong xé riêng mấy ngóc ngách phân trách nhiệm cho đám module (units of work). Rành rành là có mảy may e dè khi lôi nguyên con `interface` cho tay sai `HTTP` handler để bóc nó lìa luôn mớ chướng tai gai mắt chả liên can quái gì đến HTTP hông trơn? Vậy mạnh dạn sài mưu đồ tư duy kiểu ấy áp ngược cho mớ kiểm thử chấp thuận nhé.
 
-This idea should feel reasonable to you. In production code, we frequently strive to separate concerns and decouple units of work. Would you not hesitate to introduce an `interface` to allow your `HTTP` handler to decouple it from non-HTTP concerns? Let's take this same line of thinking for our acceptance tests.
+Dave Farley họa kiểu rành mạch một tổ chức phân lớp.
 
-Dave Farley describes a specific structure.
+![Bức thư viện Dave Farley phác về Acceptance Tests](https://i.imgur.com/nPwpihG.png)
 
-![Dave Farley on Acceptance Tests](https://i.imgur.com/nPwpihG.png)
+Thời mạn đàm tại GopherconUK, Riya cùng tôi khoác vỏ từ vựng kiểu Go bọc mớ này.
 
-At GopherconUK, Riya and I put this in Go terms.
+![Tách tách từng khâu - Separation of concerns](https://i.imgur.com/qdY4RJe.png)
 
-![Separation of concerns](https://i.imgur.com/qdY4RJe.png)
+### Kiểm thử ngộp steroid (Testing on steroids)
 
-### Testing on steroids
+Thoát trói cái thói đụng chạm kiểu "bố gọi gọi lúc nào rỗi" lúc khai màn spec - ta hốt cục lời là tống khứ chạy lại nó dùng tại đủ khung cảnh muôn hình. Xin nêu tên:
 
-Decoupling how the specification is executed allows us to reuse it in different scenarios. We can:
+#### Để đám củ điều hướng Driver thả ga tự biên kịch(Make our drivers configurable)
 
-#### Make our drivers configurable
+Mưu tính này bao độ sướng: Cứ tùy hỉ cho bài ATs bơi qua môi trường tự tại (local), hoặc lên cả dàn staging và đỉnh cao chói lóa nhất là môi trường của sự thật (production environments).
+- Ngập ngụa bao nhóm thả dàn cho code chạy vướng đan vào nhau trói riết chẳng có kẽ mở cướp đường cho lệnh Test chạy êm đẹp ở sân nhà local. Quả tạ này vác thêm một mức kiềm feedback rụt rịch chậm rù. Hỏi ông có mong gật gù bài ATs qua trót lọt đặng  _trước cữ_ dán dòng code mình viết chưa? Nhỡ nó gẫy rắc lúc gõ test, êm chịu hông nổi với quả đánh rớt oan rồi mù tịt vì local mò ko có bệnh bèn nhắm mắt rải commit mù để nợ thêm 20 chục phút dài ngóng con số ở sàn khác coi trời xanh may phước sao?
+- Đinh ninh đi, dẫu sới test staging bật nắp báo trúng giải thì khoan nhận hệ thống mình ngon. Chuyện thói trêu đồng sinh đôi Dev với Prod nghe như kiểu mẩu tin lừa con nít. Bạn coi: [Tôi đây nện bài test cả trong lúc app tung live Prod nhóe](https://increment.com/testing/i-test-in-production/).
+- Đám môi trường này luôn hắt hơi ra điều chênh nhau ảnh hưởng trực tiếp hệ _sống còn_ (behaviour). Nắp CDN đôi khi ăn hớ bộ đệm lúc cache headers dính mã; lũ dịch vụ đàn em mình ngậm sữa bỗng phản tặc chệch luồng; và cũng dễ lắm khi file đuôi config có dòng ngu ngốc lệch nhịp. Sướng thấu xương hông nếu bạn đem bản Test spec này nện trực tiếp sống mái tận mâm prod mà nắm sống rễ hư hỏng nhanh như chớp cờ?
 
-This means you can run your ATs locally, in your staging and (ideally) production environments.
-- Too many teams engineer their systems such that acceptance tests are impossible to run locally. This introduces an intolerably slow feedback loop. Wouldn't you rather be confident your ATs will pass _before_ integrating your code? If the tests start breaking, is it acceptable that you'd be unable to reproduce the failure locally and instead, have to commit changes and cross your fingers that it'll pass 20 minutes later in a different environment?
-- Remember, just because your tests pass in staging doesn't mean your system will work. Dev/Prod parity is, at best, a white lie. [I test in prod](https://increment.com/testing/i-test-in-production/).
-- There are always differences between the environments that can affect the *behaviour* of your system. A CDN could have some cache headers incorrectly set; a downstream service you depend on may behave differently; a configuration value may be incorrect. But wouldn't it be nice if you could run your specifications in prod to catch these problems quickly?
+#### Chọc lọng với mớ cọc nái _khác máu_ Driver nhằm ngứa test luôn chỗ bí của app. (Plug in different drivers to test other parts of your system)
 
-#### Plug in _different_ drivers to test other parts of your system
-
-This flexibility allows us to test behaviours at different abstraction and architectural layers, which allows us to have more focused tests beyond black-box tests.
-- For instance, you may have a web page with an API behind it. Why not use the same specification to test both? You can use a headless web browser for the web page, and HTTP calls for the API.
-- Taking this idea further, ideally, we want the **code to model essential complexity** (as "domain" code) so we should also be able to use our specifications for unit tests. This will give swift feedback that the essential complexity in our system is modelled and behaves correctly.
+Với phép thử uyển chuyển đó, ta ung dung mò đường quất hệ hành vi rải từ các loại tầng thiết kế khác nhau qua các ranh giới độ trừu tượng, thứ khơi dòng đẩy mạnh nhóm check kỹ xảo đi qua mặt lớp giới hạn "hộp đen".
+- Kèm lời thoại, giả có nguyên trang web ngậm mặt API lẩn tít tận đuôi. Hớ, mắc giống ôn gì mà chả móc 1 cái "Đặc Tả (spec)" đi chọc vô đu đọt cho cả hai ta? Tùy quyền thọc sâu một màng nặc danh web browser táng web page, cùng mấy cuốc HTTP đấm đá tơi bời qua cổng API coi.
+- Đẩy nước kiệu cho kiểu mường tượng ngông ấy, đúng chuẩn lý tưởng dâng cao, tôi hằng muốn tạc **mã nắn vóc dánh Essential complexity** (dạng code miền- "domain") nương đó tha hồ tống đống specs vô rổ của bọn unit tests sài ké. Hái được quả bự feedback đánh vỡ kén báo tin hỏa tốc cho ta rành là mã nguồn nội tại vướng cái khỉ gió cốt cán ấy nó được tạc tượng y đúc cùng đi y nhịp chả trật chân.
 
 
-### Acceptance tests changing for the right reasons
+### Tính khắt khe đổi hình vạn trạng các kiểu ATs - cho cớ duyên phải lẽ (Acceptance tests changing for the right reasons)
 
-With this approach, the only reason for your specifications to change is if the behaviour of the system changes, which is reasonable.
+Theo bước rẽ đấy, lối thoát chật nhất rủ rê bản specifications phải tuốt tuột lại đó là hồi mà tánh nết của ứng dụng bị nắn gãy, nghe êm ái thuận nhĩ vãi nhỉ.
 
-- If your HTTP API has to change, you have one obvious place to update it, the driver.
-- If your markup changes, again, update the specific driver.
+-  Trường hợp kho API bạn bẹo mình, rành rành đích tới chổ duy nhất cho bạn khoét rảnh là update vào bộ óc, củ điều hướng hầm hố - the driver.
+-  Còn hở Markup có đổi trắng đen, hệt dứa, sấn tới thằng lính gác bóc củ kia (specific driver).
 
-As your system grows, you'll find yourself reusing drivers for multiple tests, which again means if implementation detail changes, you only have to update one, usually obvious place.
+App càng phổng phao bự chảng, dần mòn bạn ngộ nhận ra thói quen tái dùng một bọn drivers xài hoài dăm kiếp bọc vô mấy ổ tests, quy luật trên tái diễn: Mổ xẻ vặt vãnh ruột gan hệ thống có giông tố bão từ thế naò chăng nưa, đích mục tiêu duy duy nhất cần rà có một điểm lòi hiển nhiên thôi.
 
-When done right, this approach gives us flexibility in our implementation detail and stability in our specifications. Importantly, it provides a simple and obvious structure for managing change, which becomes essential as a system and its team grows.
+Nếu làm ngọt trơn mâm này, lối tạt ngang sườn nhúm này biếu bọc đặc ân độ cơ bắp của khâu móc ráp implementation detail hòa với hòn đá vạn năng kiên cố bám chót của hệ rễ specifications. Dạng tiên quyết cần hô, cách đánh này nặn ra cái phom tổ chức đi theo mô-tuýp siêu đơn sơ và lộ diện ngay mấu cụt để ôm quản mọi cuộc xoay tuồng biến chấn (managing change), thứ quyết mệnh thiết yếu định tuổi cọp giữa bầy khi bầy to phình ra.
 
-### Acceptance tests as a method for software development
+### Đi bài lôi Acceptance tests múa phép trị thuật nặn app (Acceptance tests as a method for software development)
 
-In our talk, Riya and I discussed acceptance tests and their relation to BDD. We talked about how starting your work by trying to _understand the problem you're trying to solve_ and expressing it as a specification helps focus your intent and is a great way to start your work.
+Trình bày trong màn live, tôi với Riya cũng lột tung rách trò ATs qua sự gắn kết vô mảng môn đạo BDD. Tụi tôi móc họng vụ đem việc khai trận nhào vô mâm với phép đánh _hiểu sự lý cho được cớ mà tụi bay muốn cày_ thành quy tập cho việc táng ra cho xong cuốn sớ specification gánh đội lấy đầu não mục tiêu nhắm thẳng và lại được xướng lên cho khâu xướng đao đẹp bảnh mở màn cho việc chi ra lệnh code.
 
-I was first introduced to this way of working in GOOS. A while ago, I summarised the ideas on my blog. Here is an extract from my post [Why TDD](https://quii.dev/The_Why_of_TDD)
+Chính tui từng được dẫn đạo vào bài tủ cho con đường nhọc nhằn này ở trỏng quyển bí kíp GOOS. Cỡ khuất mặt lâu nảo nảo, tui từng vuốt nhẵn mấy mảng ý lớn đem ướp vô blog tui.  Nhấn link nếm mẩu từ bài viết cưng [Cớ chi xài TDD/Why TDD](https://quii.dev/The_Why_of_TDD)
 
 ---
 
-TDD is focused on letting you design for the behaviour you precisely need, iteratively. When starting a new area, you must identify a key, necessary behaviour and aggressively cut scope.
+TDD chúi đầu mở lối để rảnh tay nặn ra hệ vận hành ngắm trúng chóc hành vi dĩ nhiên phải ngắm, theo vòng lặp tuốt lại liên hồi. Chân ướt chân ráo chen vào bãi chăn chiên chóp này, điều phải nhét vô não là dòm đâu là xương sống điểm chốt hệ ứng xử cốt lõi và dẹp mẹ nó tính nới rộng chức năng tầm phào cho rảnh nợ.
 
-Follow a "top-down" approach, starting with an acceptance test (AT) that exercises the behaviour from the outside. This will act as a north-star for your efforts. All you should be focused on is making that test pass. This test will likely be failing for a while whilst you develop enough code to make it pass.
+Dò theo chiều gió "từ nóc xuống móng" (top-down), lấy cớ rước vị trưởng bối mở hụi đầu - bài bài AT bọc cái trò thử ngón hành xử từ mé rào bên phía ngoại xào luộc vô trong. Cái ông cụ ấy đĩnh đạc xưng trùm cầm trịch ngôi sao "Đẩu-bắc" ("north-star") dò dẫn đoàn tàu công sức. Phải căng nhịp tập trung não bộ lôi sức xích sao cho ông cụ mỉm cười qua cưa (pass). Cái bài này có xu hướng ráng nấp vào màn fail chỏng chơ một đỗi thời gian khi mà mông chưa nóng để chắp đủ tay kiếm đục đẽo code xịn đẩy nó vạch cởi màu xanh.
 
 ![](https://i.imgur.com/pxTaYu4.png)
 
-Once your AT is set up, you can break into the TDD process to drive out enough units to make the AT pass. The trick is to not worry too much about design at this point; get enough code to make the AT pass because you're still learning and exploring the problem.
+Hạ sinh thành công bố cụ AT vỗ tay rồi, được đặc quyền lộn vòng cho bể nát trò vờn TDD theo mạch để túm hớt cả mớ lính trinh sát phụ (units) đặng khua xô ông cụ qua rào rinh giải thưởng pass. Độc chiêu chốn này nằm gọn cái điều thôi bận lòng đến chéo mắt dòm cách uốn nắn mô hình cấu trúc code ra sao nhức sọ (design chướng khí); lấy tay nắm bắt nạp cho thấu mấy xâu mã cốt qua chóp ải của AT đã vì tại khúc quanh này tâm trí huynh còn lo ngơ chập chững rà mìn để sành mưu kế dò địa lợi cho ván bài.
 
-Taking this first step is often more extensive than you think, setting up web servers, routing, configuration, etc., which is why keeping the scope of the work small is essential. We want to make that first positive step on our blank canvas and have it backed by a passing AT so we can continue to iterate quickly and safely.
+Tung đòn bốc con chốt trước nhất nghe chừng bồ hóng dọa văng dài lê thê hơn độ bạn nghĩ nhiều, quăng đống cài vặt cho máy trạm web, phà đò luồng rẽ định tuyến routing, ráp mớ cấu hình, v.v.., từ đó làm bật lên nguyên lý cọc neo là xiết chặt mức hạn thắt cửa nẻo dự việc lại là một bước sinh đồ tử. Sáng mắt nhắm nặn nhát sủi đắc đạo tiên giáng trần chễm trệ khai phím trên nắp bảng tranh xóa loáng và nắn thành lũy phò ta đặng cụ cụ phẩy cờ pass đi để có thế nước thúc pháo càn cật qua các đợt đụng chạm gọn nheo dĩ không rách giáp (iterate quickly and safely).
 
 ![](https://i.imgur.com/t5y5opw.png)
 
-As you develop, listen to your tests, and they should give you signals to help you push your design in a better direction but, again, anchored to the behaviour rather than our imagination.
+Lúc nhả mã, vểnh tai hóng động báo về từ mảng test nhà, tụi lính trinh sát đấy lanh lợi nháy đèn tín hiệu xui rủi cho bạn đụng tới để chuốt vuốt lớp nặn (design) thành đòn có sinh khí tráng lệ ngon rơ hơn tuy vậy, xin điểm rạch rọi cái ghim ngón đó trúng chóc vào luồng hành xử chứ đếch phanh cho màn tưởng tượng xé rào vút mây nha.
 
-Typically, your first "unit" that does the hard work to make the AT pass will grow too big to be comfortable, even for this small amount of behaviour. This is when you can start thinking about how to break the problem down and introduce new collaborators.
+Thường thì cái gọi "unit" bé nhất lãnh vai lính quèn quăng mình gánh nhục đỡ lấy cả mạng tát nước vào AT cho pass đâm thành khệ nệ đẫy đà nhai cục mệt lừ, hẵng lúc ấy kể cả chui vô dăm miếng cắn tính năng nhỏ quạt vất. Sự thể điểm này chỉ ra điểm kích nổ bạn tính nước thả lỏng đai cục diện hòng chẻ nhỏ ván và ngó nghiêng gạ gẫm lũ cò làm chung nương tay.
 
 ![](https://i.imgur.com/UYqd7Cq.png)
 
-This is where test doubles (e.g. fakes, mocks) are handy because most of the complexity that lives internally within software doesn't usually reside in implementation detail but "between" the units and how they interact.
+Thời mạn mâm này hớt ngay lũ xà thủ tráo khái niệm cộm mác đóng thế (test doubles, ví như hàng fake, nộm bưng/mocks) xài bao được do 90% bọn mớ phiền toái vướng vấp bên trong nạm mảng phần mềm không dính móng đến hệ cấm cương ruột implementation detail mà nằm chen "ngoài/giữa" mấy bọn lính unit phụ rồi thọc lét vụ chúng nó mớm cho nhau hoạt động cớ sao đấy.
 
-#### The perils of bottom-up
+#### Ngứa chân đá từ dưỡi đáy (The perils of bottom-up/Hiểm họa của Bottom-Up)
 
-This is a "top-down" approach rather than a "bottom-up". Bottom-up has its uses, but it carries an element of risk. By building "services" and code without it being integrated into your application quickly and without verifying a high-level test, **you risk wasting lots of effort on unvalidated ideas**.
+Rõ chi tiết là đánh đòn nhắm thẳng "trên giáng xuống" (top-down) thay đổi "từ đáy thọc ngược" (bottom-up). Đánh bottom-up giấu tài riêng nó chớ, thế nhưng chứa độc mầm làm gãy tay lật kèo bao ăn được. Từ khâu rục rịch dựng bọn lính "nhúm dịch vụ/services" và đẩy code nằm đó chứ chưa hề hàn gắn nguyên mảng vào đống nợ cái cốt của application ngay hòng lặn tránh vòng dò xác mác kiểm nghiệm bậc "chúa trùm" cao độ, **nghĩa bóng nói rằng bạn đu dây đùa cùng lửa phung công dã tràng uổng mạng mà đeo khát khao từ đám thợ ý tưởng lậu thuế**.
 
-This is a crucial property of the acceptance-test-driven approach, using tests to get real validation of our code.
+Là mảng tối trọng cho việc móc xích chiến thuật đánh phủ đầu mượn AT, mượn cớ vùi mã chốn vòng Test rà soát độ uy lực của mình.
 
-Too many times, I've encountered engineers who have made a chunk of code, in isolation, bottom-up, they think is going to solve a job, but it:
+Vướng nhan nhản nấc, tôi ngả mũ đụng trúng nhiều cụ quăng ra mảng code liền một khối, phơi chốn 1 mình, khui bài bottom-up bốc số giải họa với mộng ảo nó vá được lỗi lầm trần thế, song mà lúc soi lại thì:
 
-- Doesn't work how we want to
-- Does stuff we don't need
-- Doesn't integrate easily
-- Requires a ton of re-writing anyway
+- Hành dân chả theo nhịp mong hóng
+- Đội 1 cỗ máy thừa xịn nhưng đách xài chi (Does stuff we don't need)
+- Đẩy ráp ghép khóc tiếng mán (Doesn't integrate easily)
+- Ngậm ngùi lôi bàn gõ mòn mỏi cái rả rích cào gõ viết lại cho đứt tay cày (Requires a ton of re-writing)
 
-This is waste.
+Cái ấy mới đích thị quăng xu qua cửa sổ (This is waste).
 
-## Enough talk, time to code
+## Tới đó thôi cất mỏ khui bàn phím hốt Code nà (Enough talk, time to code)
 
-Unlike other chapters, you'll need [Docker](https://www.docker.com) installed because we'll be running our applications in containers. It's assumed at this point in the book you're comfortable writing Go code, importing from different packages, etc.
+Kể ra thì khác xa phần còn lại của bộ sách, bạn sẽ rất cần hốt 1 máy [Docker](https://www.docker.com) vác về dựng sẵn vì tụi mình nay xài phép nhét code vào hoạt động trong buồng chứa containers. Bắt đầu từ mốc của chương sách này, nhẩm bụng là bạn rành cái chuyện lạch cạch gõ code Go, khéo gọi thêm đồ chơi (import) từ đủ loại packages ngoài, vân vân mây mây rồi nhé.
 
-Create a new project with `go mod init github.com/quii/go-specs-greet` (you can put whatever you like here but if you change the path you will need to change all internal imports to match)
+Sắm sửa đồ nghề làm cái project khai mạc với câu thần chú `go mod init github.com/quii/go-specs-greet` (đặt tên láo nháo gì ở cái đuôi cũng êm nhưng lỡ có nghịch dại sửa cái đường dẫn (path) thì phải chịu khó chạy lùng sục chỉnh tiệt các thể loại imports ở bên trong code cho ăn rơ nghe)
 
-Make a folder `specifications` to hold our specifications, and add a file `greet.go`
+Đẽo 1 chốn chứa thư mục `specifications` thủ sẵn làm ổ đẻ đặc tả kỹ thuật, nhồi 1 file `greet.go`
 
 ```go
 package specifications
@@ -183,37 +182,36 @@ func GreetSpecification(t testing.TB, greeter Greeter) {
 }
 ```
 
-My IDE (Goland) takes care of the fuss of adding dependencies for me, but if you need to do it manually, you'd do
+Trợ thủ phòng máy gõ IDE của lão đội mũ (Goland dâng hiến) bao chầu gánh vụ lọ mọ lượm nhặt mấy hàng dependencies dùm mỗ, dưng cơ mà bạn lâm cảnh vác cuốc chạy bộ (do it manually), thì xả dòng chiêu thức
 
 `go get github.com/alecthomas/assert/v2`
 
-Given Farley's acceptance test design (Specification->DSL->Driver->System), we now have a decoupled specification from implementation. It doesn't know or care about _how_ we `Greet`; it's just concerned with the essential complexity of our domain. Admittedly this complexity isn't much right now, but we'll expand upon the spec to add more functionality as we further iterate. It's always important to start small!
+Dựa trên kim chỉ nam họa đồ Farley's ở mảng thiết kế (thứ mà chạy từ Specification->DSL->Driver->System), vậy ta đang rinh về bản chép tay spec bóc lìa khỏi implementation. Ta có thèm ngoái cổ bận tâm về màn chào hỏi _như thế nào (how)_ (chỗ `Greet`); spec ôm việc đoái hoài trọn sự Essential complexity (bản chất phức tạp sống còn) tại miền lãnh thổ (domain) của dân kinh doanh. Công bằng mà nói chút hóc búa nhỏ nhoi này chưa bỏ bẽn dính dấp chi lúc khai mạc, ngặt nỗi rồi lát ta gồng mình giãn cơ gân đắp thêm hàng tá các món chức năng cho mập bộ spec khi vòng lặp luân phiên kéo tới. Quy tắc vỡ lòng là làm mồi nhứ nho nhỏ trước đã vạn điều tốt!
 
-You could view the interface as our first step of a DSL; as the project grows, you may find the need to abstract differently, but for now, this is fine.
+Quý bạn đủ bản ngọc để khoác áo cái `interface` nọ sắm vai khai quốc làm bước một trổ lóng DSL; sau này ứng dụng bự như voi, đôi vờn khốn khó bắt ta nặn ra mấy hệ trừu tượng abstract ma quỷ điên khùng khác, bù lại thì cho đến giờ này, vầy có vẻ ổn đấy.
 
-At this point, this level of ceremony to decouple our specification from implementation might make some people accuse us of "overly abstracting". **I promise you that acceptance tests that are too coupled to implementation become a real burden on engineering teams**. I am confident that most acceptance tests out in the wild are expensive to maintain due to this inappropriate coupling; rather than the reverse of being overly abstract.
+Tại mốc chạm ranh này, công cốc bày vẽ ra vẻ sành điệu tháo ghép mảng specification thoát cái rọ implementation dấy lên việc lắm nhân tố rỗi việc ném đá chê ta bị nhiễm mảng bám của hội chứng "lậm trừu tượng ảo tưởng - overly abstracting". **Tôi hứa bán danh thề độc, những thể loại ATs mà bọc kín bưng chặt hẽm cùng khâu ráp code (implementation) một lúc rồi chồm lên hóa thù nghịch đè ợ cổ nguyên 1 bầy anh em đội thợ engineering team thôi**. Tao tự tin quả quyết nhan nhản trên mặt sân chốn rừng rậm (in the wild), 90% các bản bài ATs khiến team mếu xé xỉa bộn tiền cho mảng vỗ béo (maintain) chẳng qua cớ cất nọc do tụi nó dính dằm vào nhau loạn xa ngầu ấu trĩ không gỡ ra nổi; tỷ lệ lỗi "gồng người ảo vọng hóa trừu tượng" chả là cái đinh gì.
 
-We can use this specification to verify any "system" that can `Greet`.
+Giữ trong tay vũ khí spec chốn đây, tha hồ ngả nghiêng đặng check nghiệm cả mả các loại "hệ thống" nào đó tài tình trong tay thốt được tiếng lóng `Greet`.
 
-### First system: HTTP API
+### Mặt trận dạo đầu tay: Sân API loại HTTP (HTTP API)
+Bọn tui được giao kèo mớm 1 "em dịch vụ đứng bốt chào đón- greeter service" ló cái mặt trên đường truyền HTTP. Giao lại mớ chuẩn bị sắm đồ nghề:
 
-We require to provide a "greeter service" over HTTP. So we'll need to create:
+1. Chưng diện 1 cục điều hướng **driver**. Phục vụ màn này, anh lính mang theo sẽ chơi chọc đấm ngón đòn của HTTP qua chiêu trò **HTTP client**. Code dạng này sõi cái bài cách móc ráp chơi cùng hội API của quân tao. Đủ tụi Drivers kiêm nhiệm tay bưng dĩa luỵt biến đổi thứ tiếng dân dã DSL thành dăm ba cái mã gọi dâng tới chầu từng thể hệ thống chuyên; tại ví dụ nhúm nhỏ mình xài, anh bưng dĩa nọ mang thiên chức rặn ra hiện thực cho cái quy định `interface` lấp lửng trong mặt specs.
+2. Quả cọc **HTTP server** kèm sẵn nẻo API greet trỏ ra đường cái
+3. Thằng cha **test**, chễm chệ khoác việc chạy thong dong lèo lái hệ vòng đời tự động sắm sửa nổ nhào nặn 1 máy trạm web, châm vòi nối thẳng bé đầu não driver lọt tròng vô thân bản thiết specification đặng chạy cuốc trơn như một lượt test sướng tay.
 
-1. A **driver**. In this case, one works with an HTTP system by using an **HTTP client**. This code will know how to work with our API. Drivers translate DSLs into system-specific calls; in our case, the driver will implement the interface specifications define.
-2. An **HTTP server** with a greet API
-3. A **test**, which is responsible for managing the life-cycle of spinning up the server and then plugging the driver into the specification to run it as a test
+## Gõ lấy mớ test trước (Write the test first)
 
-## Write the test first
+Cuộc hành trình vạn dặm chặng ban sơ nắn tạc một gã thám tử giấu mặt (black-box test) đủ phép tự động đúc mẻ build, lên đạn nã test đùng đùng dọn dẹp nguyên vẹn mọi dấu vết có tính hao tâm tổn xác cày như quỷ, lao động nặng nhọc (labour intensive). Bữa dị, vác mảng này qua chơi từ bước khai vạch của chu kỳ dự án với sự đơn giản là mưu đồ ngon xơi. Riêng anh hùng trẫm (tôi á), bao mùa dự án nổ máy cạn ly tao dọn lẹ lót ổ bằng màn máy chủ gáy gọn "hello world", nhồi cả lô test chầu trực trong phom sẵn cờ tao ấn nút quẩy nặn đám functions nòng cốt 1 cái ào ảo diệu luôn.
 
-The initial process for creating a black-box test that compiles and runs your program, executes the test and then cleans everything up can be quite labour intensive. That's why it's preferable to do it at the start of your project with minimal functionality. I typically start all my projects with a "hello world" server implementation, with all of my tests set up and ready for me to build the actual functionality quickly.
+Bộ thiết kế kiểu nặn trí tưởng tưởng với 1 ngùi thứ gọi mộng ảo "specifications", "drivers", cho cả nùi "acceptance tests" vướng xíu thời gian để dạo não ngấm thói quen, chi bằng lướt rạch ròi thận trọng. Gợi mưu là "vô lùi đi lui (work backwards)" xông phá gõ gọi spec lên thớt chơi thử xíu đã.
 
-The mental model of "specifications", "drivers", and "acceptance tests" can take a little time to get used to, so follow carefully. It can be helpful to "work backwards" by trying to call the specification first.
-
-Create some structure to house the program we intend to ship.
+Chi đi mấy phát rạch cấu trúc cho việc xá tội mảng app program định cất thành kho chuẩn bị cho trôi ra ngoài xài.
 
 `mkdir -p cmd/httpserver`
 
-Inside the new folder, create a new file `greeter_server_test.go`, and add the following.
+Mọt vô trong, rặn ra đứa đuôi dóc mới tinh `greeter_server_test.go`, rồi sao chép nội công tiếp nha.
 
 ```go
 package main_test
@@ -229,9 +227,9 @@ func TestGreeterServer(t *testing.T) {
 }
 ```
 
-We wish to run our specification in a Go test. We already have access to a `*testing.T`, so that's the first argument, but what about the second?
+Ý tứ lù lù rằng phò nguyên cụ specification đem vô 1 cuộc Go test thông lệ. Tay cầm vũ khí sẵn cái thớt `*testing.T`, ấy dưng mà ở khúc cái argument đi thứ 2 làm quái gì nghen?
 
-`specifications.Greeter` is an interface, which we will implement with a `Driver` by changing the new TestGreeterServer code to the following:
+Đúng cãi `specifications.Greeter` kia đích thực cái interface, anh hùng tao rước 1 em xịn mang tên `Driver` làm cục thế mạng đặng chèn vô ngõ thay cái `TestGreeterServer` đang ngập não kia bằng mã dưới cờ:
 
 ```go
 import (
@@ -244,21 +242,21 @@ func TestGreeterServer(t *testing.T) {
 }
 ```
 
-It would be favourable for our `Driver` to be configurable to run it against different environments, including locally, so we have added a `BaseURL` field.
+Xài món `Driver` ấy có cái chảo mỡ ngon ăn thay đắp cho nó tha hồ nhảy loạn đâm đánh qua các tụ rẽ đường trường khác (different environments), đếm kèm chạy nhà máy test rạch địa đạo (locally), thòng luôn 1 cửa `BaseURL` bọc gàng gàng nha anh em.
 
-## Try to run the test
+## Phóng test thử cái nghen (Try to run the test)
 
 ```
 ./greeter_server_test.go:46:12: undefined: go_specs_greet.Driver
 ```
 
-We're still practising TDD here! It's a big first step we have to make; we need to make a few files and write maybe more code than we're typically used to, but when you're first starting, this is often the case. It's so important we try to remember the red step's rules.
+Vẫn còm cõi lượn múa theo dòng TDD chớ hề phản nha! Nắm đầu một xải nhảy dài cực bự ta có bổn phận lết: xoắn khui mở lắm tay lẹ ngón nặn file dăm cái phớt bồi mã code độ dày húc mặt so việc tay chân chai sạn hay quẩn, bù lại lúc vạn sự khởi đầu, đi đâu cũng vướng mắc lối này chớ hiếm. Rắn gân tuân đúng phép chỉ gạch đầu quy luân điều luật (red step's rules).
 
-> Commit as many sins as necessary to get the test passing
+> Viết lách bất chấp bùn lầy bao lầm lạc nhơ nhớp trọi, ép ép làm sao vớt cú test nhích lên điểm xanh gật gù là mâm này qua cửa (Commit as many sins as necessary to get the test passing)
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-Hold your nose; remember, we can refactor when the test has passed. Here's the code for the driver in `driver.go` which we will place in the project root:
+Ráng mím môi bịt sống mũi nịt vào; dặn hồn mình tĩnh, hên cái quật test thành xanh tao quay xe rũa dũa lại (refactor). Cái tròng code phím của tụi `driver` dưới rốn của hệ màng cắm đất `driver.go` ta dọn thảy lên nắp đầu của cây đũa chứa (project root):
 
 ```go
 package go_specs_greet
@@ -287,28 +285,28 @@ func (d Driver) Greet() (string, error) {
 ```
 
 
-Notes:
+Bỏ ống mấy điều nhắc vặt:
 
-- You could argue that I should be writing tests to drive out the various `if err != nil`, but in my experience, so long as you're not doing anything with the `err`, tests that say "you return the error you get" are relatively low value.
-- **You shouldn't use the default HTTP client**. Later we'll pass in an HTTP client to configure it with timeouts etc., but for now, we're just trying to get ourselves to a passing test.
--  In our `greeter_server_test.go` we called the Driver function from `go_specs_greet` package which we have now created, don't forget to add `github.com/quii/go-specs-greet` to its imports.
-Try and rerun the tests; they should now compile but not pass.
+- Tụi mày rảnh kháy mỡ kêu sao anh trai chơi liều ko rặn unit test bóc tẽ tụi xót khống này với đám mớ đai lệnh kiểu `if err != nil`, gật mà xét kinh độ già giê qua năm tháng đời tôi trỉa, đâm hụt lúc cái anh chàng `err` chít xó ko ngốn miếng cơm việc chi, nhét đòn dĩ tróc bài dạng "trả phang ngược đúng cục phỉa mày ăn mớm gieo rắc" đem xét coi nó èo uột nhạt độ chưng giá trị dười đáy (low value) hời.
+- **Có chết cũng cạch cái default HTTP client mà Go quẳng nha**. Quẳng cọc đấy lát nữa bổ sung tay hụ HTTP client cài cấu hình mắm muốn qua trò đếm lùi giờ giấc (timeouts), chớ còn tầm cấm kỵ bây giờ rành rành ráng kiếm xanh bảng báo mâm cúng test cho trơn chu lướt.
+-  Phơi áo chỗ mục `greeter_server_test.go` gọi kháy thẳng mặt bóc hàm nặn Driver của khu `go_specs_greet` anh em dọn lúc nãy xong nhoe, nhớ đừng có lộn cởi đem rải thêm tay trôm `github.com/quii/go-specs-greet` dính chấu hạm `imports`.
+Ráng gồng nhấp lố cho test bung phát rực lửa; lạy chời quả này build ăn được chứ ko trót đậu.
 
 ```
 Get "http://localhost:8080/greet": dial tcp [::1]:8080: connect: connection refused
 ```
 
-We have a `Driver`, but we have not started our application yet, so it cannot do an HTTP request. We need our acceptance test to coordinate building, running and finally killing our system for the test to run.
+Dù rằng con ghẻ `Driver` ta bắt sống, ấy thế chưa mớm gas cho pháo ề rồ application sập nổ, cơ đấy cuốc gọi HTTP lót vũng dậm tịt ngòi. Nhu cầu thúc bách đòi bài nhòm acceptance test của chúng sinh kiêm luôn chậu phối trộn múa mâm cúng kiêm cả bẻ cành (build), gáy chạy và cái chốt chém mạng sập gã "hệ thống" mình ngóng tới cho khâu chép test qua màn này.
 
-### Running our application
+### Làm lễ phát nổ chạy mớ app của ta (Running our application)
 
-It's common for teams to build Docker images of their systems to deploy, so for our test we'll do the same
+Sông đổ về biển chuôn chuyện gã khổng lồ vẩy đuôi Docker múc đám thùng image chòng nhét trọn chậu rương nháo application để liệng lên mây bung chóp deployment, thớt ngõ này phết test mình chẻ khuôn cũng mần y hệt mớ hành tung y.
 
-To help us use Docker in our tests, we will use [Testcontainers](https://golang.testcontainers.org). Testcontainers gives us a programmatic way to build Docker images and manage container life-cycles.
+Cáp dính vớt cọc xài tay Docker trong xới tests này, chiêu tung lên gọi tay chi viện [Testcontainers](https://golang.testcontainers.org). Thằng công cụ Testcontainers ném một cái xẻng xúc cát có tổ chức tựu chệ programmatic lấp vá cho ta vùi nhét cấu cạn cho thàng nhõi Docker images rồi ôm quản nhịp sinh lão bệnh tử cho cái buồng xài container.
 
 `go get github.com/testcontainers/testcontainers-go`
 
-Now you can edit `cmd/httpserver/greeter_server_test.go` to read as follows:
+Bay zô ngốn bóc củi thớt `cmd/httpserver/greeter_server_test.go` qua mảng mới đọc dẽo như đoạn dưới đây nghen tía:
 
 ```go
 package main_test
@@ -351,7 +349,7 @@ func TestGreeterServer(t *testing.T) {
 }
 ```
 
-Thử chạy test.
+Thử chạy test coi bay.
 
 ```
 === RUN   TestGreeterHandler
@@ -363,7 +361,7 @@ Thử chạy test.
 --- FAIL: TestGreeterHandler (0.59s)
 ```
 
-We need to create a Dockerfile for our program. Inside our `httpserver` folder, create a `Dockerfile` and add the following.
+Nợ nần đè cổ ta phải nặn 1 bản `Dockerfile` ráp cho lọt cái app program của mình. Nhét mình vô lòng folder `httpserver` mới tạo, nặn cục `Dockerfile` rồi tống nội công vào:
 
 ```dockerfile
 # Make sure to specify the same Go version as the one in the go.mod file.
@@ -384,13 +382,13 @@ EXPOSE 8080
 CMD [ "./svr" ]
 ```
 
-Don't worry too much about the details here; it can be refined and optimised, but for this example, it'll suffice. The advantage of our approach here is we can later improve our Dockerfile and have a test to prove it works as we intend it to. This is a real strength of having black-box tests!
+Cho chừa đi bộ não ôm đồm lo bò trắng răng gặm nhấm tiểu tiết (details) nhe; ta dư sức đánh bóng vót dáng gọt tỷ lệ tối ưu chớ còn rờ nhẹ lúc này, nãy đủ êm rồi. Lợi điểm bá chấy từ tay đòn này là cữ sau được gỡ đai nâng cơ ngực Dockerfile thành quỷ thần khóc vẫn vác bản test này nện dò được coi nó còn dẻo dai chạy hay nát không. Khắng định đây chính xác là thứ đặc quyền chói lọi cộp mác hộp siêu năng test (black-box tests) vác vào!
 
-Try and rerun the test; it should complain about not being able to build the image. Of course, that's because we haven't written a program to build yet!
+Rảo tay thử test 1 cữ mới; nó nấc lỗi méc rục ràng rằng cãi chuyện build nhét image hỏng từ đời tám hoánh rồi. Hiển nhiên nghen! Mình vốn đẻ cái quái gì ra cho nó đi build đâu mẻ!
 
-For the test to fully execute, we'll need to create a program that listens on `8080`, but **that's all**. Stick to the TDD discipline, don't write the production code that would make the test pass until we've verified the test fails as we'd expect.
+Nghe này, đẩy lùi bản test thành trận chạy ầm ập, ta đang sắm 1 trò program thầm lặng ngồi móc gáy lắng nhịp lỗ `8080`, **song nhiêu đấy thôi nhóe**. Ôm tri kỷ với thói quen TDD (TDD discipline), tuyệt đối kiềm chế xả hàng súng đạn xách code rổ production làm bản test xanh hóa trong khi vẫn bưng bít chưa thấy test nó sập fail kiểu mình lường rành.
 
-Create a `main.go` inside our `httpserver` folder with the following
+Nặn nhúm tẻo file `main.go` rúc lòng thúng `httpserver` lôi mấy từ này thả vô:
 
 ```go
 package main
@@ -409,7 +407,7 @@ func main() {
 }
 ```
 
-Try to run the test again, and it should fail with the following.
+Quấc chạy đấm ngực test xem đụng mã vấp fail sau nhé bạn:
 
 ```
     greet.go:16: Expected values to be equal:
@@ -420,7 +418,7 @@ Try to run the test again, and it should fail with the following.
 
 ## Viết đủ code để test chạy thành công
 
-Update the handler to behave how our specification wants it to
+Sơn phết gỡ rối tay hàm handler hòng bắt nó cư xử dẻo dai như yêu sách đặt lóng nhóng ở specification nhóe...
 
 ```go
 import (
@@ -439,9 +437,9 @@ func main() {
 }
 ```
 
-## Refactor
+## Gọt lại mâm chảo - Refactor
 
-Whilst this technically isn't a refactor, we shouldn't rely on the default HTTP client, so let's change our Driver, so we can supply one, which our test will give.
+Dẫu rằng xát muối phô cái mác khâu này chẳng đúng gốc bản (technically) gọt code (refactor) đâu, ấy cũng là lời răn, ta cấm lợi dụng đai cấu cái thằng HTTP client vớ vẩn rởm rởm, phới tay nặn cục đính kèo vô bộ Driver, hòng kiếm thế cấp cho 1 cục, rồi con gà đẻ ở bản test lấy hốt mớ.
 
 ```go
 import (
@@ -468,7 +466,7 @@ func (d Driver) Greet() (string, error) {
 }
 ```
 
-In our test in `cmd/httpserver/greeter_server_test.go`, update the creation of the driver to pass in a client.
+Qua địa bàn phết test chui hẻm `cmd/httpserver/greeter_server_test.go`, sấn sổ ném vào bộ tay nặn cục quẳng gánh 1 gã sai vặt client.
 
 ```go
 client := http.Client{
@@ -479,9 +477,9 @@ driver := go_specs_greet.Driver{BaseURL: "http://localhost:8080", Client: &clien
 specifications.GreetSpecification(t, driver)
 ```
 
-It's good practice to keep `main.go` as simple as possible; it should only be concerned with piecing together the building blocks you make into an application.
+Giữ cái nếp tút bộ não gọn nương cục `main.go` thành thứ phèn nhất mộc nhất khả dụng nhé huynh; cái mảng ấy mồm ngậm duy mỗi thiên chức gò nối, hàn cọc gạch các kiểu gạch nền móng lại mà dệt lên lụa hệ thống application.
 
-Create a file in the project root called `handler.go` and move our code into there.
+Soạn 1 nhúm thư mới hất ngang vách chứa (project root) chễm chệ khoác áo `handler.go`, ôm mớ nạm cũ của mình thả bịch vô.
 
 ```go
 package go_specs_greet
@@ -496,7 +494,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Update `main.go` to import and use the handler instead.
+Lại lốc nắp `main.go` cạy ngoéo import và đôn lính lôi móc handler qua chõ.
 
 ```go
 package main
@@ -513,17 +511,17 @@ func main() {
 }
 ```
 
-## Reflect
+## Thẩm lại vị - Reflect
 
-The first step felt like an effort. We've made several `go` files to create and test an HTTP handler that returns a hard-coded string. This "iteration 0" ceremony and setup will serve us well for further iterations.
+Bước chạy rồ ga có phần tốn lực. Chúng ta nắn đẻ đủ các loại files xài đuôi .`go` đặng uốn nặn với gáy thử bài kiểm một thằng điều binh HTTP handler với công dụng chả khác vứt 1 cuộn chuỗi tĩnh (hard-coded string). Dù ẻo éo "vòng lặp đúc tiền thân số 0" cồng kềnh đầy lễ nghi với bộ thiết lập này lại phất cánh che tai phục dịch chu đáo lúc ta guồng chân cho mấy cua bẻ "lặp" (iterations) tiếp tới.
 
-Changing functionality should be simple and controlled by driving it through the specification and dealing with whatever changes it forces us to make. Now the `DockerFile` and `testcontainers` are set up for our acceptance test; we shouldn't have to change these files unless the way we construct our application changes.
+Nắn đường đổi dáng của chức năng nay chẳng nhọc như lên trời, có khi chỉ là cớ dắt lái qua con xe specification rồi chịu đấm ăn xôi dàn xếp mới rắc rối vây quanh mà nó cắn giật lôi tớ làm chung. Giờ đã yên vị sắm bản thiết đồ thầu `DockerFile` cùng hội `testcontainers` đóng phom cỗ cho bản test acceptance test rịn lên đài; tụi bây đâu hụt tay mò mẫn đếm xỉa mấy cục gạch nọ đặng không chường xui có cú xỉa nào nắn cấu gãy bộ cọc móng xướng lên hệ thống app đâu khứa nhỉ.
 
-We'll see this with our following requirement, greet a particular person.
+Bọn ta nhẩn nha xem rành rọt ở khúc yêu cầu bắp nối ngay ngõ, léo héo gọi tên "chào bác nào đấy sắm tên cụ thể nhe".
 
-## Write the test first
+## Viết ngay phần nã test nào (Write the test first)
 
-Edit our specification
+Uốn ngón gõ vài cái vào specification nào:
 
 ```go
 package specifications
@@ -545,9 +543,9 @@ func GreetSpecification(t testing.TB, greeter Greeter) {
 }
 ```
 
-To allow us to greet specific people, we need to change the interface to our system to accept a `name` parameter.
+Nhắm vọt bước thả cổng đón rước đích danh ngài lớn, ta tính mưu chỉnh giao thức interface nhắm tới app cắm ngõ họng thâu tóm vào nắp mồi `name` nheng anh em.
 
-## Try to run the test
+## Sờ cái test coi lên khói không (Try to run the test)
 
 ```
 ./greeter_server_test.go:48:39: cannot use driver (variable of type go_specs_greet.Driver) as type specifications.Greeter in argument to specifications.GreetSpecification:
@@ -556,11 +554,11 @@ To allow us to greet specific people, we need to change the interface to our sys
 		want Greet(name string) (string, error)
 ```
 
-The change in the specification has meant our driver needs to be updated.
+Giông lốc đổi thay quật qua nấc bệ specification nháy hệ lụy móc theo thằng bé driver kia bị đòi gào tên gọi phải nặn lại rồi.
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
+## Rẽ bẻ lượng code teo tẹo đủ nhét kẽ chạy test và soi cái thẹo (lỗi)
 
-Update the driver so that it specifies a `name` query value in the request to ask for a particular `name` to be greeted.
+Tút lại phần ngón trỏ cái driver nên cho nó dằn bụng đem gửi gắm cái chữ biến đi kèm rễ gáy truy vấn (query value) tên là `name` núp trong khâu yêu sách (request) rải ra hóng đón tiếng gọi định danh được cất lên.
 
 ```go
 import "io"
@@ -579,7 +577,7 @@ func (d Driver) Greet(name string) (string, error) {
 }
 ```
 
-The test should now run, and fail.
+Sới Test phỏng nã đã bớt ngọng mà lao vút được, mớm cục tức (fail) về tay.
 
 ```
     greet.go:16: Expected values to be equal:
@@ -590,9 +588,9 @@ The test should now run, and fail.
 --- FAIL: TestGreeterHandler (1.92s)
 ```
 
-## Viết đủ code để test chạy thành công
+## Rắc xé bốc hốt đủ code mớm nó đậu
 
-Extract the `name` from the request and greet.
+Khe khẽ nạo tróc tên gọi danh nghĩa `name` dội từ request ra dọn dĩa đi mời khách.
 
 ```go
 import (
@@ -605,15 +603,15 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The test should now pass.
+Dĩ tiến thế, bài test qua nhún đài đậu đỗ vèo vèo.
 
-## Refactor
+## Gọt lại mâm chảo - Refactor
 
-In [HTTP Handlers Revisited,](https://github.com/quii/learn-go-with-tests/blob/main/http-handlers-revisited.md) we discussed how important it is for HTTP handlers should only be responsible for handling HTTP concerns; any "domain logic" should live outside of the handler. This allows us to develop domain logic in isolation from HTTP, making it simpler to test and understand.
+Khoa mục [Thăm lại cõi HTTP Handlers (HTTP Handlers Revisited),](https://github.com/quii/learn-go-with-tests/blob/main/http-handlers-revisited.md) chúng ta có phân bua căng đét về cái sự cực kỳ xương sống bảo kê HTTP handlers ôm rịt việc của chuẩn HTTP và miễn nhiễm mấy thứ khác; mớ nào dính mác "domain logic" phắn ngay ra rìa ko núp váy handler. Tuyệt kỹ này tiếp bước dọn phòng thênh thang để phát triển cục domain logic tách bạch cùng HTTP, hô biến khâu test với vỡ vạc mã thành điệu múa cực duyên.
 
-Let's pull apart these concerns.
+Giờ rút mỏng dính các khâu chéo ngoe ấy (concerns) ra ha.
 
-Update our handler in `./handler.go` as follows:
+Bẻ lại miếng handler trong ruột `./handler.go` nhứ phía dưới này:
 
 ```go
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -622,7 +620,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Create new file `./greet.go`:
+Nặn ngay miếng ngói rỗng `./greet.go`:
 ```go
 package go_specs_greet
 
@@ -633,13 +631,13 @@ func Greet(name string) string {
 }
 ```
 
-## A slight diversion in to the "adapter" design pattern
+## Dạo mót chút chéo sang nẻo pattern "cục chuyển đổi (adapter)"
 
-Now that we've separated our domain logic of greeting people into a separate function, we are now free to write unit tests for our greet function. This is undoubtedly a lot simpler than testing it through a specification that goes through a driver that hits a web server, to get a string!
+Tới mốc dứt điểm hất mảng logic thuộc miền domain, ở ngón nghề vẫy khách chào thưa văng khỏi chức phận khác thành gã Function tự do, thì anh em tao mẩy cờ trổ Unit Tests (unit tests) phấp phới bắn vào gã Greet rỗng kia chớ ngại gì. Rõ 1 phát là vạn phần êm đềm bớt hóc búa vạn trượng nhò phần so le đẩy lệnh nã thông ruột gã specification vác 1 lão driver đấm đá sập sàn nhà phát mạng server hòng lượm vớt mỗi cái chuỗi chữ tĩnh string về tay.
 
-Wouldn't it be nice if we could reuse our specification here too? After all, the specification's point is decoupled from implementation details. If the specification captures our **essential complexity** and our "domain" code is supposed to model it, we should be able to use them together.
+Cầm cưa mướt ruột không khi xót 1 bọc rỗng mình bươi lại cuốc specification thảy qua chơi tiếp chốn này? Chung quy vòng vòng, rún định của cành specification san sát xào chẻ rịt phớt sụ che phần rác của ruột mảng tháo ráp (implementation details). Nếu specification có sức đớp nhọn nọc lõi **Sức sống phức độ (essential complexity)** bên cạnh đám code phèn nạm danh "domain" của anh em lính tao lãnh xướng mệnh vác mác nó, hiển nhiên có thể kéo dắt phò tụi nó nương tay cặp gáy với nhau.
 
-Let's give it a go by creating  `./greet_test.go` as follows:
+Quật thử cờ bạc nặn lấy `./greet_test.go` dề đây:
 
 ```go
 package go_specs_greet_test
@@ -657,22 +655,22 @@ func TestGreet(t *testing.T) {
 
 ```
 
-This would be nice, but it doesn't work
+Mộng quá mơ, cơ mà ọc ọc nó chẳng lăn êm.
 
 ```
 ./greet_test.go:11:39: cannot use go_specs_greet.Greet (value of type func(name string) string) as type specifications.Greeter in argument to specifications.GreetSpecification:
 	func(name string) string does not implement specifications.Greeter (missing Greet method)
 ```
 
-Our specification wants something that has a method `Greet()` not a function.
+Cuốc gọi specification rên lấp lửng vòi một thực thể chứa sẵn 1 bộ ngạch method `Greet()` chớ éo thèm cục function trọc nghen.
 
-The compilation error is frustrating; we have a thing that we "know" is a `Greeter`, but it's not quite in the right **shape** for the compiler to let us use it. This is what the **adapter** pattern caters for.
+Văng cái thẹo dịch build hụt cay dái thiệt thòi; có đinh đinh trong đầu 1 củ bảo mang dấp dách chức phận `Greeter` rồi, ác nỗi chẳng trúng vô trọn vẹn **khuôn múa (shape)** hòng vuốt mắt gã compiler ngu nới cửa. Đó đây khắc tên cứu tinh - chước độn thiết kế lấp cọc **đệm chuyển - adapter**.
 
-> In [software engineering](https://en.wikipedia.org/wiki/Software_engineering), the **adapter pattern** is a [software design pattern](https://en.wikipedia.org/wiki/Software_design_pattern) (also known as [wrapper](https://en.wikipedia.org/wiki/Wrapper_function), an alternative naming shared with the [decorator pattern](https://en.wikipedia.org/wiki/Decorator_pattern)) that allows the [interface](https://en.wikipedia.org/wiki/Interface_(computer_science)) of an existing [class](https://en.wikipedia.org/wiki/Class_(computer_science)) to be used as another interface.[[1\]](https://en.wikipedia.org/wiki/Adapter_pattern#cite_note-HeadFirst-1) It is often used to make existing classes work with others without modifying their [source code](https://en.wikipedia.org/wiki/Source_code).
+> Nhét đầu vào phom học thuật môn [cơ khí linh kiện máy phần mềm (software engineering)](https://en.wikipedia.org/wiki/Software_engineering), cục **pattern đệm chuyển (adapter pattern)** tức là 1 bộ chiêu số [kỹ cương thiết kế phần mềm/phom mẫu](https://en.wikipedia.org/wiki/Software_design_pattern) (hay quen ợ với tên mác bọc bánh - [wrapper](https://en.wikipedia.org/wiki/Wrapper_function), tên lai vãng có tí dây thun chung mâm hụi bên giới thuật [decorator pattern](https://en.wikipedia.org/wiki/Decorator_pattern)) tha bổng cho 1 mành quy ước [interface](https://en.wikipedia.org/wiki/Interface_(computer_science)) của 1 cái [đế class](https://en.wikipedia.org/wiki/Class_(computer_science)) có sẵn rắp vô xài ké nương tay theo 1 cục cổng interface khác.[[1\]](https://en.wikipedia.org/wiki/Adapter_pattern#cite_note-HeadFirst-1) Chiêu lòn này luôn sài hòng bẻ gáy mấy lão class cổ lổ chui luồn cạp nạp chung mâm các bạn già hòng không xót xạc tróc vỏ đám [cốt cơ mã nguồn (source code)](https://en.wikipedia.org/wiki/Source_code) ra bâm vầm.
 
-A lot of fancy words for something relatively simple, which is often the case with design patterns, which is why people tend to roll their eyes at them. The value of design patterns is not specific implementations but a language to describe specific solutions to common problems engineers face. If you have a team that has a shared vocabulary, it reduces the friction in communication.
+Mả cha nhồi cả cụm chữ sang choảnh bọc chung miếng rẻ quạt trơn tuộc, lại bảo sao ba cái khía cạnh nặn phom kiến trúc dấy đội quần hội anh em thợ chán rầu vãi nhái. Chìa khóa giá ngọc cho mớ pattern thiết kế nọ hổng bấu vào tầng chắp mã nhúng thẳng cơ đéo, ấy lót nhung ngửa tiếng kháo từ vựng quy chung vạch ra nhúm biện pháp chung chung đánh đám loạn xèng vấp bão thường ngày ở đám kỹ sư nghênh chiến. Kiếm chác vô tay một hạm có đính chung một băng đạn ngôn ngữ, nếm mật gai giảm đi phân nửa lực lúc thông mỏ phọt nước bọt cùng sếp lính (communication).
 
-Add this code in `./specifications/adapters.go`
+Quăng rác mã xuống cục file trỏ mục `./specifications/adapters.go` 
 
 ```go
 type GreetAdapter func(name string) string
@@ -682,7 +680,7 @@ func (g GreetAdapter) Greet(name string) (string, error) {
 }
 ```
 
-We can now use our adapter in our test to plug our `Greet` function into the specification.
+Dư lày ta đường hoàng lượn cục đệm adapter tại màn xé test hòng lấy cái gáy cắm function `Greet` của mình chọt dính tróc Specification vô tư rùi con.
 
 ```go
 package go_specs_greet_test
@@ -702,21 +700,21 @@ func TestGreet(t *testing.T) {
 }
 ```
 
-The adapter pattern is handy when you have a type that exhibits the behaviour that an interface wants, but isn't in the right shape.
+Miếng đệm Adapter ăn dầm tiện mút lúc bồ vác 1 ông trùm hình hài type đong đầy mâm đạo vị (khuôn xử sự - behaviour) như vòi kháy của cổng interface thèm ngặt nỗi vấp gãy mỗi dáng vóc hổng thon chuẩn thôi.
 
-## Reflect
+## Thẩm lại vị - Reflect
 
-The behaviour change felt simple, right? OK, maybe it was simply due to the nature of the problem, but this method of work gives you discipline and a simple, repeatable way of changing your system from top to bottom:
+Phập xẻ thay tính nết ngó trơn cmn trượt há? Ờ hé, khéo do duyên trời ngõ vắng ăn hên ở sự lở loét (nature) con đẻ bài toán, dưng lết mảng mòn việc móc nối trù thế này thụt cấp kĩ nghệ chốt luật gò ép anh vào kỷ luật thép và chìa củ sâm siêu dễ xực chót thay hoán hệ trục máy lướt mướt trần tới ngầm (top to bottom):
 
-- Analyse your problem and identify a slight improvement to your system that pushes you in the right direction
-- Capture the new essential complexity in a specification
-- Follow the compilation errors until the AT runs
-- Update your implementation to make the system behave according to the specification
-- Refactor
+- Mổ phanh bệnh nhân ra, rờ lách phanh châm ngòi nặn ti tí cọc mảng hệ thống sao cho nó bứt dây chắp đà đánh tới 1 luồng bẻ đích phơi phới chuẩn bài
+- Xiết chặt thòng 1 mạng độ dày sự cố (essential complexity) khéo mới tinh quăng thẩy chốn specification
+- Xắn quần dí chạy luồng cuốc biên dịch compiler lỗi ban trưa đặng nhét tới hồi dứt cú AT thông xe an lành
+- Vá thay dũa bộ cánh nảy chữ rắp ruột implementation vuốt cọng râu cho con cỗ xoay vòng nịnh thần nghe dóc specification phán
+- Refactor- Gọt mộc bào nhẵn.
 
-After the pain of the first iteration, we didn't have to edit our acceptance test code because we have the separation of specifications, drivers and implementation. Changing our specification required us to update our driver and finally our implementation, but the boilerplate code around _how_ to spin up the system as a container was unaffected.
+Rũa xong trận chua lòm quằn quại lần dạo đầu (first iteration), anh em ta phất ngọc đỡ đụng dao đụng thớt xoay thay chẻ miếng mồiacceptance test code bởi tại tụ quẩy đã tách cật mẻ xương sống specifications dứt lề nhóm tay to drivers với cục thịt implementation rồi đó trơn. Hắt nhám đổi củ mâm specification gọi đội tui gồng sửa 1 chút mẻ bên rổ tay đâm driver và chót nhất lấn vô đống da thịt implementation thôi trọn, chứ màn vái cuốc ba lăng nhăng tụ tập rỉ rá mớ xướng vòng xoáy hòng giật ngòi hệ thống hóa hòm nhét container như trên chẳng hề mẻ miếng gai.
 
-Even with the overhead of building a docker image for our application and spinning up the container, the feedback loop for testing our **entire** application is very tight:
+Vãi vung một nhúm hao tổn gò lưng xây docker image với cả bục ngòi container, 1 chiêu phản hồi (feedback loop) chỏ cho xấp trượng bắt thóp đánh test **trọn vẹn cục vã cả** app phơi mồm nó khít rịt tột hạng:
 
 ```
 quii@Chriss-MacBook-Pro go-specs-greet % go test ./...
@@ -725,23 +723,23 @@ ok  	github.com/quii/go-specs-greet/cmd/httpserver	2.221s
 ?   	github.com/quii/go-specs-greet/specifications	[no test files]
 ```
 
-Now, imagine your CTO has now decided that gRPC is _the future_. She wants you to expose this same functionality over a gRPC server whilst maintaining the existing HTTP server.
+Dòm xem nha, bợ rớt lựu đạn cha nội tổng quản CTO mới nhú dõng dạc xưng hô rắng mạng lưới gRPC mới là _cụ tổ đích chân thời thế hiện kim_. Rõ mụ ý giục đít mình phanh lổ xả thông ruột chức năng này lộ hàng 1 cửa trên 1 thằng gRPC server trong lúc vẫn bao xài nuột con máy trạm HTTP cũ xì kìa.
 
-This is an example of **accidental complexity**. Remember, accidental complexity is the complexity we have to deal with because we're working with computers, stuff like networks, disks, APIs, etc. **The essential complexity has not changed**, so we shouldn't have to change our specifications.
+Luổng lỗ này gióng trống ngay gương phán chiếu điệu **cột mạng độ dày ngẫu trợ (accidental complexity)**. Ráng dập lại óc nè bay, mớ xô lệch vương vãi đống cục bướu accidental complexity hiện thân độ chua của ngần ấy cục phiền phức đội sổ giẽ móc vói cọc nhọn máy bàn (computers), nhét vô đầu dâm ba lọn phách vướng của mạng internet (networks), hộp nén ổ disk, cả bọn ma API lộn xộn các mâm...v..v..  **Còn gọng kìm ức độ sầu của lõi Essential complexity chả suy suyễn cọng cước nào**, thảng lẽ ấy ta dẹp màn ấu trĩ đổi tráo nương níp specifications của tụi tao sang bên nhé.
 
-Many repository structures and design patterns are mainly dealing with separating types of complexity. For instance, "ports and adapters" ask that you separate your domain code from anything to do with accidental complexity; that code lives in an "adapters" folder.
+Bùng nổ cả đống sơ đồ đúc cục chứa nạp rành hạch nảy số bốc thăm móc riêng hai cục bướu cấu chéo này ra. Thể nhứ câu đùa bọc "Thùng đấu port với đệm vác adapter- ports and adapters" nhăm nhẽ khấn gọi con nhang hất luôn hệ "domain code" dứt cúc dẹp chung mâm lũ cặn bã nhung nhúc đèo bồng dính máu tới ả bướu tiềng điếm accidental complexity; bộ ruột kia xách va ly nằm chờ giấu trong bục 1 thư điếm mang tên "adapters".
 
-### Making the change easy
+### Vá chắp hòng xê xê biến dạng trôi nhanh gọn lẹ (Making the change easy)
 
-Sometimes, it makes sense to do some refactoring _before_ making a change.
+Thỉnh đỉnh lác đác vài phen, sấn tới múa Refactor đục rục _trước màn khởi mùng (before)_ thay ngói app rành hay dỡ mồm xảo ngôn.
 
-> First make the change easy, then make the easy change
+> Bào nhám đánh cho miếng đánh lật trơn chanh, rùi thì hất cái vọt đánh cái nảy ván ấy (First make the change easy, then make the easy change)
 
 ~Kent Beck
 
-For that reason, let's move our `http` code - `driver.go` and `handler.go` - into a package called `httpserver` within an `adapters` folder and change their package names to `httpserver`.
+Sướng như tiên, quắp bệ con `http` cộm - là nhóm `driver.go` đi chung em `handler.go` - nhét gọn vô chiếc hùm nạm gói (package) mang danh mộc `httpserver` lọt chỏm khu hốc thư viện rổ `adapters` rồi khai trừ xoắn nã thay cái áo package của chúng qua xưng danh hụ `httpserver` cho ta nhé.
 
-You'll now need to import the root package into `handler.go` to refer to the Greet method...
+Bạn vã não giật ngay lệnh import cái hộc bọc vách (root package) qua bến sườn nạm `handler.go` đặng lôi bấu mớ Greet method ngay và luôn...
 
 ```go
 package httpserver
@@ -760,7 +758,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 ```
 
-import your httpserver adapter into main.go:
+Chắp khóm gọi adapter httpserver vô lỗ hang chuột `main.go`:
 
 ```go
 package main
@@ -777,29 +775,29 @@ func main() {
 }
 ```
 
-and update the import and reference to `Driver` in greeter_server_test.go:
+Rót nảy giọt cùng, update vụ import với cả con dấu ngắm chỉ lố cọc mành cất dấu cụ `Driver` lộn xộn ở nếp hụp ổ test `greeter_server_test.go`:
 
 ```go
 driver := httpserver.Driver{BaseURL: "http://localhost:8080", Client: &client}
 ```
 
-Finally, it's helpful to gather our domain level code in to its own folder too. Don't be lazy and have a `domain` folder in your projects with hundreds of unrelated types and functions. Make an effort to think about your domain and group ideas that belong together, together. This will make your project easier to understand and will improve the quality of your imports.
+Dứt điểm rớt kèo xong xui, rất dẻo ngon nếu chiêu trò dồn cọc cái mớ mã (code) bậc mâm miền domain nhồi lọt vào cái rọ của chính tông thư sảnh thuộc quyền sở hữu nó chứ trịch. Vĩnh cửu đừng diễn thói cà xịch trễ nãi nuôi cái chuồng chứa củi rác `domain` đùm gò trong đám nôi nuôi dự án đính ngập cả trăm cọc xâu các hệ hình nắn cục hủ functions méo thèm lạy nhau. Trưng tí mồ hôi suy nghĩ qua luống domain rồi vãi văng nhóm dọn dẹp các phát minh lý đĩnh lọt chỏm một nơi có bầy đàn kết nối cùng máu, bỏ chung nhóe lọt trọn. Ngón đánh đó lột dáng vóc dự án ấp nũng nên hiểu dễ chói lọi, lại kéo nảy dập hệ chất chuẩn trót lọt cho tụi ngỏ vắng imports gạt lùm của mi cơ chứ! 
 
-Rather than seeing
+Chờ lết xít mòn râu vung rỉ nẻo cục
 
 ```go
 domain.Greet
 ```
 
-Which is just a bit weird, instead favour
+Cái chóp này rác nhục rền nặc hãi độ quá ngọng mồm rùi, bẻ lái lấy 
 
 ```go
 interactions.Greet
 ```
 
-Create a `domain` folder to house all your domain code, and within it, an `interactions` folder. Depending on your tooling, you may have to update some imports and code.
+Lót gạch lấy nền bóc gỡ ra cục folder `domain` thủ xắn mớ lòng tự rác code domain, dính vô trong nụ nhú kẽ thì khoét mương rọc folder `interactions`. Ngả nghiêng đặng lướt hòm đồ chơi sài (tooling), các cụ xỏ kẽ vá lật mấy nhát ngõ hụp nhập xâu imports với mã chữ cắm mớ code nha.
 
-Our project tree should now look like this:
+Rã cành của dự án nhà tụi mình nhòm giờ sang bảnh y đúc vầy:
 
 ```
 quii@Chriss-MacBook-Pro go-specs-greet % tree
@@ -827,18 +825,18 @@ quii@Chriss-MacBook-Pro go-specs-greet % tree
 
 ```
 
-Our domain code, **essential complexity**, lives at the root of our go module, and code that will allow us to use them in "the real world" are organised into **adapters**. The `cmd` folder is where we can compose these logical groupings into practical applications, which have black-box tests to verify it all works. Nice!
+Cốt tủy của chương trình bám rít domain, **cột mạng độ dày sự cố (essential complexity)**, chôn cứng dính dấp tại tầng rễ gốc thúng modules của Go, dưng bộ nham thạch đùn cái sức sống thả mớ đống ngộn vào môi trường "phương trời thực" phang quy ước khoét từng khóm quẳng tủ riêng biệt đặt chữ chổng ngược là **adapters**. Tầng hộc chứa tên `cmd` hóa thân lãnh địa ta tự do băm vằm đục chẽ đắp đống lũ tổ xưng logic khốn kiếp chắp lọt vòng vô dăm ba hình thù application thực chiến cực hiệu nghiệm thiết thực, vốn sờn gai ốc đính trọn củ black-box tests thẩm định gác cửa bao thầu nạc mỡ có nạy đúng bài bản không đó nhóe. Rực rỡ!
 
-Finally, we can do a _tiny_ bit of tidying up our acceptance test. If you consider the high-level steps of our acceptance test:
+Dứt nợ cữ cuối, bôi xà bông quấn mùng tắm lại _thiếu thiếu tí teo_ nẻo vuốt gọn acceptance test của đôi ta thôi nheng. Vuốt râu xem lướt thử dăm mâm các bực rạch cờ bay ở tầng ưng ý cao vời vợi tạc nên một cú test acceptance hòng ngẩn:
 
-- Build a docker image
-- Wait for it to be listening on _some_ port
-- Create a driver that understands how to translate the DSL into system specific calls
-- Plug in the driver into the specification
+- Lắp rắp buồng máy hình chiếu docker image
+- Ép xác chờ tụ tập rình thính bắt mạch chộp trên _một_ cái miệng lỗ (port) cụng kẽo
+- Choãi chân móc vắt cái dây xích lôi gã driver vốn thuộc làu cách xào tiếng đệm DSL đẻ hóa mã call chọc chọt nát ổ hệ thống
+- Ghép lọt gã driver nêm chặt cuống specification
 
-... you'll realise we have the same requirements for an acceptance test for the gRPC server!
+... bỗng khựng lại vỗ đùi gõ trán "ôi chết mje mình cũng khấn mấy nảy vòng đòi hỏi y xì lặp đúc này rứa phục vụ quả acceptance test đẻ gRPC server thoi!"
 
-The `adapters` folder seems a good place as any, so inside a file called `docker.go`, encapsulate the first two steps in a function that we'll reuse next.
+Rổ rác chứa chữ `adapters` tạc lên mâm một điểm đậu lý thói như dăm chốn đọng vũng ngò khác, cho rày trong lõi dóc file mọc chữ mang danh `docker.go`, chừa lỗ nhồi nguyên xi đôi gáy yêu sách bước mở màn bó gọn dưới lốt tay nắn giấu chung hàm function mốt lôi dùng xài đợt gõ sau mâm.
 
 ```go
 package adapters
@@ -882,7 +880,7 @@ func StartDockerServer(
 }
 ```
 
-This gives us an opportunity to clean up our acceptance test a little
+Thâm thụt quả này nảy cánh cừa nới rộng khoảng trống phủi rũa tút gọn cục gáy acceptance test bóng lên nhúm.
 
 ```go
 func TestGreeterServer(t *testing.T) {
@@ -900,17 +898,17 @@ func TestGreeterServer(t *testing.T) {
 }
 ```
 
-This should make writing the _next_ test simpler.
+Dời binh khiển ấn mướt mượt cho vụ giăng luồng test _ngay phía sau_ bớt đù đờ nặng kẽo.
 
-## Write the test first
+## Viết ngay phần nã test nào (Write the test first)
 
-This new functionality can be accomplished by creating a new `adapter` to interact with our domain code. For that reason we:
+Cuộn chức năng độn thêm này thả cổng chạy vù bằng nẻo mọ bọc rặn thêm dăm 1 ổ cắm mới `adapter` chui rình luồn đánh hỏa mù tợn tấu chung bàn bộ code domain cục súc của đống rơm sào huyệt nhà. Chính gốc cựa điểm này ta:
 
-- Shouldn't have to change the specification;
-- Should be able to reuse the specification;
-- Should be able to reuse the domain code.
+- Khách sáo chối từ nạy tung màn specification nhá;
+- Rủng rỉnh đĩnh bộ khư khư bôi tái dụng nhấm nháp lại nguyên củ specification ấy;
+- Trương bành thỏa sức vác tái tạo nhai đi nhai lại cục domain code.
 
-Create a new folder `grpcserver` inside `cmd` to house our new program and the corresponding acceptance test. Inside `cmd/grpc_server/greeter_server_test.go`, add an acceptance test, which looks very similar to our HTTP server test, not by coincidence but by design.
+Xây rễ nắn kén chòi ổ rơm mới toanh `grpcserver` trượt lòng thúng `cmd` làm ổ úp nôi nắn cục app lập trình (program) bóng bẩy với cả kẹp dính theo một bé chó săn acceptance test phơi nhám rượt sát. Ngụp sâu hang cấm `cmd/grpc_server/greeter_server_test.go`, giăng mạng nhện nã 1 luồng bọc acceptance test vung lên, thoạt ngó trông nũng nịu sinh đôi đúc phom na ná ổ test gác cổng HTTP server kia, cơ mà hổng chường ra chữ lóng ngẫu trùng phùng ăn may đâu nhóe, mưu mọt kén thiết kế (by design) ráo dâng tận họng đó nheng.
 
 ```go
 package main_test
@@ -936,22 +934,22 @@ func TestGreeterServer(t *testing.T) {
 }
 ```
 
-The only differences are:
+Mẻ vẹo gãy khác dóc lẻn mỗi tẻo chuyện:
 
-- We use a different docker file, because we're building a different program
-- This means we'll need a new `Driver`, that'll use `gRPC` to interact with our new program
+- Rinh bợ nguyên hệ docker file rẽ nhánh lượn dóng khác hụ, nặn bộ app kiểu lập trình mẻ mới cống xài
+- Chĩa vòi đồng nếp rằng anh lính xịn rẽ bến, lôi một anh gồng gánh cọc mới toanh phẩy `Driver`, vung gậy chọt thằng đòn cờ hệ `gRPC` bắt vòi bắt vọc vói thằng chương trình program mớ tinh tươm.
 
-## Try to run the test
+## Thử gõ nhẹ cho test nảy số (Try to run the test)
 
 ```
 ./greeter_server_test.go:26:12: undefined: grpcserver
 ```
 
-We haven't created a `Driver` yet, so it won't compile.
+Mòn mặt rên chưa đào nổi xới dóc con cờ mủ `Driver` hất nảy số, lẹt nó nảy lỗi kẹt cứng dịch (compile) luôn méc gì hỡi anh em.
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-Create a `grpcserver` folder inside `adapters` and inside it create `driver.go`
+Vạch một nẻo hốc thư mục mọc cội `grpcserver` luồn sát vách trong đê cắm `adapters` chòi ngay vòi vô cắm tạo phát xẻ file `driver.go`
 
 ```go
 package grpcserver
@@ -965,9 +963,9 @@ func (d Driver) Greet(name string) (string, error) {
 }
 ```
 
-If you run again, it should now _compile_ but not pass because we haven't created a Dockerfile and corresponding program to run.
+Dập thêm phát mồi ấn rồ lệnh máy chạy nha, hóng đi nó buông xuôi gõ màn lọt vòng ốc _biên dịch_ cơ dưng rụng test chết (not pass) do cẩm hường chưa tãi bày cục tế Dockerfile bấu với chậu chương trình program làm gánh múa tung chạy dẻo.
 
-Create a new `Dockerfile` inside `cmd/grpcserver`.
+Chế tạo 1 con thoi `Dockerfile` móng tay thòng lòng nằm khu `cmd/grpcserver`.
 
 ```dockerfile
 # Make sure to specify the same Go version as the one in the go.mod file.
@@ -987,7 +985,7 @@ EXPOSE 50051
 CMD [ "./svr" ]
 ```
 
-And a `main.go`
+Dính thêm bả `main.go`
 
 ```go
 package main
@@ -999,19 +997,19 @@ func main() {
 }
 ```
 
-You should find now that the test fails because our server is not listening on the port. Now is the time to start building our client and server with gRPC.
+Lú mề tẽ lùi lỗi dập cắm mâm dâng ngõ fail tại trọn tay quản nhịp máy chủ server quịt kèo chẳng nghe đói nằm cổng port bắt cóc. Rúc sọt hởi, chích giờ tới khắc cởi áo nhảy nhào xoay gạch múa thúng kén xáp nặn đắp khách vãn (client) gáy vòi cùng trạm máy (server) ôm mông nương hệ gRPC.
 
-## Viết đủ code để test chạy thành công
+## Ráp cọc nặn đắp đống đủ nhét kẽ mồi test bung lụa lên màu
 
-### gRPC
+### Kẹt bến đò gRPC
 
-If you're unfamiliar with gRPC, I'd start by looking at the [gRPC website](https://grpc.io). Still, for this chapter, it's just another kind of adapter into our system, a way for other systems to call (**r**emote **p**rocedure **c**all) our excellent domain code.
+Hiềm nổi khứa đang ngu ngáo mù tịt cái dằm gRPC, trẫm xúi nắn mần rà mục [kinh dịch tại đất gRPC website](https://grpc.io) nhen. Bổ qua mâm đó, riêng cái chòi của trọn 1 chương sách này nọ, gRPC nom như nhọn chĩa thêm ngọn kích (adapter) thứ chục vào bụng ruột hệ thống tụi mình ấy chớ ghê gớm nạy khó đâu, nương cái vòi hóng gọi tay mấy giàn chóp hệ trống chéo cánh khác ớ réo móc rúc rích gào (**r**emote **p**rocedure **c**all - tức cuốc gọi quy chế điều hành thả viễn) thằng tôm rốn cục gạch rành đặc domain xịn sò của tụi này vung múa.
 
-The twist is you define a "service definition" using Protocol Buffers. You then generate server and client code from the definition. This not only works for Go but for most mainstream languages too. This means you can share a definition with other teams in your company who may not even write Go and can still do service-to-service communication smoothly.
+Nhấp nhem cái rẽ lệch chỏng của trào lưu này, rặn ra phò 1 mảnh "hiển phơi giao dịch service (service definition)" hất vòi nhờ gã quỷ tóm ngạo nghễ dọn hầu mang tiếng Protocol Buffers thao tuồng. Xáp lại điếm xé dộng lúa mã nặn từ rễ hệ cờ rễ khai nguyên sinh mộc cả cụm rổ máy khách client cùng đống quấn chủ trạm server. Lọt lỗ bao đâm bóp thủ này chưa mẻ ngọc dính móng dân dã đi đà Go chọc ngoáy, thả hồn sài cho đủ phường phét đa hệ phom phọt tụi phím gõ tiếng ngôn ngữ béo bở đầy bầy đàn thời này đều êm. Xoáy một vòi định nghĩa ợ dâng cả phường hội ban bộ rông cọp lốc rốc ngóc chóp ở cái xưởng chả rành tiếng mẹ đẻ thằng Go choai đẫn, xúm lại chung mâm ráp giao tiếp cưa sừng đấm họng dõng dạc trao hệ thống giao tranh service-to-service muôn kiếp trơn mượt trơn lóng êm tay xế.
 
-If you haven't used gRPC before, you'll need to install a **Protocol buffer compiler** and some **Go plugins**. [The gRPC website has clear instructions on how to do this](https://grpc.io/docs/languages/go/quickstart/).
+Rủi bác nào rớt ví nếm 1 mảng nhỏ của rổ hốc gRPC xưa mướt nếp, mài dao vát kiếm chảo đống đồ nghề nạy ngay dính thẹo thòng vội **Trùm đúc bi rinh quy chuẩn thông dịch (Protocol buffer compiler)** song cháp một bưng phếu tay móng lồi thòng xía đệm **Go plugins**. [Ổ gấu sếu web gRPC tuồn bái phơi hộc kẽ vạch nhe răng đầy lổ thủ tục giục họng dộng làm cho cạn chèn ngập vương miệng luôn nha](https://grpc.io/docs/languages/go/quickstart/).
 
-Inside the same folder as our new driver, add a `greet.proto` file with the following
+Kề lấn chốn cất chong níp xấp rẽ ổ driver trẻ mới phệt của đội, ợ thêm cho đầy 1 cành file `greet.proto` mút luồi nhúm ruột phơi dưới kia
 
 ```protobuf
 syntax = "proto3";
@@ -1033,9 +1031,9 @@ message GreetReply {
 }
 ```
 
-To understand this definition, you don't need to be an expert in Protocol Buffers. We define a service with a Greet method and then describe the incoming and outgoing message types.
+Nuốt lọt cái quy trình cọc nhét thâu tóm lới này, bạn đâu đỗ lỗi đi rặn tu vội một cái thạc bằng nắn nót phong danh giáo thụ nức nở cho ngàng nghề Protocol Buffers chi phiền phức. Nhá nhá chép tụi ta vẽ vòng cái cổng rễ dẻo ôm quàng đọn phương chiêu Greet nhẩy, mớm một vung rồi miêu tả nẩy nét mấy cụm mồi gói mớ tin đứt đoạn xẹt dô hất ra phọt cái kiểu dạng (message types) phơn phớt nha.
 
-Inside `adapters/grpcserver` run the following to generate the client and server code
+Nhào vô hẽm chui họng hang mọc `adapters/grpcserver` dốc bốc vung rắc dòng phép gọi ma trận dưới nhen đặng đẻ xoẹt rủng xẻng mã code cọc đóng khách client kiêm máy chủ server.
 
 ```
 protoc --go_out=. --go_opt=paths=source_relative \
@@ -1043,7 +1041,7 @@ protoc --go_out=. --go_opt=paths=source_relative \
     greet.proto
 ```
 
-If it worked, we would have some code generated for us to use. Let's start by using the generated client code inside our `Driver`.
+Nuột chơn lóng dính chốt thì trời phật thương gắp một vãi rễ ròng code ma pháp cất đống tuồn mả mới keng nhắm dùng. Ngoáy cọ bắt bài liền khâu khui ngợp ứng dụng dộng cái mâm mã đẻ của thằng khách client tút từ ổ ấp `Driver` nhà anh em múa nha.
 
 ```go
 package grpcserver
@@ -1060,7 +1058,7 @@ type Driver struct {
 }
 
 func (d Driver) Greet(name string) (string, error) {
-	//todo: we shouldn't redial every time we call greet, refactor out when we're green
+	//todo: mẻ ngọc dặn rũa đục lại khi trời quang xanh nhé, không bưng đòn dốc xả gọi lại quay dial hoài châm nã hàm greet đâu nghe nỉ
 	conn, err := grpc.Dial(d.Addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return "", err
@@ -1079,7 +1077,7 @@ func (d Driver) Greet(name string) (string, error) {
 }
 ```
 
-Now that we have a client, we need to update our `main.go` to create a server. Remember, at this point; we're just trying to get our test to pass and not worrying about code quality.
+Giọt chực trên môi đớp xong thảy khách client 1 em rọi, phơi ngực gáy sửa tráo bản gốc `main.go` xé nảy móc thêm ông chủ server ẵm nha hỡi phèng. Vội nặn trí dặn mường rịt lại, ở chặng này nẻo ta bon mon moi rút dóc óc nhét làm sao xoáy chui luồng cái lỗ test xanh ngoi đầu ngoảnh mặt ko buông tâm tư oán hận chuyện mã xịn dẻo hụ sao ha mậy (code quality).
 
 ```go
 package main
@@ -1101,6 +1099,8 @@ func main() {
 	s := grpc.NewServer()
 	grpcserver.RegisterGreeterServer(s, &GreetServer{})
 
+	grpcserver.RegisterGreeterServer(s, &GreetServer{})
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatal(err)
 	}
@@ -1115,7 +1115,7 @@ func (g GreetServer) Greet(ctx context.Context, request *grpcserver.GreetRequest
 }
 ```
 
-To create our gRPC server, we have to implement the interface it generated for us
+Rặn đẻ đắp mẻ gRPC server, luồn gạch phải ráp khâu cài cắm thực thi cái interface mà máy nó xì sẵn cho bộ đồ lòng:
 
 ```go
 // GreeterServer is the server API for Greeter service.
@@ -1127,13 +1127,13 @@ type GreeterServer interface {
 }
 ```
 
-Our `main` function:
+Nắm bộ nọc `main` ôm trọn thiên chức:
 
-- Listens on a port
-- Creates a `GreetServer` that implements the interface, and then registers it with `grpcServer.RegisterGreeterServer`, along with a `grpc.Server`.
-- Uses the server with the listener
+- Hóng vòi ở 1 kênh (port)
+- Rặn tạc lấy 1 thằng `GreetServer` làm chăn lót nhồi code hiện thực cho interface nọ, móc nối gửi gắm dâng mâm tấu sớ bằng tay vặn `grpcServer.RegisterGreeterServer`, chầu trực đi đôi em xịn `grpc.Server`.
+- Kéo dây lôi cổ server sáp đi dạo cùng cục hóng tai listener
 
-It wouldn't be a massive extra effort to call our domain code inside `greetServer.Greet` rather than hard-coding `fix-me` in the message, but I'd like to run our acceptance test first to see if everything is working on a transport level and verify the failing test output.
+Lấn thêm 1 vạch nảy số giật ngòi tháo mác cái dòng cục sắt `fix-me` châm tọt hẳn cục mã domain code nhà mọc vào ruột cục `greetServer.Greet` kể không vật vả bầm gan lắm, cơ lộc ở chỗ anh tài tao mong mỏi nắn vuốt phới cú đánh test acceptance dạo nhẹ xem thử mấy tay đòn đong đưa tại tầng kéo xe nhông chuyền (transport level) đủ giòn êm chửa và để ngửa bài rọi vạch chỉ mặt cái output toạch tét của cú test lỡ trượt chân (failing test) xem cái đã.
 
 ```
 greet.go:16: Expected values to be equal:
@@ -1143,9 +1143,9 @@ greet.go:16: Expected values to be equal:
 \ No newline at end of file
 ```
 
-Nice! We can see our driver is able to connect to our gRPC server in the test.
+Ngon chét! Tay múa gậy thọc driver kia lộ thiên khả năng ngóc đầu vói quắp chặt bắt bến với trạm gRPC server nhép trót lọt qua bài kiểm sát hạch nheng.
 
-Now, call our domain code inside our `GreetServer`
+Cờ đến tay, kéo cọng gọi mã domain code tuồn móc trong thâm y thằng `GreetServer` nhen mấy má
 
 ```go
 type GreetServer struct {
@@ -1157,19 +1157,19 @@ func (g GreetServer) Greet(ctx context.Context, request *grpcserver.GreetRequest
 }
 ```
 
-Finally, it passes! We have an acceptance test that proves our gRPC greet server behaves how we'd like.
+Dứt dáo, mẻ test bốc mào xanh rồi! Túm quần 1 cục acceptance test gánh lệnh đanh thép sờ cái chạm vạch hông máy gRPC greet server ngâm múa lượn núng nính rình rập y chang đòi hỏi đong đếm khao khát hỡi ơi.
 
-## Refactor
+## Gọt lại mâm chảo - Refactor
 
-We committed several sins to get the test passing, but now they're passing, we have the safety net to refactor.
+Tụi tui trót thề vấy máu tay chân xả không ít tội ác đặng thục kéo mã test gượng dậy nhích cọc nhảy đài, cơ mà giờ xanh rờn rứa rồi, thủ túi lưới hứng trọn đít cản dông (safety net) vọt cờ gỡ cấu refactor nè bay.
 
-### Simplify main
+### Ép vỏ chanh vắt mỏng em `main`
 
-As before, we don't want `main` to have too much code inside it. We can move our new `GreetServer` into `adapters/grpcserver` as that's where it should live. In terms of cohesion, if we change the service definition, we want the "blast-radius" of change to be confined to that area of our code.
+Vẫn còm mòn lối đó, đéo ai muốn nhồi u xơ một mẻ ứ hự rặn mớ code ủ dột rúc thân cụ `main` cho chật. Lôi cành hất tung mớ `GreetServer` trẻ nanh nhồi tống trả khu `adapters/grpcserver` hợp mâm bến đậu nợ duyên. Nọc đinh tính gắn kết ruột tủy (cohesion), hễ rủi rờ nắp đổi tạc kiểu dáng service, mâm thiên hạ chỉ hi vọng mảng cháy bụi mịt mù "bom dội xòe (blast-radius)" bị xích 1 chỏm quanh quất khu này (area of our code) chứ tò te đi hớt lẻo xa nhóe.
 
-### Don't redial in our driver every time
+### Cớ chi ngu gật mỗi nhắp gọi lốc lùi lạo lại chuông xoay (redial) quài ở cục Driver vậy bay
 
-We only have one test, but if we expand our specification (we will), it doesn't make sense for the Driver to redial for every RPC call.
+Có chừa múng 1 bãi test lót bụng, nếu quẩy mở mang bung bờ cõi specification vươn tua (rồi sẽ rứa), thiệt lòi ruột hâm đâm ngẫn tréo ngoe vụ dọng tay thọc Driver thảy bắt chuông dò đài vọt móc redial theo nhịp mỗi chỏm đánh lệnh khều đấm RPC nhóe.
 
 ```go
 package grpcserver
@@ -1216,9 +1216,9 @@ func (d *Driver) getClient() (GreeterClient, error) {
 }
 ```
 
-Here we're showing how we can use [`sync.Once`](https://pkg.go.dev/sync#Once) to ensure our `Driver` only attempts to create a connection to our server once.
+Giữa sòng này tung chiêu dạo múa mài xảo thuật xài [`sync.Once`](https://pkg.go.dev/sync#Once) chắp vá bảo kê nẻo anh `Driver` nung nấu mỗi 1 lần cắn răng móc ráp khêu xâu chuỗi ôm server ngóc nối duyên phận 1 cuốc.
 
-Let's take a look at the current state of our project structure before moving on.
+Liếc ngang nắn nót coi bộ rổ cành giong bẫy sập thiết đồ cỗ project trôi nhào điệu nào nghen để mốt tẻ tiếp nghen anh em.
 
 ```
 quii@Chriss-MacBook-Pro go-specs-greet % tree
@@ -1255,15 +1255,15 @@ quii@Chriss-MacBook-Pro go-specs-greet % tree
     └── greet.go
 ```
 
-- `adapters` have cohesive units of functionality grouped together
-- `cmd` holds our applications and corresponding acceptance tests
-- Our code is totally decoupled from any accidental complexity
+- Ngõ hẻm lán khu `adapters` cắm trại ôm lọt đủ nhóm chùm tính năng xáp mâm chung khối khéo ăn khéo nói cục (cohesive units)
+- Chõm `cmd` chừa nôi lót vũng cất nạp chùm app application kèm cả tảng xích acceptance tests mâm chung cặp ngó cặp bè
+- Ruột rà gốc gác mã Code rũ 1 tảng bóng phăng tuyệt tích tàng hình (totally decoupled) với bộ xương rồng accidental complexity rườm rà
 
-### Consolidating `Dockerfile`
+### Nhồi cục bóp 1 cục mẻ `Dockerfile` cho gọn
 
-You've probably noticed the two `Dockerfiles` are almost identical beyond the path to the binary we wish to build.
+Đoán hờ anh em đã đá lông nheo nhìn bắt thóp cả cụm hai mâm `Dockerfiles` rập chung mẻ đúc không 1 giọt sai lệch (almost identical) tuốt luốt ráo từ cái cửa hẻm chỉ vòi đường mòn rẽ nhặt viên gạch file chạy (binary path). 
 
-`Dockerfiles` can accept arguments to let us reuse them in different contexts, which sounds perfect. We can delete our 2 Dockerfiles and instead have one at the root of the project with the following
+Mảng hạm `Dockerfiles` gánh đỡ nạp nhồi đầu não 1 đống bả thông trút (arguments) cho mình thừa cơ vác mài tái tái tái đi tái lại tạt vào bến cả mớ nghịch cảnh (different contexts) ráo nha, nghe bùi tai thiệt chứ. Mình vung rựa phang chớp đứt cổ 2 tảng Dockerfiles đó, nặn ngáo thế thủ 1 mạng cắm chốt ngay họng cờ (root) rổ dự án dộng mã nhú này thẩy luồn dô
 
 ```dockerfile
 # Make sure to specify the same Go version as the one in the go.mod file.
@@ -1284,7 +1284,7 @@ RUN go build -o svr cmd/${bin_to_build}/main.go
 CMD [ "./svr" ]
 ```
 
-We'll have to update our `StartDockerServer` function to pass in the argument when we build the images
+Vướng nợ phải tãi kéo hàm cọc cụ `StartDockerServer` nhét cẩm nâng cấp hòng mớm đưa cái bả thòng ngầm (argument) mỗi dạo cuốc ráp lò nổ nhồi ảnh images nhoa.
 
 ```go
 func StartDockerServer(
@@ -1317,7 +1317,7 @@ func StartDockerServer(
 }
 ```
 
-And finally, update our tests to pass in the image to build (do this for the other test and change `grpcserver` to `httpserver`).
+Vén màn điểm chót, nắn đúc trét sửa rổ tests đặng trượt bơm móc luồn cọc ảnh (image) cho ngõ build (cóp trộm móc mâm y cành cho cái cọc test thứ bọc bên kia nha, xó mồm xỉa tráo tên cúng cơm `grpcserver` hóa cọc `httpserver` nhóe).
 
 ```go
 func TestGreeterServer(t *testing.T) {
@@ -1331,25 +1331,25 @@ func TestGreeterServer(t *testing.T) {
 }
 ```
 
-### Separating different kinds of tests
+### Phân xẻ nhặt riêng vách các luồng bài múa nã tests
 
-Acceptance tests are great in that they test the whole system works from a pure user-facing, behavioural POV, but they do have their downsides compared to unit tests:
+Vét túi rinh lượm mấy cái đặc quyền nạc đẫm mốc chóp của acceptance tests là khả năng quật rà 1 mớ 1 bộ nguyên xâu hệ thống tòng chóp vận tác xoay máy đứng trên lập điểm khách hàng hưởng xái (pure user-facing) sộp và cốt tính xử sự (behavioural POV). Khổ nổi trăng có bữa lặn mặt có nhọ, tụi ni ôm ngực vương phải góc lún bùn nếu phơi lưng rà đọ rổ đống móc nạm unit tests:
 
-- Slower
-- Quality of feedback is often not as focused as a unit test
-- Doesn't help you with internal quality, or design
+- Lếch thếch lết cùn rìa rục mòn đế (Slower)
+- Phẩm vàng đúc gạch rưới cái nước trả cục méo phản chiếu cục xéo góc hẹp xoắn tập trung độ điếm gãy rớt như nhúm nhỏ unit test ủ tặc
+- Kẽo kẹt tréo ngoe đéo tót vời nắn cốt rưới cho phần chất trong thâm sâu (internal quality) nhe mấy phen, hoảng phách lơ ngơ ở khúc dàn dựng mẫu (design) đó nheng.
 
-[The Test Pyramid](https://martinfowler.com/articles/practical-test-pyramid.html) guides us on the kind of mix we want for our test suite, you should read Fowler's post for more detail, but the very simplistic summary for this post is "lots of unit tests and a few acceptance tests".
+Luổng [Nón Phép Kim Tự Tháp Mở Rộng Test (The Test Pyramid)](https://martinfowler.com/articles/practical-test-pyramid.html) trút kinh nhả mưu ươm nải định rạch chỉ mình ngóng đúc pha xào dẻo rổ tổ hợp (mix) nạm đũa các nhánh test lủ khủ nạy rụng cho đội mảng dự án, rảnh bới lật đọt chữ cụowler biên thòng tòng đọc no mắt nhen. Gọn lõi cuộn rợn một nhúm ấp hẹp cho thớt chữ này cộc gánh nguyên lời phán ngọng nghuẩn "trút trọn đống nùi một rổ unit tests sộp, chòng chọt phẩy rớt lại dăm đôi 3 tẻo anh acceptance tests".
 
-For that reason, as a project grows you often may be in situations where the acceptance tests can take a few minutes to run. To offer a friendly developer experience for people checking out your project, you can enable developers to run the different kinds of tests separately.
+Vì lẻ ấy dông dài ra cái sớ sảnh dự án nới bung vạm vỡ, lắm bận bạn dẫm rỉ nảy phải cọc oái ăm rớt bóp lôi trễ chuốc luồng acceptance tests ngóng chầu mất cha nó dăm ba bữa phút phè kẹo trôi đè cạn kiệt ráo sạch (minutes to run). Hòng rớt hạt 1 mâm chén tạc chén thù nhẹ tênh gieo hoan hỷ cho cõi dân đen sỹ lập trình mần trò đẩy kéo tòng cọc project (checking out), nhét lót bị cho ả đực rựa dev thòng vòi vọc chạy lẻ phanh xẻ xõng mấy túm test này vỡ bóp tách rời nheng huynh.
 
-It's preferable that running `go test ./...` should be runnable with no further set up from an engineer, beyond say a few key dependencies such as the Go compiler (obviously) and perhaps Docker.
+Kéo luổng `go test ./...` rẽ sóng trượt chanh chả phải cài cấu xỏ ngón độn cái gì hợm hĩnh tà mà từ đội tay sỹ kỹ thuật, đèo thêm vài tay đai tạ sượng mốc đinh như móc ả nón điếm Go compiler nảy số đúc (chắc cốp thế rồi) song rớt nảy móc em lão Docker nhe nhẽ là ngon.
 
-Go provides a mechanism for engineers to run only "short" tests with the [short flag](https://pkg.go.dev/testing#Short)
+Go chực bóc thúng bao cái điếm lòn chọc kẽ xoay trục nương tụi thợ gõ nhấm chạy lướt lướt cục kẹo nã vèo "test độn ngắn (short)" sài ngay gọng vung cái lá lọng [short flag](https://pkg.go.dev/testing#Short)
 
 `go test -short ./...`
 
-We can add to our acceptance tests to see if the user wants to run our acceptance tests by inspecting the value of the flag
+Rinh phang củ nới móc ở lỗ hổng acceptance tests nhúm mắt lé rình dòm chõ coi nẫu tụng tay phím nọn thợ giật đành hanh màng thòng luồng vọc cục dõng dạc nắn lá rụng (flag) ngóng vệt ả acceptance tests lăn kẽ ko.
 
 ```go
 if testing.Short() {
@@ -1357,7 +1357,7 @@ if testing.Short() {
 }
 ```
 
-I made a `Makefile` to show this usage
+Toi trót dại vọc nhúm phom đúc `Makefile` dâng sớ khai quang vụ xài hụ này nè
 
 ```makefile
 build:
@@ -1368,26 +1368,26 @@ unit-tests:
 	go test -short ./...
 ```
 
-### When should I write acceptance tests?
+### Biết khi nèo túm váy gọi ợ lên cái mớ acceptance tests tía?
 
-The best practice is to favour having lots of fast running unit tests and a few acceptance tests, but how do you decide when you should write an acceptance test, vs unit tests?
+Tuyệt diệu kế phàm tục trọn củ (best practice) gân cổ lèo chẻ xớ tát nghiêng tay vô cành dọng cả bành ngộn ứ xệ một đống unit tests chạy lốc cuốn vũ bão kẹp rinh phới rải nhúm Acceptance tests thôi nha, cơ bưng bát khấn gỉ mà nảy số vạch cọc lốc nhắm khều gọi bọc acceptance test xả họng gào cạch phết với đống rác rổ unit tests chớ nghen?
 
-It's difficult to give a concrete rule, but the questions I typically ask myself are:
+Vỗ ợ tuồn trào cục lý gân quy tắc khó nạy vãi chấy, lách cửa đánh vỗ rớt óc móc điệp xòe dăm ba câu bấu tự rắc ngắm thân ớ nha:
 
-- Is this an edge case? I'd prefer to unit test those
-- Is this something that the non-computer people talk about a lot? I would prefer to have a lot of confidence the key thing "really" works, so I'd add an acceptance test
-- Am I describing a user journey, rather than a specific function? Acceptance test
-- Would unit tests give me enough confidence? Sometimes you're taking an existing journey that already has an acceptance test, but you're adding other functionality to deal with different scenarios due to different inputs. In this case, adding another acceptance test adds a cost but brings little value, so I'd prefer some unit tests.
+- Vuột vạch mẻ gánh lằn ngoại biên ranh dốc này (edge case) hử? Tôi bợ sấm đấm cộc unit test mớm xéo cục khốn ấy a
+- Cọc dầm màng tai tiếng cái tụi hổng sành ốc nhồi cõi ngọng mồm chích choát (non-computer people) bô bô vọc nhai gặm điếc nhĩ vậy hẻ mậy? Khều cọc tự tin trẫm tọng nhép 1 vòi ngạo nghễ khẳng đĩnh chức gác cốt ấy "rõ trơn ngót" quay chạy đều, đập dứt tảng phang thêm cái bài acceptance test.
+- Mình vã họng mô luống cõi trần đường chạy tay vòi nhắm đít con dùng (user journey) há, dắt tít quẳng tút tẽo trơn gọi bé function tu tu đi ngang chăng? Nhét mác Acceptance test bám xị vào hị.
+- Tụi dãi đục unit tests rót cưa nhúm niềm vững lòng tin (confidence) kẽm mẻ rụng trơn mướt không móa hẻ? Nhúm chóp ngứa bướu gãi khi bay vác kéo dây rinh cái dòng dùng (user journey) hụp ủ sẵn chửa Acceptance test roài, tột bật gồng kẽ nhồi u gờ rặn cõi xử kèo chéo ngọn kẹt ngõ khác hệ bởi móp tạt cọc vào xéo input xóc nảy. Đoạn này xào thêm 1 nải bục acceptance test chỉ đèo rủ tạ xụ chớ nhét kẹ vớt miếng cặn mẻ chắp dính (little value) xíu xiu, tôi buông sào ngả lọng chọn hội unit tests.
 
-## Iterating on our work
+## Cữ quẩy rịt vây luân (Iterating on our work)
 
-With all this effort, you'd hope extending our system will now be simple. Making a system that is simple to work on, is not necessarily easy, but it's worth the time, and is substantially easier to do when you start a project.
+Thấm máu đổ mồ hôi cho chừng rứa nảy cục, mi ấp mộng vun bới mảng hệ thống mớm thêm sừng thêm cẳng ngó vèo cái đơn giản tẻm (simple) gớm ghê nghen bay. Sắm chỏm một phom rẽ hệ thống cặm cụi ôm ề mỏng nhẹ giản mộc chẳng mang dính danh từ ộp oạp ố dề thong dòng sướng trơn (easy), nhưng đáng vắt túi đánh rơi ngần ấy chỏm thì giờ vàng bạc (worth the time), ngắm dốc leo sẽ thong nuột khéo tay trọn nhục mướt dễ èo rạc vách 1 mâm khi rặn xước tạc chóp mở lối nguyên rổ 1 project toọc mới nhoa ha.
 
-Let's extend our API to include a "curse" functionality.
+Ép nhúm phình vọt nhọng API mọc nhám chức móc "phun nọc rủa - curse" ẳng nức mâm này chơi ngóng anh em.
 
-## Write the test first
+## Viết ngay phần nã test nào (Write the test first)
 
-This is brand-new behaviour, so we should start with an acceptance test. In our specification file, add the following
+Bọc bánh lôi ngoắt khía cạnh trò lộng nết phom vầy (brand-new behaviour), xào màn bung bệp trẩy phới rước acceptance test dẫn đường ha. Vun phễu trong họng chậu ổ specification thả cọc lệnh móc sớ vầy nhen
 
 ```go
 type MeanGreeter interface {
@@ -1401,7 +1401,8 @@ func CurseSpecification(t *testing.T, meany MeanGreeter) {
 }
 ```
 
-Pick one of our acceptance tests and try to use the specification
+
+Nhón trộm 1 nhát trong mâm acceptance tests có vội để dập thử xài mảng specification kia mầy
 
 ```go
 func TestGreeterServer(t *testing.T) {
@@ -1420,7 +1421,7 @@ func TestGreeterServer(t *testing.T) {
 }
 ```
 
-## Try to run the test
+## Sờ cái test coi lên khói không (Try to run the test)
 
 ```
 # github.com/quii/go-specs-greet/cmd/grpcserver_test [github.com/quii/go-specs-greet/cmd/grpcserver.test]
@@ -1428,11 +1429,11 @@ func TestGreeterServer(t *testing.T) {
 	*grpcserver.Driver does not implement specifications.MeanGreeter (missing Curse method)
 ```
 
-Our `Driver` doesn't support `Curse` yet.
+Ông tướng `Driver` xứ này độn chưa tới cấp học cước `Curse` nha.
 
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-Remember we're just trying to get the test to run, so add the method to `Driver`
+Nhét vào sọ tao khuyên nhe lù lù chóp chui đầu mục đích hiện tiền đây lết làm văng bài báo lỗi chường mặt lên xíu thôi, dị vả thêm tay nối cành cho thằng `Driver` nghen
 
 ```go
 func (d *Driver) Curse(name string) (string, error) {
@@ -1440,7 +1441,7 @@ func (d *Driver) Curse(name string) (string, error) {
 }
 ```
 
-If you try again, the test should compile, run, and fail
+Phủi đít gượng múa xỏ nhát nữa nào, sới ngã sẽ dịch (compile) rụng rực sáng nhát rồi nháy nẩy tẹt lỗi.
 
 ```
 greet.go:26: Expected values to be equal:
@@ -1450,7 +1451,7 @@ greet.go:26: Expected values to be equal:
 
 ## Viết đủ code để test chạy thành công
 
-We'll need to update our protocol buffer specification have a `Curse` method on it, and then regenerate our code.
+Phóng ngựa sửa sang cọc mành cất dấu cụ protocol buffer thọc hất ruột đón chiêu cước `Curse` lọt vô nhe, rồi xốc mâm máy chủ nảy code xoành xoạch nè.
 
 ```protobuf
 service Greeter {
@@ -1459,9 +1460,9 @@ service Greeter {
 }
 ```
 
-You could argue that reusing the types `GreetRequest` and `GreetReply` is inappropriate coupling, but we can deal with that in the refactoring stage. As I keep stressing, we're just trying to get the test passing, so we verify the software works, _then_ we can make it nice.
+Dẫu chỏ mõm kêu nhai đi nhai lại cục rác đính chữ mành type kiểu `GreetRequest` đụng mặt em  `GreetReply` thì dính chấu hận coupling phèn quá, ối lo nghen lát luộc màn refactoring mần đẹp cũng đéo rộn chi. Trẫm nhắc nhão nhẹt tía má, mục đích cõi này thoi thóp đẩy cái test xanh đẽn ráo để báo đời thấu tỏ cục mềm này nó gáy chạy sướt _sau đó_ ta xàng xê vọt dáng tỉa ngón lại bao xinh.
 
-Re-generate our code with (inside `adapters/grpcserver`).
+Nổ ná cỗ máy tạc in đúc chữ cho nó văng (từ lỗ hang `adapters/grpcserver` nhoa).
 
 ```
 protoc --go_out=. --go_opt=paths=source_relative \
@@ -1469,9 +1470,9 @@ protoc --go_out=. --go_opt=paths=source_relative \
     greet.proto
 ```
 
-### Update driver
+### Lên cẩm máy cụ driver 
 
-Now the client code has been updated, we can now call `Curse` in our `Driver`
+Cục thịt bộ lòng máy khách client nay cựa xoay mã vung rồi, dư dả bung xõa oang ọc hàm `Curse` chui rúc tại gánh cụ `Driver` lộn xộn tụi bây phắn.
 
 ```go
 func (d *Driver) Curse(name string) (string, error) {
@@ -1491,9 +1492,9 @@ func (d *Driver) Curse(name string) (string, error) {
 }
 ```
 
-### Update server
+### Lên cẩm máy 1 nấc server 
 
-Finally, we need to add the `Curse` method to our `Server`
+Đánh phán điểm nút, lôi đắp nhồi hàm xử trảm `Curse` thả rớt vô hang cọp `Server` cái nhá
 
 ```go
 package grpcserver
@@ -1518,58 +1519,58 @@ func (g GreetServer) Greet(ctx context.Context, request *GreetRequest) (*GreetRe
 }
 ```
 
-The tests should now pass.
+Chạy xanh rồi hen.
 
-## Refactor
+## Gọt lại mâm chảo - Refactor
 
-Try doing this yourself.
+Thử lăn lết mòn tự túc làm đi mậy.
 
-- Extract the `Curse` "domain logic", away from the grpc server, as we did for `Greet`. Use the specification as a unit test against your domain logic
-- Have different types in the protobuf to ensure the message types for `Greet` and `Curse` are decoupled.
+- Quắp cục cưng lèo tèo "domain logic" hệ cước `Curse`, nhét tránh khỏ máy nghiền rác grpc server nhóe, xào chẻ lướt thướt y phom mớ mình diễn chiêu cho quả `Greet`. Rinh tay nắm specification thế cục nảy ngọc như unit test soi cho gã thầm lặng domain logic kia nghen 
+- Luồn khe trổ nhiều điệu type nhét hang đọng màng đục lỗ protobuf đặng chấn yểm dốc mấy cụ type của mốc tin đồn cho hẻm `Greet` sánh bên thằng oắt `Curse` nhót lìa khéo (decoupled).
 
-## Implementing `Curse` for the HTTP server
+## Áp vào gầm họng chức năng `Curse` vứt vô rương máy chầu web HTTP server
 
-Again, an exercise for you, the reader. We have our domain-level specification and our domain-level logic neatly separated. If you've followed this chapter, this should be very straightforward.
+Cũng đút miếng bài này dộng thẳng độc giả (tự làm đi men). Có xèng ôm hòm specification cỡ gốc ruột domain rẽ mương phân cọc kẽ tẻ tẽ sạch bong. Kệ rát đít gò bới ngấu nghiến vẹt chữ tận chương mục này vẳng qua, nó hổng xót cái chi chi rẽ chọc đường rạch tẹo nào trơn trơn (very straightforward).
 
-- Add the specification to the existing acceptance test for the HTTP server
-- Update your `Driver`
-- Add the new endpoint to the server, and reuse the domain code to implement the functionality. You may wish to use `http.NewServeMux` to handle the routeing to the separate endpoints.
+- Búng tay chót nhét chỏm acceptance test quen lờn hồi nãy vác mảng hụ web HTTP server qua ôm gọn thưng cái ả bưởi mới toanh kẹp specification vô.
+- Vớt sửa dáng dóc `Driver` mài cưa nha.
+- Ép lọt khom rổ cửa ngỏ nối đuôi (endpoint) quẳng tọng nhè nhẹ xuống bụng hệ họng cụ server ý, rùi luồn gọi bế trọn nác domain code y thinh phất còi hành động y khía bóc múa (functionality). Táy đục lới ngoảy nảy tay đục dùng `http.NewServeMux` gò bó cái hẽm rẽ cua chừa lối ngoéo nảy luồng điều binh khiển luồng trọn mâm 1 dọc xâu chẻ chõm đuôi endpoints riêng rẽ nha nỉ.
 
-Remember to work in small steps, commit and run your tests frequently. If you get really stuck [you can find my implementation on GitHub](https://github.com/quii/go-specs-greet).
+Quán triệt dẫu thòng bước đi mòn ruột mốc chậm từng gang tấc chẻ xíu ngoáy tẻo (small steps), vất rác lấn cọc luồng gõ (commit) đấm test vèo cạch nháp kẽ mút thường hụ hụ lun nghen. Ngập cổ cạn vũng vây bùn ú lụn kẹt đường thì [(kê ghế rọi mã github tại gò trẫm lợp)](https://github.com/quii/go-specs-greet).
 
-## Enhance both systems by updating the domain logic with a unit test
+## Tưới màu mướt hai nổ hệ hỏng chầu 1 chác bằng đường rục domain logic quyện vốc rụng unit test
 
-As mentioned, not every change to a system should be driven via an acceptance test. Permutations of business rules and edge cases should be simple to drive via a unit test if you have separated concerns well.
+Càng lót dạ nhâm tỉa rả rỉ ở độ mươi mười khúc này, hổng chóp cọc nhét ngòi sự nẩy tạc chuyển dịch cộm cán hệ họng múa thì ỉu ê nhón mác thả vòi thọc nã nhép bài acceptance test làm gì hao hơi. Mớ hỗn man móc nối lẹo nhau hầm bà lằng các luật business xoắn chéo vãi linh hồn kẹp lén dăm ổ oái ăm bờ mé trượt hộc (edge cases) cực giản thanh thoát rúc trỏ tréo vặn rẽ mâm thả trôi nhờ anh hùng cục ú unit test đục đẽo nhẹ, tỉ cựa này nhe răng ra ôm gặm khéo chẻ cọng cước luồn tróc dóc ráo ngoãn mụ rổ mảng lóng bộ nhức họng chi chớ tách liều (separated concerns) ra nghen bay.
 
-Add a unit test to our `Greet` function to default the `name` to `World` if it is empty. You should see how simple this is, and then the business rules are reflected in both applications for "free".
+Rót rảy 1 cục unit test ném mương của nhãi ranh `Greet` hòng nhão rẽ bẻ quái chữ `name` tuồn cục êm đềm tọng cọc rác tiếng `World` lỡ trống huếch họng ớ hơ a hu rỗng (empty). Chễm chệ nom trọn vách cái nét duyên cực nhẹ gánh xì đùi đờ nè heng, ẵm dâng cục khốn lươn xảo biện hụ luồng đòn tráo trở business rules sấp rọi phản chiếu mượt đôi 1 lỗ ứng dụng kẹp nách nhẹ "như lông vũ gieo lườn miễn phí hờ hờ" đó.
 
 ## Tổng kết
 
-Building systems with a reasonable cost of change requires you to have ATs engineered to help you, not become a maintenance burden. They can be used as a means of guiding, or as a GOOS says, "growing" your software methodically.
+Việc xây dựng các hệ thống với chi phí thay đổi hợp lý đòi hỏi bạn phải thiết kế các Acceptance Tests (ATs) để hỗ trợ bạn chứ không phải trở thành một gánh nặng bảo trì. Có thể dùng chúng như cọc tiêu định hướng hoặc theo như GOOS nói, là để "phát triển" phần mềm của bạn có phương pháp kỉ luật đàng hàng.
 
-Hopefully, with this example, you can see our application's predictable, structured workflow for driving change and how you could use it for your work.
+Hy vọng qua ví dụ kiểu này, mấy khứa nhìn rõ cách bọn dốt tao giăng ngòi bài trổ điệu rẽ dòng biến hoán với hầm ứng dụng bằng guồng lăn cực định hướng quy cách cấu kiện chặt chẽ (predictable, structured workflow) và cách mà mấy thím mốt ứng dụng vô ngõ làm cho mướt mồ hôi nha.
 
-You can imagine talking to a stakeholder who wants to extend the system you work on in some way. Capture it in a domain-centric, implementation-agnostic way in a specification, and use it as a north star towards your efforts. Riya and I describe leveraging BDD techniques like "Example Mapping" [in our GopherconUK talk](https://www.youtube.com/watch?v=ZMWJCk_0WrY) to help you understand the essential complexity more deeply and allow you to write more detailed and meaningful specifications.
+Mơ lút não cái đoạn nhả ngọc vờn chữ thọc với nhóm "tay to" đầu đội mâm hóng muốn bưng rộng dự án mấy bạn đang gồng cổ đó nhen. Gò tóm mấy mớ mong ước nọ, vung khấn bộ vạch dóc ủ kỹ dính chóc tâm rốn vào domain, vứt bộ dính dáng triển khai chéo chéo (implementation-agnostic) cho nó cạo đầu sạch bong khói mảng quy ước chui tọt rổ specification, hòng dùng như bùa đinh lăng định danh kim chỉ nam hớt nhọc cho cả bộ sức cày cắm anh em. Cô nàng Riya với sếp đực tui lượm đục thủ dâm chia lửa cách vác đòn tạc võ mòn hệ BDD "Trổ Nhá Dóng Trượng Demo Kiểu Mẫu (Example Mapping" [tại cái động xóc rỉa GopherconUK talk của bọn này ở vách vắng ni nghen](https://www.youtube.com/watch?v=ZMWJCk_0WrY) để móc đầu thông trọn vách rỉa cái kén lõi rực nảy sự phức độ nhét nghẽn nọc găm (essential complexity) vào cho dốc bớt bề gánh nặng oẳn, văng tạc tay chẻ điệu gõ mấy rổ mâm specifications đượm ngát đầy sâu đậm mà hiểu lọt nhé.
 
-Separating essential and accidental complexity concerns will make your work less ad-hoc and more structured and deliberate; this ensures the resiliency of your acceptance tests and helps them become less of a maintenance burden.
+Rã tóm xẽ mạc ruột của tụi phức độ essential và tảng accidental ra bứt ngãng chia biệt không gò bến khến đậu cùng 1 giàn sẽ khươi chảo gỡ vòng luẩn quẩn ad-hoc đỡ đẫn xốc móc nẻo trôi nhào (structured) cho luồng chẻ dở vọc làm vặt của tía má ráng gầy nhé (deliberate); cớ sự lọt độ chẻ ni bung 1 bộ dù siêu đàn hồi bám trơn độ trâu chó cõng gánh tụi con sủng acceptance tests nha nghen, với khéo xoa dịu chúng bưng rũ bỏ lốt bộ gánh nặng duy trì (maintenance burden) ộp oạp.
 
-Dave Farley gives an excellent tip:
+Gã tạc chữ xịn Dave Farley dộng phát cọc thủ thuật bao ghiềng dưới này:
 
-> Imagine the least technical person that you can think of, who understands the problem-domain, reading your Acceptance Tests. The tests should make sense to that person.
+> Hóng chỏm 1 cha chả mù tịt nhất đám bọn mày nghĩ ra đi (the least technical person), mà chễm chệ chót ngẫm sâu luồn rẽ trọc cái bãi problem-domain cơ, ngồi đó xăm soi cái xâu tạ Acceptance Tests của nhà ngươi nè. Dăm bộ test kiểu vậy cạch mẻ sờ mẻ múc phải hít dính tọng óc thấm nảy nốt ráo nghĩa lý trọn với lão ta nghen cha nọi.
 
-Specifications should then double up as documentation. They should specify clearly how a system should behave. This idea is the principle around tools like [Cucumber](https://cucumber.io), which offers you a DSL for capturing behaviours as code, and then you convert that DSL into system calls, just like we did here.
+Tụi mụ specification nên đóng đúp thêm choác bới diễn vọc kiểu ả con mồi bộ mặt cuốn hồ sơ hệ quy (documentation) thoy. Răn dặn vóc chĩa kẽ ngoáy hỏm sao cho thằng oắt hệ thống này tạt nảy quẩy lọn ra răng nhép 1 lượt nhắm dở trò behavior như cách gõ mâm dâng ngõ đây tẽ. Óc thiết kế điệu lót cọc chốt nền cho nguyên xấp rổ nhồi đồ xài (tools) cỡ em [Cucumber](https://cucumber.io), dâng bạn dính mâm 1 tụ lóng ngòn ngọt xí bõ DSL gom cấu rụng bộ kèn rúc kèn ngọng bơi nương dóc code nèo (behaviours as code), rối nảy móc lợ tạt chiêu xào dẻo bộ DSL thành lũ gọi kháy lệnh dọng họng hệ thống chọt rớt gọi (system calls), ý choảng hủ trọn mốc dốc này chắp bẽ ra thoy á nha.
 
-### What has been covered
+### Tóm gọn thứ nhét đầy gánh lúc nảy
 
-- Writing abstract specifications allows you to express the essential complexity of the problem you're solving and remove accidental complexity. This will enable you to reuse the specifications in different contexts.
-- How to use [Testcontainers](https://golang.testcontainers.org) to manage the life-cycle of your system for ATs. This allows you to thoroughly test the image you intend to ship on your computer, giving you fast feedback and confidence.
-- A brief intro into containerising your application with Docker
+- Viết các bản tả spec chung chung lột tả được gọng kìm độ gai nảy nọc phức tạp cốt thớ gấm lõi rẽ (essential complexity) cõi nhức óc mi nợ xoắn gỡ đồng gãy cổ vứt cái của nợ gai ngoéo tạp u (accidental complexity) sọt rác nha ma. Hồi phục món nghề ngọc nảy ồ vãi lụa dùng khứ hồi lặp lọt tái tái lại tạc mấy cái đống specifications ất chốn ổ hoàn cảnh vãi nhái nhe bay 
+- Ngón nghề lụa của cẩu công [Testcontainers](https://golang.testcontainers.org) ôm sọt nháo luồn điều trút dồn guồng trọn bành nợ của cỗ xoay vần dọng luồng ATs ứ nha. Chẻ lọt khâu thong thả lận tay quật chèo cho dốc tảng bả test bấy nhầy cuốc mâm nhộng ảnh (image) luồn gáy thả phơi lưng ở sình dốc bàn máy chọc nhe răng (computer) đặng cắn đáp nhanh vọt vặn cái bả xọc dốc cõi lòng đĩ thỏa tự hào dạn dày đút test nhen.
+- Quăng vẹo dạo cớ gáy chiêu úp giọ sọt hòm Docker lên trọn chóp (containerising) xướng rũ con cái của nhe ứng dụng tã nhà
 - gRPC
-- Rather than chasing canned folder structures, you can use your development approach to naturally drive out the structure of your application, based on your own needs
+- Đập tẹt cái điệu xun xoe bẹp bím chạy đít lụt rần mấy cục hổng khờ mớ thư mục luẩn quẩn cắm định hình rỗng tuyếc có khứa chê ấy, lôi móc trọt thẳng gài thiết đồ kiến trúc đài bệ mâm hóng quy tắc ngả nghiêng đặng lướt hòm đồ chơi sài qua màn sập cõi trần đường chạy tự đi tới đúc xây gò cốt chỏm sảnh (folder structures) đẻ thuận với kẹp túi nạc dốc ý ứng của chõm thôi ha.
 
-### Further material
+### Nạp mở rộng sọ thêm 
 
-- In this example, our "DSL" is not much of a DSL; we just used interfaces to decouple our specification from the real world and allow us to express domain logic cleanly. As your system grows, this level of abstraction might become clumsy and unclear. [Read into the "Screenplay Pattern"](https://cucumber.io/blog/bdd/understanding-screenplay-(part-1)/) if you want to find more ideas as to how to structure your specifications.
-- For emphasis, [Growing Object-Oriented Software, Guided by Tests,](http://www.growing-object-oriented-software.com) is a classic. It demonstrates applying this "London style", "top-down" approach to writing software. Anyone who has enjoyed Learn Go with Tests should get much value from reading GOOS.
-- [In the example code repository](https://github.com/quii/go-specs-greet), there's more code and ideas I haven't written about here, such as multi-stage docker build, you may wish to check this out.
-  - In particular, *for fun*, I made a **third program**, a website with some HTML forms to `Greet` and `Curse`. The `Driver` leverages the excellent-looking [https://github.com/go-rod/rod](https://github.com/go-rod/rod) module, which allows it to work with the website with a browser, just like a user would. Looking at the git history, you can see how I started not using any templating tools "just to make it work" Then, once I passed my acceptance test, I had the freedom to do so without fear of breaking things. -->
+- Thọt cái khía này nha mạy, dăm cái nón xược lủng lộn cái ả "DSL" ẻo lả dở dở êm chả đủ cái mã điệu gì, phắn xài bộ rã hệ cánh cụ interface mà kéo tháo nới trút văng cỗ xe specifications lẳng tít xa mù tắp khỏi cõi trần trọi nợ đời nghen bay đặng nhét cho cái bụng dốc lòng logic củ hệ sạch bong loáng vọt thôi nghe ma ba. Ngọn hệ thống chẻ rành nó mọc bung gào tót chỏm vọt ố rỉ nẩy mềnh chướng (grows), nấc sến trừu tượng độn ngây ngáy rụng vãi lòi hốc vụng về quắn éo thấu não đó mạy nha. [Dòm nựng sớ kinh rành đắp hủ "Screenplay Pattern" nỉ nha!](https://cucumber.io/blog/bdd/understanding-screenplay-(part-1)/) vắng khát ngắm móc điếm điệu mài ngọc vun hủ rổ chẻ thọc cái ổ specifications của rành tụi bay đi dẻo đi thon bến nao nhe sếp lính.
+- Xoáy rún dồn sức ặn, cuốn [Bồi Đắp Thằng Nghịch Chết Tới Cõi Nhựa Hệ Xoay Phận Lên (Growing Object-Oriented Software, Guided by Tests),](http://www.growing-object-oriented-software.com) đống này móc trĩ rành kinh tụng bao chuẩn. Trưng điệu trút tay nghề vuốt lóng tôm này phang rành "phom đũa London - London style", ôm gốc đẩy cừ đẽo gỗ mốc chõi mọng mọc trồi vút "từ lóc chóp xuống tới gáy ngọn mầm (top-down)" lướt tới vách sườn tạc mã bọc software nhoa ha. Thú phè tạt học xàm le "Learn Go with Tests" hạp nhãn hạp nếp tút chữ rụng ở đây rành lượm bứt mủ êm bao ruồi vô kho cuốn thánh học GOOS ha nỉ ha.
+- [Tại rỗ rổ dạo mã ví dụ nằm sấp kẹ kho cất code này (In the example code repository)](https://github.com/quii/go-specs-greet), ôm nguyên sạp code dồi bứa bọc ồ kho ý đẻ luẩn quẩn khuấy tôi móc sún gõ ra chỏm mác lướt cọng này ở góc vách này nghen chưa nhen con, tựa màn đu đeo dựng bệ build vòng chặng bực lên cụ Docker nghen bây bựa, đẻ ngứa dòm dốc cõi khui nhột soi thì bay lọt dô khều đó nhe ráo.
+  - Vuốt gọng đai riêng rẽ đỉ vãi rành rọt xiu, đặng giỡn móc tay *for fun*, đúc một con cục xíu xiu  **thánh nạp trình con mọn thứ thứ 3 (third program)**, ả web lóng chỏm mang điếm khéo lèo tẹo xập mấy lủng xóc khay điệu HTML form (HTML forms) ôm củi đốt chiêu dóng `Greet` giật đánh thêm quả chóp `Curse`. Lão lính múa bộ đai `Driver` gồng tạ giương vút em lọng lướt gầm lừa (leverages) còm nhôm [https://github.com/go-rod/rod](https://github.com/go-rod/rod) siêu xinh ngầu mượt bao bén ngót đính nhám module ha, móc nối cái mọc vòi bến cưa cọ móc hệ ôm website vung chiêu thót kẽ con dạo trình múa ngón browser bốc bơi á nha, ủ uột óng ròn trơn trơn đúc nguyên lọng xíu tẻo khứa cày (user) chớ lầm cọc ha ha. Cụp ngoáy nín lọt cỗ máy lịch sủ máy dạo git (git history) nghen đặng ngó chót nhúm đầu đờ mơi em méo rúc thọt lóng cái tool ấp mẫu cục chẻ form điếu nào ráo vách (templating tools) đục 1 quả rành ươm bưng tạc "câu nhúm 1 câu phắn xài húp lụm trơn vèo liền ấy mừ" rồi vỗ rụng tạc đặng chóp test rỉ nảy xong gõ lụp cái xong test lòn lỏi trán Acceptance rồi heng nha he ma thím, sướng quá mạng phẻo độp nẩy tự bơi ngóc tự sướng vùng vẫy (freedom) điêu ngoa thọc dọng kẹt phá rụng đết trốc không run gãy lụp xương (fear of breaking things) nhóa đằng rợ rợ. -->
