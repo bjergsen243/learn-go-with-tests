@@ -1,23 +1,23 @@
 # OS Exec
 
-**[You can find all the code here](https://github.com/quii/learn-go-with-tests/tree/main/q-and-a/os-exec)**
+**[Bạn có thể tìm thấy toàn bộ source code ở đây](https://github.com/quii/learn-go-with-tests/tree/main/q-and-a/os-exec)**
 
-[keith6014](https://www.reddit.com/user/keith6014) asks on [reddit](https://www.reddit.com/r/golang/comments/aaz8ji/testdata_and_function_setup_help/)
+[keith6014](https://www.reddit.com/user/keith6014) đặt câu hỏi trên [reddit](https://www.reddit.com/r/golang/comments/aaz8ji/testdata_and_function_setup_help/)
 
-> I am executing a command using os/exec.Command() which generated XML data. The command will be executed in a function called GetData().
+> Tôi đang gọi chạy một lệnh bằng `os/exec.Command()` thứ sẽ sinh ra dữ liệu XML. Lệnh này sẽ được thực thi trong một hàm có tên `GetData()`.
 
-> In order to test GetData(), I have some testdata which I created.
+> Để test `GetData()`, tôi có chuẩn bị một vài dữ liệu testdata do tôi tự tạo.
 
-> In my _test.go I have a TestGetData which calls GetData() but that will use os.exec, instead I would like for it to use my testdata.
+> Trong file `_test.go` tôi thiết lập một hàm `TestGetData` để gọi tới `GetData()` nhưng nó lại đi chạy lệnh hệ điều hành thông qua thư viện `os.exec`, ngược lại tôi mong nó sử dụng file data thử nghiệm (testdata) của tôi.
 
-> What is a good way to achieve this? When calling GetData should I have a "test" flag mode so it will read a file ie GetData(mode string)?
+> Đâu là cách tối ưu để đạt được điều này? Khi gọi lệnh hàm `GetData`, tôi có nên truyền nhận tham số cờ đại diện cho chế độ "test" (test mode) để nó chọn đọc file text theo tình huống (ví dụ `GetData(mode string)`) không?
 
-A few things
+Một vài điều bạn nên lưu ý:
 
-- When something is difficult to test, it's often due to the separation of concerns not being quite right
-- Don't add "test modes" into your code, instead use [Dependency Injection](./dependency-injection.md) so that you can model your dependencies and separate concerns.
+- Khi một thứ gì đó trở nên khó để test, nguyên nhân thường xuyên nằm ở việc sự phân công trách nhiệm và tách bạch thành phần (separation of concerns) chưa được thực hiện chuẩn xác.
+- Đừng thêm các công tắc chế độ "test modes" vào trong source code của bạn, thay vào đó hãy sử dụng kỹ thuật [Dependency Injection (Tiêm phụ thuộc)](./dependency-injection.md) để bạn có thể mô hình hóa các tệp thành phần hệ thống và xử lý phân tách các ranh giới mạch lạc.
 
-I have taken the liberty of guessing what the code might look like
+Tôi xin đưa ra giả định xem đoạn code ban đầu trông sẽ như thế nào
 
 ```go
 type Payload struct {
@@ -31,7 +31,7 @@ func GetData() string {
 	var payload Payload
 	decoder := xml.NewDecoder(out)
 
-	// these 3 can return errors but I'm ignoring for brevity
+	// 3 thao tác này có thể trả về errors nhưng tôi bỏ qua cho ngắn gọn
 	cmd.Start()
 	decoder.Decode(&payload)
 	cmd.Wait()
@@ -40,12 +40,12 @@ func GetData() string {
 }
 ```
 
-- It uses `exec.Command` which allows you to execute an external command to the process
-- We capture the output in `cmd.StdoutPipe` which returns us a `io.ReadCloser` (this will become important)
-- The rest of the code is more or less copy and pasted from the [excellent documentation](https://golang.org/pkg/os/exec/#example_Cmd_StdoutPipe).
-    - We capture any output from stdout into an `io.ReadCloser` and then we `Start` the command and then wait for all the data to be read by calling `Wait`. In between those two calls we decode the data into our `Payload` struct.
+- Nó sử dụng `exec.Command` để cung cấp cho bạn quyền vận hành thực thi một external command (lệnh bên ngoài) vào một process (tiến trình đang chạy).
+- Chúng ta đón hứng bắt lấy luồng kết quả output gán vào `cmd.StdoutPipe`, hàm này trả về cho ta một `io.ReadCloser` (chi tiết này sẽ mang tầm quan trọng về sau).
+- Phần còn lại của code ít nhiều được copy dán và tùy chỉnh từ [tài liệu chính thức siêu tuyệt vời](https://golang.org/pkg/os/exec/#example_Cmd_StdoutPipe) của ngôn ngữ .
+    - Chúng ta hứng lấy bất kỳ output nào đổ ra từ stdout và gán vào một cấu trúc `io.ReadCloser` và sau đó chúng ta `Start` quá trình chạy script lệnh rồi kiên trì chờ thao tác hệ thống tới khi toàn bộ phần data được đọc ra bằng cách gọi chuỗi lệnh `Wait`. Nằm giữa khoảng trống của hai lần gọi hàm kia, chúng ta decode (giải mã) dữ liệu được gán vào struct `Payload` của mình.
 
-Here is what is contained inside `msg.xml`
+Đây là nội dung được chứa nằm bên trong file `msg.xml`
 
 ```xml
 <payload>
@@ -53,7 +53,7 @@ Here is what is contained inside `msg.xml`
 </payload>
 ```
 
-I wrote a simple test to show it in action
+Tôi đã viết một bài test đơn giản để minh họa cách nó đánh giá thực chiến
 
 ```go
 func TestGetData(t *testing.T) {
@@ -66,22 +66,22 @@ func TestGetData(t *testing.T) {
 }
 ```
 
-## Testable code
+## Đoạn code mang khả năng chạy test (Testable code)
 
-Testable code is decoupled and single purpose. To me it feels like there are two main concerns for this code
+Đoạn code test hiệu quả cần phải giảm sự phụ thuộc trói buộc đa phần (decoupled) và chỉ gánh duy nhất một mục đích. Với cá nhân tôi, hình như có chừng hai băn khoăn chính đáng lưu tâm đối với đoạn code này
 
-1. Retrieving the raw XML data
-2. Decoding the XML data and applying our business logic (in this case `strings.ToUpper` on the `<message>`)
+1. Thu thập dữ liệu XML thô dạng chưa qua biên dịch
+2. Quá trình giải mã chuyển đổi đoạn data XML và vận dụng tầng logic nghiệp vụ (business logic) của cấu trúc xử lý (nhờ vậy gọi chạy `strings.ToUpper` xử lý text trong cái `<message>`)
 
-The first part is just copying the example from the standard lib.
+Phần đầu thực ra chỉ là sao chép y chang cấu trúc dùng mẫu ví dụ cho sẵn trên thư viện chuẩn (standard lib).
 
-The second part is where we have our business logic and by looking at the code we can see where the "seam" in our logic starts; it's where we get our `io.ReadCloser`. We can use this existing abstraction to separate concerns and make our code testable.
+Phần việc phía sau kia mới là phân khu chứa chuỗi tính logic vận hành riêng biệt của chúng ta và thông qua cách soi lướt vào code, chúng ta có thể khoanh ra mạch ranh giới "đường giao" (seam) kết nối quy trình tính toán rẽ vào nằm ở đâu; điểm nối đó chính là nơi ta tóm được luồng cấp vào `io.ReadCloser`. Chúng ta có năng lực ứng dụng sự trừu tượng hóa có sẵn đấy nhằm đả phá bẻ gãy phân nhỏ chia bạch ranh những thao tác việc này cũng như thúc giúp đoạn mã hoàn thiện hơn ở năng lực dễ test.
 
-**The problem with GetData is the business logic is coupled with the means of getting the XML. To make our design better we need to decouple them**
+**Vấn đề lớn gặp ở hàm GetData là thứ mạch quy trình tính toán xử lý nghiệp vụ nội tại đang lỡ cắm nối (coupled) với nhóm dòng mã lo thực thi quy trình tìm bốc lấy dữ liệu cấu trúc XML. Biện giải làm cấu hình toàn mảng (design) được thiết chật tối ưu chuẩn điểm hơn ta sẽ yêu cầu đem tách bạch giải trói (decouple) hai tầng ứng dụng này.**
 
-Our `TestGetData` can act as our integration test between our two concerns so we'll keep hold of that to make sure it keeps working.
+Gói function bộ test bài chuẩn `TestGetData` thiết kế bởi chúng ta vốn vẫn xài chung cho phần tác vụ có chức trách tựa mô-đun móc nối (integration test) kết trạm chạy chéo hai nhóm nghiệp vụ nên rồi chúng ta quyết bảo lưu cất nguyên nó nhằm rào chắc chốt kiểm đảm hệ thống vẫn trôi chảy thực thi chuẩn. 
 
-Here is what the newly separated code looks like
+Ngay đây mời bạn ngó tổng diện qua hình hài chuỗi hệ mã source code sau thiết phân mảnh độc lập hoàn mĩ:
 
 ```go
 type Payload struct {
@@ -115,7 +115,7 @@ func TestGetDataIntegration(t *testing.T) {
 }
 ```
 
-Now that `GetData` takes its input from just an `io.Reader` we have made it testable and it is no longer concerned how the data is retrieved; people can re-use the function with anything that returns an `io.Reader` (which is extremely common). For example we could start fetching the XML from a URL instead of the command line.
+Bây giờ khi hàm `GetData` chỉ nhận luồng dữ liệu đầu vào chạy từ một đối tượng `io.Reader`, chúng ta đã làm cho nó sở hữu khả năng test độc lập và nó không còn phải bận tâm việc dữ liệu được lấy ra theo phương thức nào nữa; mọi người có thể tái sử dụng function này với dẫu bất cứ thực thể chức năng gì mang bản chất trả hồi về một đại lượng `io.Reader` (một dạng vốn thuộc thiết cực kỳ phổ quát). Chẳng tỷ dụ minh chứng sát sườn là hệ thống chúng ta có thể thoải mái chuyển qua trích xuất chóp dữ liệu XML nọ trên một đường dẫn URL web thay cho cách lấy gọi mã lệnh từ nền command line thô kệch ngày gốc.
 
 ```go
 func TestGetData(t *testing.T) {
@@ -134,6 +134,6 @@ func TestGetData(t *testing.T) {
 
 ```
 
-Here is an example of a unit test for `GetData`.
+Dưới đây chính là một minh chứng phác dựng về dạng bài unit test đặc dọn riêng dành cho hàm `GetData`.
 
-By separating the concerns and using existing abstractions within Go testing our important business logic is a breeze.
+Bằng khâu chuẩn bị phân tách rành rẽ các khối công sự phận bận tâm, đồng thời tích cực tận dụng khả năng khai thác mảng trừu tượng hóa vốn có sẵn bên trong bộ xương ngôn ngữ lập trình Go, cái việc viết cấu trúc bài chạy đi test test bảo trì mạch hệ nghiệp vụ logic (business logic) tối cao quan trọng kia đã trở thành việc nhẹ nhàng như một cơn gió mát.
