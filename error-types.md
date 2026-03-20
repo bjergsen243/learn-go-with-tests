@@ -1,17 +1,17 @@
-# Error types
+# Các kiểu lỗi (Error types)
 
-**[You can find all the code here](https://github.com/quii/learn-go-with-tests/tree/main/q-and-a/error-types)**
+**[Bạn có thể tìm thấy toàn bộ mã nguồn tại đây](https://github.com/quii/learn-go-with-tests/tree/main/q-and-a/error-types)**
 
-**Creating your own types for errors can be an elegant way of tidying up your code, making your code easier to use and test.**
+**Việc tạo các kiểu dữ liệu riêng cho lỗi có thể là một cách trang nhã để dọn dẹp mã nguồn, giúp mã của bạn dễ sử dụng và dễ kiểm thử hơn.**
 
-Pedro on the Gopher Slack asks
+Pedro trên Gopher Slack có hỏi:
 
-> If I’m creating an error like `fmt.Errorf("%s must be foo, got %s", bar, baz)`, is there a way to test equality without comparing the string value?
+> Nếu tôi tạo một lỗi như `fmt.Errorf("%s must be foo, got %s", bar, baz)`, có cách nào để kiểm tra tính bằng nhau mà không cần so sánh giá trị chuỗi không?
 
-Let's make up a function to help explore this idea.
+Hãy tạo một hàm giả định để giúp khám phá ý tưởng này.
 
 ```go
-// DumbGetter will get the string body of url if it gets a 200
+// DumbGetter sẽ lấy nội dung thân bài (body) dạng chuỗi của url nếu nhận được mã 200
 func DumbGetter(url string) (string, error) {
 	res, err := http.Get(url)
 
@@ -24,18 +24,18 @@ func DumbGetter(url string) (string, error) {
 	}
 
 	defer res.Body.Close()
-	body, _ := io.ReadAll(res.Body) // ignoring err for brevity
+	body, _ := io.ReadAll(res.Body) // bỏ qua err cho ngắn gọn
 
 	return string(body), nil
 }
 ```
 
-It's not uncommon to write a function that might fail for different reasons and we want to make sure we handle each scenario correctly.
+Việc viết một hàm có thể thất bại vì nhiều lý do khác nhau là điều không hiếm gặp, và chúng ta muốn đảm bảo mình xử lý đúng từng kịch bản.
 
-As Pedro says, we _could_ write a test for the status error like so.
+Như Pedro đã nói, chúng ta _có thể_ viết một bài kiểm thử cho lỗi trạng thái (status error) như sau.
 
 ```go
-t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
+t.Run("khi bạn không nhận được mã 200, bạn sẽ nhận được một lỗi trạng thái", func(t *testing.T) {
 
 	svr := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusTeapot)
@@ -45,7 +45,7 @@ t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
 	_, err := DumbGetter(svr.URL)
 
 	if err == nil {
-		t.Fatal("expected an error")
+		t.Fatal("mong đợi một lỗi")
 	}
 
 	want := fmt.Sprintf("did not get 200 from %s, got %d", svr.URL, http.StatusTeapot)
@@ -57,29 +57,29 @@ t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
 })
 ```
 
-This test creates a server which always returns `StatusTeapot` and then we use its URL as the argument to `DumbGetter` so we can see it handles non `200` responses correctly.
+Bài kiểm thử này tạo ra một máy chủ luôn trả về `StatusTeapot`, sau đó chúng ta sử dụng URL của nó làm đối số cho `DumbGetter` để xem nó có xử lý các phản hồi không phải `200` một cách chính xác hay không.
 
-## Problems with this way of testing
+## Những vấn đề của cách kiểm thử này
 
-This book tries to emphasise _listen to your tests_ and this test doesn't _feel_ good:
+Cuốn sách này luôn cố gắng nhấn mạnh vào việc _lắng nghe các bài kiểm thử của bạn (listen to your tests)_ và bài kiểm thử này mang lại cảm giác không tốt:
 
-- We're constructing the same string as production code does to test it
-- It's annoying to read and write
-- Is the exact error message string what we're _actually concerned with_ ?
+- Chúng ta đang xây dựng cùng một chuỗi ký tự như mã nguồn thực tế (production code) để kiểm thử nó.
+- Nó gây khó chịu khi đọc và viết.
+- Liệu chuỗi thông điệp lỗi chính xác có phải là điều chúng ta _thực sự quan tâm_ không?
 
-What does this tell us? The ergonomics of our test would be reflected on another bit of code trying to use our code.
+Điều này nói lên điều gì? Trải nghiệm (ergonomics) của bài kiểm thử sẽ phản ánh lên một phần mã khác đang cố gắng sử dụng mã của chúng ta.
 
-How does a user of our code react to the specific kind of errors we return? The best they can do is look at the error string which is extremely error prone and horrible to write.
+Người dùng mã của chúng ta sẽ phản ứng thế nào với các loại lỗi cụ thể mà chúng ta trả về? Điều tốt nhất họ có thể làm là xem xét chuỗi lỗi, việc này cực kỳ dễ sai sót và rất tệ khi viết.
 
-## What we should do
+## Những gì chúng ta nên làm
 
-With TDD we have the benefit of getting into the mindset of:
+Với TDD, chúng ta có lợi thế là có thể tư duy theo kiểu:
 
-> How would _I_ want to use this code?
+> _Tôi_ muốn sử dụng mã này như thế nào?
 
-What we could do for `DumbGetter` is provide a way for users to use the type system to understand what kind of error has happened.
+Những gì chúng ta có thể làm cho `DumbGetter` là cung cấp một cách để người dùng sử dụng hệ thống kiểu (type system) để hiểu loại lỗi nào đã xảy ra.
 
-What if `DumbGetter` could return us something like
+Điều gì sẽ xảy ra nếu `DumbGetter` có thể trả về cho chúng ta thứ gì đó như:
 
 ```go
 type BadStatusError struct {
@@ -88,12 +88,12 @@ type BadStatusError struct {
 }
 ```
 
-Rather than a magical string, we have actual _data_ to work with.
+Thay vì một chuỗi ký tự mang tính "ma thuật", chúng ta có _dữ liệu_ thực sự để làm việc.
 
-Let's change our existing test to reflect this need
+Hãy thay đổi bài kiểm thử hiện tại của chúng ta để phản ánh nhu cầu này:
 
 ```go
-t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
+t.Run("khi bạn không nhận được mã 200, bạn sẽ nhận được một lỗi trạng thái", func(t *testing.T) {
 
 	svr := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusTeapot)
@@ -103,13 +103,13 @@ t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
 	_, err := DumbGetter(svr.URL)
 
 	if err == nil {
-		t.Fatal("expected an error")
+		t.Fatal("mong đợi một lỗi")
 	}
 
 	got, isStatusErr := err.(BadStatusError)
 
 	if !isStatusErr {
-		t.Fatalf("was not a BadStatusError, got %T", err)
+		t.Fatalf("không phải là BadStatusError, nhận được %T", err)
 	}
 
 	want := BadStatusError{URL: svr.URL, Status: http.StatusTeapot}
@@ -120,7 +120,7 @@ t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
 })
 ```
 
-We'll have to make `BadStatusError` implement the error interface.
+Chúng ta sẽ phải làm cho `BadStatusError` triển khai (implement) error interface.
 
 ```go
 func (b BadStatusError) Error() string {
@@ -128,11 +128,11 @@ func (b BadStatusError) Error() string {
 }
 ```
 
-### What does the test do?
+### Bài kiểm thử làm gì?
 
-Instead of checking the exact string of the error, we are doing a [type assertion](https://tour.golang.org/methods/15) on the error to see if it is a `BadStatusError`. This reflects our desire for the _kind_ of error clearer. Assuming the assertion passes we can then check the properties of the error are correct.
+Thay vì kiểm tra chuỗi ký tự chính xác của lỗi, chúng ta đang thực hiện một [type assertion](https://tour.golang.org/methods/15) trên lỗi để xem nó có phải là một `BadStatusError` hay không. Điều này thể hiện mong muốn của chúng ta về _loại_ lỗi một cách rõ ràng hơn. Giả sử việc kiểm tra (assertion) thành công, chúng ta có thể kiểm tra các thuộc tính của lỗi xem chúng có chính xác không.
 
-When we run the test, it tells us we didn't return the right kind of error
+Khi chúng ta chạy bài kiểm thử, nó sẽ cho chúng ta biết rằng chúng ta đã không trả về đúng loại lỗi:
 
 ```
 --- FAIL: TestDumbGetter (0.00s)
@@ -140,7 +140,7 @@ When we run the test, it tells us we didn't return the right kind of error
     	error-types_test.go:56: was not a BadStatusError, got *errors.errorString
 ```
 
-Let's fix `DumbGetter` by updating our error handling code to use our type
+Hãy sửa `DumbGetter` bằng cách cập nhật mã xử lý lỗi để sử dụng kiểu dữ liệu của chúng ta:
 
 ```go
 if res.StatusCode != http.StatusOK {
@@ -148,26 +148,26 @@ if res.StatusCode != http.StatusOK {
 }
 ```
 
-This change has had some _real positive effects_
+Sự thay đổi này đã mang lại một số _hiệu ứng tích cực thực sự_:
 
-- Our `DumbGetter` function has become simpler, it's no longer concerned with the intricacies of an error string, it just creates a `BadStatusError`.
-- Our tests now reflect (and document) what a user of our code _could_ do if they decided they wanted to do some more sophisticated error handling than just logging. Just do a type assertion and then you get easy access to the properties of the error.
-- It is still "just" an `error`, so if they choose to they can pass it up the call stack or log it like any other `error`.
+- Hàm `DumbGetter` của chúng ta đã trở nên đơn giản hơn, nó không còn bận tâm đến những chi tiết phức tạp của một chuỗi lỗi nữa, nó chỉ tạo ra một `BadStatusError`.
+- Các bài kiểm thử của chúng ta giờ đây phản ánh (và làm tài liệu) những gì người dùng mã của chúng ta _có thể_ làm nếu họ quyết định muốn xử lý lỗi tinh vi hơn là chỉ ghi nhật ký (logging). Chỉ cần thực hiện một type assertion và sau đó bạn có thể dễ dàng truy cập vào các thuộc tính của lỗi.
+- Nó vẫn "chỉ" là một `error`, vì vậy nếu họ muốn, họ có thể chuyển nó lên trên ngăn xếp cuộc gọi (call stack) hoặc ghi nhật ký nó như bất kỳ `error` nào khác.
 
 ## Tổng kết
 
-If you find yourself testing for multiple error conditions don't fall in to the trap of comparing the error messages.
+Nếu bạn thấy mình đang kiểm thử nhiều điều kiện lỗi khác nhau, đừng rơi vào cái bẫy so sánh các thông điệp lỗi.
 
-This leads to flaky and difficult to read/write tests and it reflects the difficulties the users of your code will have if they also need to start doing things differently depending on the kind of errors that have occurred.
+Việc này dẫn đến các bài kiểm thử dễ bị hỏng (flaky) và khó đọc/viết, đồng thời nó cũng phản ánh những khó khăn mà người dùng mã của bạn sẽ gặp phải nếu họ cũng cần bắt đầu thực hiện những việc khác nhau tùy thuộc vào loại lỗi đã xảy ra.
 
-Always make sure your tests reflect how _you'd_ like to use your code, so in this respect consider creating error types to encapsulate your kinds of errors. This makes handling different kinds of errors easier for users of your code and also makes writing your error handling code simpler and easier to read.
+Hãy luôn đảm bảo các bài kiểm thử phản ánh cách _bạn_ muốn sử dụng mã của mình, vì vậy về khía cạnh này, hãy cân nhắc việc tạo các kiểu lỗi để đóng gói các loại lỗi của bạn. Điều này giúp việc xử lý các loại lỗi khác nhau trở nên dễ dàng hơn cho người dùng mã của bạn, đồng thời giúp mã xử lý lỗi của bạn đơn giản và dễ đọc hơn.
 
-## Addendum
+## Phụ lục
 
-As of Go 1.13 there are new ways to work with errors in the standard library which is covered in the [Go Blog](https://blog.golang.org/go1.13-errors)
+Kể từ Go 1.13, có những cách mới để làm việc với các lỗi trong thư viện chuẩn, điều này đã được đề cập trong [Go Blog](https://blog.golang.org/go1.13-errors)
 
 ```go
-t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
+t.Run("khi bạn không nhận được mã 200, bạn sẽ nhận được một lỗi trạng thái", func(t *testing.T) {
 
 	svr := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusTeapot)
@@ -177,7 +177,7 @@ t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
 	_, err := DumbGetter(svr.URL)
 
 	if err == nil {
-		t.Fatal("expected an error")
+		t.Fatal("mong đợi một lỗi")
 	}
 
 	var got BadStatusError
@@ -185,7 +185,7 @@ t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
 	want := BadStatusError{URL: svr.URL, Status: http.StatusTeapot}
 
 	if !isBadStatusError {
-		t.Fatalf("was not a BadStatusError, got %T", err)
+		t.Fatalf("không phải là BadStatusError, nhận được %T", err)
 	}
 
 	if got != want {
@@ -194,4 +194,4 @@ t.Run("when you don't get a 200 you get a status error", func(t *testing.T) {
 })
 ```
 
-In this case we are using [`errors.As`](https://pkg.go.dev/errors#example-As) to try and extract our error into our custom type. It returns a `bool` to denote success and extracts it into `got` for us.
+Trong trường hợp này, chúng ta đang sử dụng [`errors.As`](https://pkg.go.dev/errors#example-As) để cố gắng trích xuất lỗi của mình vào kiểu dữ liệu tùy chỉnh. Nó trả về một giá trị `bool` để biểu thị sự thành công và trích xuất lỗi vào biến `got` cho chúng ta.
