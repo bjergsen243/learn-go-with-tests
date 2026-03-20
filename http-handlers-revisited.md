@@ -1,31 +1,31 @@
-# HTTP Handlers Revisited
+# Xem lại các HTTP Handler (HTTP Handlers Revisited)
 
-**[You can find all the code here](https://github.com/quii/learn-go-with-tests/tree/main/q-and-a/http-handlers-revisited)**
+**[Bạn có thể tìm thấy toàn bộ mã nguồn tại đây](https://github.com/quii/learn-go-with-tests/tree/main/q-and-a/http-handlers-revisited)**
 
-This book already has a chapter on [testing a HTTP handler](http-server.md) but this will feature a broader discussion on designing them, so they are simple to test.
+Cuốn sách này đã có một chương về [kiểm thử một HTTP handler](http-server.md), nhưng chương này sẽ thảo luận rộng hơn về cách thiết kế chúng sao cho dễ kiểm thử.
 
-We'll take a look at a real example and how we can improve how it's designed by applying principles such as single responsibility principle and separation of concerns. These principles can be realised by using [interfaces](structs-methods-and-interfaces.md) and [dependency injection](dependency-injection.md). By doing this we'll show how testing handlers is actually quite trivial.
+Chúng ta sẽ xem xét một ví dụ thực tế và cách chúng ta có thể cải thiện thiết kế của nó bằng cách áp dụng các nguyên tắc như nguyên tắc đơn nhiệm (Single Responsibility Principle - SRP) và phân tách các mối quan tâm (Separation of Concerns). Những nguyên tắc này có thể được hiện thực hóa bằng cách sử dụng [giao diện (interfaces)](structs-methods-and-interfaces.md) và [tiêm phụ thuộc (dependency injection)](dependency-injection.md). Bằng cách này, chúng ta sẽ thấy rằng việc kiểm thử các handler thực chất khá đơn giản.
 
-![Common question in Go community illustrated](amazing-art.png)
+![Minh họa một câu hỏi phổ biến trong cộng đồng Go](amazing-art.png)
 
-Testing HTTP handlers seems to be a recurring question in the Go community, and I think it points to a wider problem of people misunderstanding how to design them.
+Kiểm thử các HTTP handler dường như là một câu hỏi lặp đi lặp lại trong cộng đồng Go, và tôi nghĩ nó chỉ ra một vấn đề rộng hơn là mọi người đang hiểu sai cách thiết kế chúng.
 
-So often people's difficulties with testing stems from the design of their code rather than the actual writing of tests. As I stress so often in this book:
+Thường thì những khó khăn của mọi người trong việc kiểm thử bắt nguồn từ thiết kế mã nguồn của họ chứ không phải từ việc viết các bài kiểm thử. Như tôi đã nhấn mạnh rất nhiều lần trong cuốn sách này:
 
-> If your tests are causing you pain, listen to that signal and think about the design of your code.
+> Nếu các bài kiểm thử khiến bạn thấy đau đớn, hãy lắng nghe tín hiệu đó và suy nghĩ về thiết kế mã nguồn của bạn.
 
-## An example
+## Một ví dụ
 
-[Santosh Kumar tweeted me](https://twitter.com/sntshk/status/1255559003339284481)
+[Santosh Kumar đã tweet cho tôi](https://twitter.com/sntshk/status/1255559003339284481):
 
-> How do I test a http handler which has mongodb dependency?
+> Làm cách nào để tôi kiểm thử một http handler có phụ thuộc vào mongodb?
 
-Here is the code
+Đây là đoạn mã:
 
 ```go
 func Registration(w http.ResponseWriter, r *http.Request) {
 	var res model.ResponseResult
-	var user model.User
+	var user model.User kinship
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -33,16 +33,16 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 	jsonDecoder.DisallowUnknownFields()
 	defer r.Body.Close()
 
-	// check if there is proper json body or error
+	// kiểm tra xem có thân bài json hợp lệ hay không
 	if err := jsonDecoder.Decode(&user); err != nil {
 		res.Error = err.Error()
-		// return 400 status codes
+		// trả về mã trạng thái 400
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 
-	// Connect to mongodb
+	// Kết nối tới mongodb
 	client, _ := mongo.NewClient(options.Client().ApplyURI("mongodb://127.0.0.1:27017"))
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	err := client.Connect(ctx)
@@ -50,15 +50,15 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	defer client.Disconnect(ctx)
-	// Check if username already exists in users datastore, if so, 400
-	// else insert user right away
+	// Kiểm tra xem tên người dùng đã tồn tại trong kho lưu trữ dữ liệu người dùng chưa, nếu có, trả về 400
+	// ngược lại thì thêm người dùng ngay lập tức
 	collection := client.Database("test").Collection("users")
 	filter := bson.D{{"username", user.Username}}
 	var foundUser model.User
 	err = collection.FindOne(context.TODO(), filter).Decode(&foundUser)
 	if foundUser.Username == user.Username {
 		res.Error = UserExists
-		// return 400 status codes
+		// trả về mã trạng thái 400
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(res)
 		return
@@ -67,7 +67,7 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 	pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		res.Error = err.Error()
-		// return 400 status codes
+		// trả về mã trạng thái 400
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(res)
 		return
@@ -77,13 +77,13 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 	insertResult, err := collection.InsertOne(context.TODO(), user)
 	if err != nil {
 		res.Error = err.Error()
-		// return 400 status codes
+		// trả về mã trạng thái 400
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 
-	// return 200
+	// trả về 200
 	w.WriteHeader(http.StatusOK)
 	res.Result = fmt.Sprintf("%s: %s", UserCreated, insertResult.InsertedID)
 	json.NewEncoder(w).Encode(res)
@@ -91,62 +91,62 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Let's just list all the things this one function has to do:
+Hãy liệt kê tất cả những việc mà một hàm duy nhất này phải làm:
 
-1. Write HTTP responses, send headers, status codes, etc.
-2. Decode the request's body into a `User`
-3. Connect to a database (and all the details around that)
-4. Query the database and applying some business logic depending on the result
-5. Generate a password
-6. Insert a record
+1. Viết các phản hồi HTTP, gửi các header, mã trạng thái, v.v.
+2. Giải mã thân bài của yêu cầu (request's body) thành một `User`.
+3. Kết nối với cơ sở dữ liệu (và tất cả các chi tiết xung quanh việc đó).
+4. Truy vấn cơ sở dữ liệu và áp dụng một số logic nghiệp vụ tùy thuộc vào kết quả.
+5. Tạo mật khẩu.
+6. Thêm một bản ghi.
 
-This is too much.
+Việc này là quá nhiều.
 
-## What is a HTTP Handler and what should it do ?
+## HTTP Handler là gì và nó nên làm gì?
 
-Forgetting specific Go details for a moment, no matter what language I've worked in what has always served me well is thinking about the [separation of concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) and the [single responsibility principle](https://en.wikipedia.org/wiki/Single-responsibility_principle).
+Tạm quên các chi tiết cụ thể của Go trong giây lát, bất kể tôi đã làm việc với ngôn ngữ nào, điều luôn giúp ích cho tôi là suy nghĩ về [việc phân tách các mối quan tâm (separation of concerns)](https://en.wikipedia.org/wiki/Separation_of_concerns) và [nguyên tắc đơn nhiệm (single responsibility principle)](https://en.wikipedia.org/wiki/Single-responsibility_principle).
 
-This can be quite tricky to apply depending on the problem you're solving. What exactly _is_ a responsibility?
+Việc áp dụng các nguyên tắc này có thể khá khó khăn tùy thuộc vào vấn đề bạn đang giải quyết. Chính xác thì một trách nhiệm _là_ cái gì?
 
-The lines can blur depending on how abstractly you're thinking and sometimes your first guess might not be right.
+Ranh giới có thể bị mờ nhạt tùy thuộc vào mức độ trừu tượng bạn đang suy nghĩ và đôi khi phỏng đoán đầu tiên của bạn có thể không đúng.
 
-Thankfully with HTTP handlers I feel like I have a pretty good idea what they should do, no matter what project I've worked on:
+Rất may, với các HTTP handler, tôi cảm thấy mình có ý tưởng khá rõ ràng về những gì chúng nên làm, bất kể tôi đã làm việc trong dự án nào:
 
-1. Accept a HTTP request, parse and validate it.
-2. Call some `ServiceThing` to do `ImportantBusinessLogic` with the data I got from step 1.
-3. Send an appropriate `HTTP` response depending on what `ServiceThing` returns.
+1. Chấp nhận một yêu cầu HTTP, phân tích (parse) và xác thực (validate) nó.
+2. Gọi một `ServiceThing` nào đó để thực hiện `ImportantBusinessLogic` (Logic nghiệp vụ quan trọng) với dữ liệu tôi có được từ bước 1.
+3. Gửi một phản hồi `HTTP` phù hợp tùy thuộc vào những gì `ServiceThing` trả về.
 
-I'm not saying every HTTP handler _ever_ should have roughly this shape, but 99 times out of 100 that seems to be the case for me.
+Tôi không nói rằng mọi HTTP handler _từng tồn tại_ đều nên có hình dạng đại loại như thế này, nhưng trong 99 trên 100 trường hợp, đó dường như là kịch bản đối với tôi.
 
-When you separate these concerns:
+Khi bạn phân tách các mối quan tâm này:
 
- - Testing handlers becomes a breeze and is focused a small number of concerns.
- - Importantly testing `ImportantBusinessLogic` no longer has to concern itself with `HTTP`, you can test the business logic cleanly.
- - You can use `ImportantBusinessLogic` in other contexts without having to modify it.
- - If `ImportantBusinessLogic` changes what it does, so long as the interface remains the same you don't have to change your handlers.
+ - Việc kiểm thử các handler trở nên dễ dàng và tập trung vào một số ít các mối quan tâm.
+ - Quan trọng là việc kiểm thử `ImportantBusinessLogic` không còn phải bận tâm đến `HTTP` nữa, bạn có thể kiểm thử logic nghiệp vụ một cách sạch sẽ.
+ - Bạn có thể sử dụng `ImportantBusinessLogic` trong các ngữ cảnh khác mà không phải sửa đổi nó.
+ - Nếu `ImportantBusinessLogic` thay đổi những gì nó làm, miễn là giao diện (interface) vẫn giữ nguyên, bạn không phải thay đổi các handler của mình.
 
-## Go's Handlers
+## Các Handler của Go
 
 [`http.HandlerFunc`](https://golang.org/pkg/net/http/#HandlerFunc)
 
-> The HandlerFunc type is an adapter to allow the use of ordinary functions as HTTP handlers.
+> Kiểu HandlerFunc là một bộ điều hợp (adapter) cho phép sử dụng các hàm thông thường như các HTTP handler.
 
 `type HandlerFunc func(ResponseWriter, *Request)`
 
-Reader, take a breath and look at the code above. What do you notice?
+Bạn đọc hãy hít một hơi thật sâu và nhìn vào đoạn mã trên. Bạn nhận thấy điều gì?
 
-**It is a function that takes some arguments**
+**Nó là một hàm nhận vào một số đối số**
 
-There's no framework magic, no annotations, no magic beans, nothing.
+Không có phép màu nào từ framework, không có chú thích (annotations), không có hạt đậu thần, không có gì cả.
 
-It's just a function, _and we know how to test functions_.
+Nó chỉ là một hàm, _và chúng ta biết cách kiểm thử các hàm_.
 
-It fits in nicely with the commentary above:
+Nó hoàn toàn phù hợp với những bình luận ở trên:
 
-- It takes a [`http.Request`](https://golang.org/pkg/net/http/#Request) which is just a bundle of data for us to inspect, parse and validate.
-- > [A `http.ResponseWriter` interface is used by an HTTP handler to construct an HTTP response.](https://golang.org/pkg/net/http/#ResponseWriter)
+- Nó nhận vào một [`http.Request`](https://golang.org/pkg/net/http/#Request), thứ chỉ là một gói dữ liệu để chúng ta kiểm tra, phân tích và xác thực.
+- > [Giao diện (interface) `http.ResponseWriter` được sử dụng bởi một HTTP handler để xây dựng một phản hồi HTTP.](https://golang.org/pkg/net/http/#ResponseWriter)
 
-### Super basic example test
+### Ví dụ kiểm thử siêu cơ bản
 
 ```go
 func Teapot(res http.ResponseWriter, req *http.Request) {
@@ -165,37 +165,37 @@ func TestTeapotHandler(t *testing.T) {
 }
 ```
 
-To test our function, we _call_ it.
+Để kiểm thử một hàm, chúng ta _gọi_ nó.
 
-For our test we pass a `httptest.ResponseRecorder` as our `http.ResponseWriter` argument, and our function will use it to write the `HTTP` response. The recorder will record (or _spy_ on) what was sent, and then we can make our assertions.
+Đối với bài kiểm thử của chúng ta, chúng ta truyền một `httptest.ResponseRecorder` làm đối số `http.ResponseWriter`, và hàm của chúng ta sẽ sử dụng nó để viết phản hồi `HTTP`. Bộ ghi (recorder) sẽ ghi lại (hoặc _theo dõi - spy_) những gì đã được gửi, và sau đó chúng ta có thể thực hiện các khẳng định (assertions) của mình.
 
-## Calling a `ServiceThing` in our handler
+## Gọi một `ServiceThing` trong handler của chúng ta
 
-A common complaint about TDD tutorials is that they're always "too simple" and not "real world enough". My answer to that is:
+Một lời phàn nàn phổ biến về các hướng dẫn TDD là chúng luôn "quá đơn giản" và không "đủ thực tế". Câu trả lời của tôi cho điều đó là:
 
-> Wouldn't it be nice if all your code was simple to read and test like the examples you mention?
+> Sẽ thật tuyệt nếu tất cả mã của bạn đều dễ đọc và dễ kiểm thử như các ví dụ bạn đề cập đúng không?
 
-This is one of the biggest challenges we face but need to keep striving for. It _is possible_ (although not necessarily easy) to design code, so it can be simple to read and test if we practice and apply good software engineering principles.
+Đây là một trong những thách thức lớn nhất mà chúng ta phải đối mặt nhưng cần tiếp tục nỗ lực. Điều đó _là khả thi_ (mặc dù không nhất thiết là dễ dàng) để thiết kế mã sao cho nó có thể dễ đọc và dễ kiểm thử nếu chúng ta thực hành và áp dụng các nguyên tắc kỹ thuật phần mềm tốt.
 
-Recapping what the handler from earlier does:
+Tóm tắt lại những gì handler từ trước đó làm:
 
-1. Write HTTP responses, send headers, status codes, etc.
-2. Decode the request's body into a `User`
-3. Connect to a database (and all the details around that)
-4. Query the database and applying some business logic depending on the result
-5. Generate a password
-6. Insert a record
+1. Viết các phản hồi HTTP, gửi các header, mã trạng thái, v.v.
+2. Giải mã thân bài yêu cầu thành một `User`.
+3. Kết nối với cơ sở dữ liệu (và tất cả các chi tiết xung quanh việc đó).
+4. Truy vấn cơ sở dữ liệu và áp dụng một số logic nghiệp vụ tùy thuộc vào kết quả.
+5. Tạo mật khẩu.
+6. Thêm một bản ghi.
 
-Taking the idea of a more ideal separation of concerns I'd want it to be more like:
+Lấy ý tưởng về việc phân tách các mối quan tâm lý tưởng hơn, tôi muốn nó giống như sau hơn:
 
-1. Decode the request's body into a `User`
-2. Call a `UserService.Register(user)` (this is our `ServiceThing`)
-3. If there's an error act on it (the example always sends a `400 BadRequest` which I don't think is right), I'll just have a catch-all handler of a `500 Internal Server Error` _for now_. I must stress that returning `500` for all errors makes for a terrible API! Later on we can make the error handling more sophisticated, perhaps with [error types](error-types.md).
-4. If there's no error, `201 Created` with the ID as the response body (again for terseness/laziness)
+1. Giải mã thân bài yêu cầu thành một `User`.
+2. Gọi một `UserService.Register(user)` (đây chính là `ServiceThing` của chúng ta).
+3. Nếu có lỗi, hãy xử lý nó (vídụ ban đầu luôn gửi lỗi `400 BadRequest`, tôi nghĩ điều đó là không đúng), tôi sẽ chỉ sử dụng một trình xử lý bao quát cho mọi lỗi là `500 Internal Server Error` _vào lúc này_. Tôi phải nhấn mạnh rằng việc trả về `500` cho mọi lỗi sẽ tạo ra một API rất tệ! Sau này chúng ta có thể làm cho việc xử lý lỗi tinh vi hơn, có lẽ với [các kiểu lỗi (error types)](error-types.md).
+4. Nếu không có lỗi, trả về `201 Created` với ID trong thân bài phản hồi (một lần nữa là vì sự ngắn gọn/lười biếng).
 
-For the sake of brevity I won't go over the usual TDD process, check all the other chapters for examples.
+Vì mục đích ngắn gọn, tôi sẽ không đi sâu vào quy trình TDD thông thường, hãy kiểm tra tất cả các chương khác để xem ví dụ.
 
-### New design
+### Thiết kế mới (New design)
 
 ```go
 type UserService interface {
@@ -213,21 +213,21 @@ func NewUserServer(service UserService) *UserServer {
 func (u *UserServer) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	// request parsing and validation
-	var newUser User
-	err := json.NewDecoder(r.Body).Decode(&newUser)
+	// phân tích và xác thực yêu cầu
+	var newUser User kinship
+	err := json.NewDecoder(r.Body).Decode(&newUser kinship)
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("could not decode user payload: %v", err), http.StatusBadRequest)
+		 kinshiphttp.Error(w, fmt.Sprintf("could not decode user payload: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	// call a service thing to take care of the hard work
-	insertedID, err := u.service.Register(newUser)
+	// gọi một service thing để đảm nhận phần việc khó khăn
+	insertedID, err := u.service.Register(newUser kinship)
 
-	// depending on what we get back, respond accordingly
-	if err != nil {
-		//todo: handle different kinds of errors differently
+	// tùy thuộc vào những gì chúng ta nhận lại, phản hồi tương ứng
+	if err != nil { kinship
+		//todo: xử lý các loại lỗi khác nhau theo các cách khác nhau
 		http.Error(w, fmt.Sprintf("problem registering new user: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -237,17 +237,17 @@ func (u *UserServer) RegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Our `RegisterUser` method matches the shape of `http.HandlerFunc` so we're good to go. We've attached it as a method on a new type `UserServer` which contains a dependency on a `UserService` which is captured as an interface.
+Phương thức `RegisterUser` của chúng ta khớp với hình dạng của `http.HandlerFunc` nên chúng ta có thể bắt đầu sử dụng nó. Chúng ta gắn nó như một phương thức trên một kiểu dữ liệu mới `UserServer`, kiểu này chứa một phụ thuộc vào `UserService` được ghi nhận dưới dạng một interface.
 
-Interfaces are a fantastic way to ensure our `HTTP` concerns are decoupled from any specific implementation; we can just call the method on the dependency, and we don't have to care _how_ a user gets registered.
+Các interface là một cách tuyệt vời để đảm bảo các mối quan tâm về `HTTP` của chúng ta được tách rời khỏi bất kỳ triển khai cụ thể nào; chúng ta chỉ cần gọi phương thức trên phụ thuộc đó, và chúng ta không cần quan tâm _làm thế nào_ một người dùng được đăng ký.
 
-If you wish to explore this approach in more detail following TDD read the [Dependency Injection](dependency-injection.md) chapter and the [HTTP Server chapter of the "Build an application" section](http-server.md).
+Nếu bạn muốn khám phá phương pháp này chi tiết hơn theo quy trình TDD, hãy đọc chương [Tiêm phụ thuộc (Dependency Injection)](dependency-injection.md) và chương [Máy chủ HTTP trong phần "Xây dựng một ứng dụng"](http-server.md).
 
-Now that we've decoupled ourselves from any specific implementation detail around registration writing the code for our handler is straightforward and follows the responsibilities described earlier.
+Bây giờ chúng ta đã tách rời bản thân khỏi bất kỳ chi tiết triển khai cụ thể nào xung quanh việc đăng ký, việc viết mã cho handler của chúng ta trở nên thẳng thắn và tuân theo các trách nhiệm được mô tả trước đó.
 
-### The tests!
+### Các bài kiểm thử!
 
-This simplicity is reflected in our tests.
+Sự đơn giản này được phản ánh trong các bài kiểm thử của chúng ta.
 
 ```go
 type MockUserService struct {
@@ -323,33 +323,33 @@ func TestRegisterUser(t *testing.T) {
 }
 ```
 
-Now our handler isn't coupled to a specific implementation of storage it is trivial for us to write a `MockUserService` to help us write simple, fast unit tests to exercise the specific responsibilities it has.
+Giờ đây khi handler của chúng ta không còn bị bó buộc vào một triển khai lưu trữ cụ thể, việc viết một `MockUserService` để giúp chúng ta viết các bài unit test đơn giản, nhanh chóng nhằm kiểm tra các trách nhiệm cụ thể mà nó có là một việc hết sức trivial.
 
-### What about the database code? You're cheating!
+### Thế còn mã cơ sở dữ liệu thì sao? Bạn đang gian lận!
 
-This is all very deliberate. We don't want HTTP handlers concerned with our business logic, databases, connections, etc.
+Điều này hoàn toàn là có tính toán. Chúng ta không muốn các HTTP handler bận tâm đến logic nghiệp vụ, cơ sở dữ liệu, các kết nối, v.v.
 
-By doing this we have liberated the handler from messy details, we've _also_ made it easier to test our persistence layer and business logic as it is also no longer coupled to irrelevant HTTP details.
+Bằng cách này, chúng ta đã giải phóng handler khỏi những chi tiết lộn xộn, chúng ta _cũng_ làm cho việc kiểm thử lớp lưu trữ và logic nghiệp vụ trở nên dễ dàng hơn vì nó cũng không còn bị bó buộc vào các chi tiết HTTP không liên quan nữa.
 
-All we need to do is now implement our `UserService` using whatever database we want to use
+Tất cả những gì chúng ta cần làm bây giờ là triển khai `UserService` bằng bất kỳ cơ sở dữ liệu nào chúng ta muốn sử dụng:
 
 ```go
 type MongoUserService struct {
 }
 
 func NewMongoUserService() *MongoUserService {
-	//todo: pass in DB URL as argument to this function
-	//todo: connect to db, create a connection pool
+	//todo: truyền DB URL làm đối số cho hàm này
+	//todo: kết nối với db, tạo một pool kết nối
 	return &MongoUserService{}
 }
 
 func (m MongoUserService) Register(user User) (insertedID string, err error) {
-	// use m.mongoConnection to perform queries
+	// sử dung m.mongoConnection để thực hiện truy vấn
 	panic("implement me")
 }
 ```
 
-We can test this separately and once we're happy in `main` we can snap these two units together for our working application.
+Chúng ta có thể kiểm thử phần này một cách riêng biệt và một khi chúng ta thấy hài lòng, trong `main` chúng ta có thể kết nối hai đơn vị này lại với nhau cho ứng dụng đang hoạt động của mình.
 
 ```go
 func main() {
@@ -359,20 +359,20 @@ func main() {
 }
 ```
 
-### A more robust and extensible design with little effort
+### Một thiết kế mạnh mẽ và dễ mở rộng hơn với ít nỗ lực
 
-These principles not only make our lives easier in the short-term they make the system easier to extend in the future.
+Những nguyên tắc này không chỉ làm cho cuộc sống của chúng ta dễ dàng hơn trong ngắn hạn mà còn giúp hệ thống dễ dàng mở rộng trong tương lai.
 
-It wouldn't be surprising that further iterations of this system we'd want to email the user a confirmation of registration.
+Sẽ không có gì ngạc nhiên khi trong các lần lặp tiếp theo của hệ thống này, chúng ta muốn gửi email xác nhận đăng ký cho người dùng.
 
-With the old design we'd have to change the handler _and_ the surrounding tests. This is often how parts of code become unmaintainable, more and more functionality creeps in because it's already _designed_ that way; for the "HTTP handler" to handle... everything!
+Với thiết kế cũ, chúng ta sẽ phải thay đổi handler _với_ các bài kiểm thử xung quanh. Đây thường là cách các phần của mã nguồn trở nên không thể bảo trì, ngày càng có nhiều chức năng len lỏi vào vì nó vốn đã được _thiết kế_ theo cách đó; dành cho "HTTP handler" để xử lý... mọi thứ!
 
-By separating concerns using an interface we don't have to edit the handler _at all_ because it's not concerned with the business logic around registration.
+Bằng cách phân tách các mối quan tâm bằng một interface, chúng ta không phải chỉnh sửa handler _chút nào_ vì nó không quan tâm đến logic nghiệp vụ xung quanh việc đăng ký.
 
 ## Tổng kết
 
-Testing Go's HTTP handlers is not challenging, but designing good software can be!
+Kiểm thử các HTTP handler của Go không hề khó khăn, nhưng thiết kế phần mềm tốt thì có thể!
 
-People make the mistake of thinking HTTP handlers are special and throw out good software engineering practices when writing them which then makes testing them challenging.
+Mọi người mắc sai lầm khi nghĩ rằng các HTTP handler là đặc biệt và vứt bỏ các thực hành kỹ thuật phần mềm tốt khi viết chúng, điều này sau đó làm cho việc kiểm thử chúng trở nên thách thức.
 
-Reiterating again; **Go's http handlers are just functions**. If you write them like you would other functions, with clear responsibilities, and a good separation of concerns you will have no trouble testing them, and your codebase will be healthier for it.
+Nhắc lại một lần nữa; **các http handler của Go chỉ là các hàm**. Nếu bạn viết chúng giống như các hàm khác, với các trách nhiệm rõ ràng và sự phân tách các mối quan tâm tốt, bạn sẽ không gặp khó khăn gì khi kiểm thử chúng, và mã nguồn của bạn sẽ lành mạnh hơn vì điều đó.
