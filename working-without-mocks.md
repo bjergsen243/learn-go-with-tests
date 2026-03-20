@@ -1,38 +1,38 @@
-# Working without mocks, stubs and spies
+# Làm việc không cần mocks, stubs và spies
 
-This chapter delves into the world of test doubles and explores how they influence the testing and development process. We'll uncover the limitations of traditional mocks, stubs, and spies and introduce a more efficient and adaptable approach using fakes and contracts.
+Chương này đi sâu vào thế giới của test doubles (các đối tượng thay thế trong kiểm thử) và khám phá cách chúng ảnh hưởng đến quy trình kiểm thử và phát triển phần mềm. Chúng ta sẽ khám phá những hạn chế của các phương pháp truyền thống như mocks, stubs và spies, đồng thời giới thiệu một cách tiếp cận hiệu quả và dễ thích ứng hơn bằng cách sử dụng fakes và contracts.
 
-## tl;dr
+## Tóm tắt (tl;dr)
 
-- Mocks, spies and stubs encourage you to encode assumptions of the behaviour of your dependencies ad-hocly in each test.
-- These assumptions are usually not validated beyond manual checking, so they threaten your test suite's usefulness.
-- Fakes and contracts give us a more sustainable method for creating test doubles with validated assumptions and better reuse than the alternatives.
+- Mocks, spies và stubs khuyến khích bạn mã hóa các giả định về hành vi của các dependencies (phụ thuộc) một cách tùy tiện trong mỗi bài test.
+- Những giả định này thường không được xác minh vượt ra ngoài việc kiểm tra thủ công, do đó, chúng đe dọa đến tính hữu ích của bộ test của bạn.
+- Fakes và contracts cung cấp cho chúng ta một phương pháp bền vững hơn để tạo test doubles với các giả định đã được xác thực và khả năng tái sử dụng tốt hơn so với các lựa chọn thay thế.
 
-This is a longer chapter than normal, so as a palette cleanser, you should explore an [example repo first](https://github.com/quii/go-fakes-and-contracts). In particular, check out the [planner test](https://github.com/quii/go-fakes-and-contracts/blob/main/domain/planner/planner_test.go).
+Chương này dài hơn bình thường, do đó, để "khai vị", bạn nên khám phá trước một [kho lưu trữ ví dụ (example repo)](https://github.com/quii/go-fakes-and-contracts). Đặc biệt, hãy xem qua [bài test của planner](https://github.com/quii/go-fakes-and-contracts/blob/main/domain/planner/planner_test.go).
 
 ---
 
-In [Mocking,](https://quii.gitbook.io/learn-go-with-tests/go-fundamentals/mocking) we learned how mocks, stubs and spies are useful tools for controlling and inspecting the behaviour of units of code in conjunction with [Dependency Injection](https://quii.gitbook.io/learn-go-with-tests/go-fundamentals/dependency-injection).
+Trong chương [Mocking](https://quii.gitbook.io/learn-go-with-tests/go-fundamentals/mocking), chúng ta đã tìm hiểu cách mocks, stubs và spies trở thành những công cụ hữu ích để kiểm soát và kiểm tra hành vi của các đơn vị mã (units of code) kết hợp với [Dependency Injection](https://quii.gitbook.io/learn-go-with-tests/go-fundamentals/dependency-injection) (Tiêm phụ thuộc).
 
-As a project grows, though, these kinds of test doubles *can* become a maintenance burden, and we should instead look to other design ideas to keep our system easy to reason and test.
+Tuy nhiên, khi dự án phát triển, những loại test doubles này *có thể* trở thành một gánh nặng bảo trì, do đó chúng ta nên tìm kiếm các ý tưởng thiết kế khác để giữ cho hệ thống của mình dễ dàng suy luận và kiểm thử.
 
-**Fakes** and **contracts** allow developers to test their systems with more realistic scenarios, improve local development experience with faster and more accurate feedback loops, and manage the complexity of evolving dependencies.
+**Fakes** (đối tượng giả) và **contracts** (hợp đồng) cho phép các nhà phát triển kiểm thử hệ thống của họ với các kịch bản thực tế hơn, cải thiện trải nghiệm phát triển cục bộ với các chu trình phản hồi (feedback loops) nhanh hơn, chính xác hơn, và quản lý được sự phức tạp của các dependencies không ngừng thay đổi.
 
-### A primer on test doubles
+### Khái quát về test doubles
 
-It's easy to roll your eyes when people like me are pedantic about the nomenclature of test doubles, but the distinctive kinds of test doubles help us talk about this topic and the trade-offs we're making with clarity.
+Thật dễ để tỏ vẻ chán nản khi những người như tôi cứ hay xét nét về cách gọi tên của test doubles, nhưng các loại test doubles mang tính đặc thù giúp chúng ta thảo luận về chủ đề này và đưa ra những quyết định cân nhắc một cách tường minh hơn.
 
-**Test doubles** is the collective noun for the different ways you can construct dependencies that you can control for a **subject under test** **(SUT)**, the thing you're testing. Test doubles are often a better alternative than using the real dependency as it can avoid issues like
+**Test doubles** là danh từ chung cho các cách khác nhau mà bạn có thể cấu trúc các dependencies nhầm kiểm soát một **chủ thể đang được kiểm thử** (**subject under test** - viết tắt là **SUT**), tức là thứ mà bạn đang kiểm tra. Việc dùng Test doubles thường ưu việt hơn là dùng các dependencies thật vì nó có thể giúp tránh được các rắc rối như:
 
-- Needing the internet to use an API
-- Avoid latency and other performance issues
-- Unable to exercise non-happy path cases
-- Decoupling your build from another team's.
-  - You wouldn't want to prevent deployments if an engineer in another team accidentally shipped a bug
+- Cần có internet để sử dụng một API
+- Tránh độ trễ và các vấn đề về hiệu suất khác
+- Không thể kích hoạt được các trường hợp không đi theo luồng chuẩn (non-happy path cases)
+- Tách rời quá trình build mã của bạn khỏi nhóm khác.
+  - Bạn hẳn không muốn bị chặn quy trình triển khai (deployment) nếu một kỹ sư ở nhóm khác vô tình đưa ra một lỗi (bug)
 
-In Go, you'll typically model a dependency with an interface, then implement your version to control the behaviour in a test. **Here are the kinds of test doubles covered in this post**.
+Trong Go, bạn thường sẽ mô phỏng một dependency bằng một interface, sau đó triển khai phiên bản của riêng bạn (implement) để kiểm soát hành vi đó trong một test. **Dưới đây là các loại test doubles được đề cập trong bài viết này**.
 
-Given this interface of a hypothetical recipe API:
+Cho trước interface của một API công thức nấu ăn giả định thế này:
 
 ```go
 type RecipeBook interface {
@@ -41,9 +41,9 @@ type RecipeBook interface {
 }
 ```
 
-We can construct test doubles in various ways, depending on how we're trying to test something that uses a `RecipeBook`.
+Chúng ta có thể cấu trúc các test doubles theo nhiều cách khác nhau, phục thuộc vào mục đích chúng ta đang muốn kiểm tra thành phần sử dụng cái `RecipeBook` kia như thế nào.
 
-**Stubs** return the same canned data every time they are called
+**Stubs** trả về cùng một dữ liệu được định sẵn mỗi khi chúng được gọi
 
 ```go
 type StubRecipeStore struct {
@@ -65,7 +65,7 @@ stubStore := &StubRecipeStore{
 }
 ```
 
-**Spies** are like stubs but also record how they were called so the test can assert that the SUT calls the dependencies in specific ways.
+**Spies** giống như stubs nhưng chúng cũng ghi lại cách chúng được gọi, vì vậy bài test có thể kiểm tra (assert) rằng SUT gọi các dependencies theo những cách cụ thể.
 
 ```go
 type SpyRecipeStore struct {
@@ -90,7 +90,7 @@ sut.DoStuff()
 // now we can check the store had the right recipes added by inspectiong spyStore.AddCalls
 ```
 
-**Mocks** are like a superset of the above, but they only respond with specific data to specific invocations. If the SUT calls the dependencies with the wrong arguments, it'll typically panic.
+**Mocks** giống như một tập hợp bao trùm những cái trên, nhưng chúng chỉ phản hồi bằng dữ liệu cụ thể đối với những lần gọi cụ thể. Nếu SUT gọi các dependencies với sai tham số (arguments), mocks thường sẽ gây ra panic.
 
 ```go
 // set up the mock with expected calls
@@ -100,7 +100,7 @@ mockStore.WhenCalledWith(someRecipes).Return(someError)
 // when the sut uses the dependency, if it doesn't call it with someRecipes, usually mocks will panic
 ```
 
-**Fakes** are like a genuine version of the dependency but implemented in a way more suited to fast running, reliable tests and local development. Often, your system will have some abstraction around persistence, which will be implemented with a database, but in your tests, you could use an in-memory fake instead.
+**Fakes** giống như một phiên bản thực sự của dependency nhưng được triển khai theo cách phù hợp hơn để chạy các bài test một cách nhanh chóng, đáng tin cậy và phục vụ cho việc phát triển ở môi trường cục bộ (local). Thường thì hệ thống của bạn sẽ có một lớp trừu tượng bao quanh tầng lưu trữ dữ liệu (persistence), lớp này sẽ được triển khai bằng một database, nhưng trong các bài test, bạn có thể sử dụng một fake lưu trữ trong bộ nhớ (in-memory fake) để thay thế.
 
 ```go
 type FakeRecipeStore struct {
@@ -117,81 +117,82 @@ func (f *FakeRecipeStore) AddRecipes(r ...Recipe) error {
 }
 ```
 
-Fakes are useful because:
+Fakes rất hữu ích vì:
 
-- Their statefulness is useful for tests involving multiple subjects and invocations, such as an integration test. Managing state with the other kinds of test doubles is generally discouraged.
-- If they have a sensible API, offer a more natural way of asserting state. Rather than spying on specific calls to a dependency, you can query its final state to see if the real effect you want happened.
-- You can use them to run your application locally without spinning up or depending on real dependencies. This will usually improve developer experience (DX) because the fakes will be faster and more reliable than their real counterparts.
+- Trạng thái của chúng (statefulness) rất tiện lợi cho các bài test liên quan đến nhiều đối tượng và các chuỗi lời gọi hàm, ví dụ như trong integration test. Việc quản lý trạng thái bằng các loại test doubles khác thường không được khuyến khích.
+- Nếu chúng có một API hợp lý, chúng cung cấp một cách tự nhiên hơn để kiểm tra trạng thái. Dễ hơn là việc theo dõi (spying) các cuốc gọi cụ thể đến dependency nào đó, bạn có thể truy vấn trạng thái cuối cùng của nó để xem kết quả thực sự bạn muốn đã xảy ra chưa.
+- Bạn có thể sử dụng chúng để chạy ứng dụng của mình cục bộ mà không cần phải khởi động hay phụ thuộc vào các dependencies thực. Điều này thường sẽ cải thiện trải nghiệm lập trình viên (DX) vì fakes sẽ hoạt động nhanh hơn và ít gặp sự cố hơn so với các thành phần thực tế tương ứng.
 
-Spies, Mocks and Stubs can typically be autogenerated from an interface using a tool or using reflection. However, as Fakes encode the behaviour of the dependency you're trying to make a double for, you'll have to write at least most of the implementation yourself
+Spies, Mocks và Stubs thường có thể được tạo tự động từ một interface bằng cách sử dụng các công cụ rà quét hoặc reflection. Tuy nhiên, vì Fakes tóm lược một cụm hành vi của một dependency mà bạn đang cố tạo bản sao cho nó, bạn sẽ phải tự mình viết phần lớn implementation (chạy bên trong) cho ẻm.
 
-## The problem with stubs and mocks
 
-In [Anti-patterns,](https://quii.gitbook.io/learn-go-with-tests/meta/anti-patterns) there are details on how using test doubles must be done carefully. Creating a messy test suite is easy if you don't use them tastefully. As a project grows though, other problems can creep in.
+## Vấn đề với stubs và mocks
 
-When you encode behaviour into test doubles, you are adding your assumptions as to how the real dependency works into the test. If there is a discrepancy between the behaviour of the double and the real dependency, or if one happens over time (e.g. the real dependency changes, which *has* to be expected), **you may have passing tests but failing software**.
+Trong phần [Anti-patterns](https://quii.gitbook.io/learn-go-with-tests/meta/anti-patterns), có nêu chi tiết về việc sử dụng test doubles phải được thực hiện cẩn thận như thế nào. Rất dễ tạo ra một mớ lộn xộn trong bộ test nếu bạn không sử dụng chúng một cách có gu (tastefully). Tuy nhiên, khi dự án phát triển, những vấn đề khác có thể len lỏi vào.
 
-Stubs, spies and mocks, in particular, represent other challenges, mainly as a project grows. To illustrate this, I will describe a project I worked on.
+Khi bạn mã hóa các hành vi (encode behaviour) vào trong test doubles, bạn đang đưa các giả định của mình về cách dependency thực hoạt động vào trong test. Nếu có sự khác biệt giữa hành vi của test double và dependency thực, hoặc nếu điều này xảy ra theo thời gian (ví dụ: dependency thực bị thay đổi, điều này là tất yếu), **bạn có thể có các bài test pass nhưng phần mềm lại bị lỗi**.
 
-### Example case study
+Stubs, spies và mocks, nói riêng, mang đến nhiều thách thức khác, chủ yếu là khi dự án phát triển lớn hơn. Để minh họa điều này, tôi sẽ mô tả một dự án mà tôi đã tham gia.
 
-*Some details are changed compared to what really happened, and it has been simplified greatly for brevity. **Any resemblance to actual persons, living or dead, is purely coincidental.***
+### Ví dụ thực tế (Case study)
 
-I worked on a system that had to call **six** different APIs, written and maintained by other teams across the globe. They were _REST-ish_, and the job of our system was to create and manage resources in them all. When we called all the APIs correctly for each system, _magic_ (business value) would happen.
+*Một số chi tiết đã được thay đổi so với thực tế, và nó đã được đơn giản hóa đi nhiều cho ngắn gọn. **Mọi sự trùng hợp với người thật, việc thật, đều là ngẫu nhiên.***
 
-Our application was structured in a hexagonal / ports & adapters architecture. Our domain code was decoupled from the mess of the outside world we had to deal with. Our "adapters" were, in effect, Go clients that encapsulated calling the various APIs.
+Tôi làm việc trong một hệ thống phải gọi tới **sáu** API khác nhau, được viết và duy trì bởi các team khác nhau trên toàn cầu. Các API này đều mang phong cách _REST-ish_ (giống REST), và công việc của hệ thống của chúng tôi là tạo và quản lý tài nguyên trong tất cả các API đó. Khi chúng tôi gọi tất cả API đúng cách cho từng hệ thống, *phép màu* (business value - giá trị doanh nghiệp) sẽ xảy ra.
 
-![the system architecture](https://i.imgur.com/6bqovl8.png)
+Ứng dụng của chúng tôi được tổ chức theo kiến trúc hexagonal / ports & adapters. Phần domain code của chúng tôi được tách biệt (decoupled) hoàn toàn với sự lộn xộn của thế giới bên ngoài mà chúng tôi phải xử lý. Các "adapters" của chúng tôi, thực chất, là các Go clients dùng để đóng gói quá trình gọi các API khác nhau.
 
-#### Troubles
+![Cấu trúc hệ thống](https://i.imgur.com/6bqovl8.png)
 
-Naturally, we took a test-driven approach to building the system. We leveraged stubs to simulate the downstream API responses and had a handful of acceptance tests to reassure ourselves everything should work.
+#### Những rắc rối
 
-The APIs we had to call for the most part, though, were:
+Tự nhiên thay, chúng tôi chọn cách tiếp cận test-driven (hướng kiểm thử) để xây dựng hệ thống. Chúng tôi tận dụng stubs để mô phỏng (simulate) các phản hồi từ API downstream và có một vài bài acceptance tests để tự tin rằng mọi thứ sẽ hoạt động trơn tru.
 
-- poorly documented
-- run by teams who had lots of other conflicting priorities and pressures, so it wasn't easy to get time with them
-- often lacking test coverage, so would break in fun and unexpected ways, regress, etc
-- were still being built and evolved
+Tuy nhiên, hầu hết các API mà chúng tôi phải gọi đều:
 
-This led to **a lot of flaky tests** and a lot of headaches. A _significant_ amount of our time was spent pinging lots of busy people on Slack trying to get answers as to:
+- Có tài liệu (document) rất nghèo nàn
+- Do các team đang ngập đầu trong các ưu tiên và áp lực khác vận hành, nên kiếm thời gian nói chuyện với họ rất khó
+- Thường thiếu test coverage (độ phủ test), vì vậy chúng sẽ hỏng hóc, lỗi lùi (regress) theo những cách rất bất ngờ và quái đản
+- Vẫn đang trong quá trình xây dựng và thay đổi liên tục
 
-- Why has the API started doing `x`?
-- Why is the API doing something different when we do `y`?
+Điều này dẫn đến **rất nhiều bài test lúc pass lúc fail (flaky tests)** và kéo theo nhiều phen đau đầu. Một lượng thời gian _đáng kể_ của chúng tôi bị ngốn vào việc ping rất nhiều người bận rộn trên Slack, cố gắng tìm câu trả lời cho:
 
-Software development is rarely as straightforward as you'd hope; it's a learning exercise. We had to continuously learn how the external APIs worked. As we learned and adapted, we had to update and add to our test suite, in particular, **changing our stubs to match the actual behaviour of the APIs.**
+- Tại sao API lại bắt đầu trả về `x`?
+- Tại sao API lại làm điều gì đó khác khi chúng tôi thực hiện `y`?
 
-The trouble is, this took up much of our time and led to more mistakes. When your knowledge of a dependency changes, you must find the **right** test to update to change the stub's behaviour, and there's a real risk of neglecting to update it in other stubs representing the same dependency.
+Phát triển phần mềm hiếm khi suôn sẻ như bạn mong đợi; đó là một quá trình vừa học vừa làm. Chúng tôi đã phải liên tục học cách các API bên ngoài hoạt động. Xuyên suốt quá trình học và điều chỉnh, chúng tôi lại phải cập nhật và thêm bớt vào bộ test suite của mình, cụ thể là **thay đổi stubs của chúng tôi để khớp với hành vi thực tế của các API.**
 
-#### Test strategy
+Rắc rối ở chỗ, việc này ngốn hầu hết thời gian của chúng tôi và dẫn tới nhiều sai sót hơn. Khi hiểu biết của bạn về một dependency thay đổi, bạn phải tìm **đúng** test để cập nhật sửa lại hành vi của stub, và rủi ro bỏ sót luôn ở mức cao ở chỗ bạn quên cập nhật cho các stub khác cùng mock cho chung một dependency đó.
 
-On top of this, as the system was growing and requirements were changing, we realised that our test strategy was unsuitable. We had a handful of acceptance tests that would give us confidence the system as a whole worked and then a large number of unit tests for the various packages we wrote.
+#### Chiến lược Test (Test strategy)
 
-<u>We needed something in between</u>; we often wanted to change the behaviour of various system parts together **but not have to spin up the *entire* system for an acceptance test**. Unit tests alone did not give us confidence that the various components worked as a whole; they couldn't tell (and verify) the story of what we were trying to achieve. **We wanted integration tests**.
+Chưa kể, khi hệ thống đang lớn mạnh dần lên và các requirement (yêu cầu) cứ liên tục thay đổi, chúng tôi nhận ra rằng test strategy của mình không còn phù hợp nữa. Chúng tôi có một vài bài acceptance test để tạo sự tự tin rằng toàn bộ hệ thống hoạt động tốt, và sau đó là một số lượng lớn unit test cho các package khác nhau mà chúng tôi đã viết.
+
+<u>Chúng tôi cần thứ gì đó ở giữa</u>; chúng tôi thường muốn thay đổi hành vi của nhiều phần trong hệ thống cùng với nhau **nhưng lại không muốn phải khởi động *toàn bộ* hệ thống dành riêng cho một bài acceptance test**. Chỉ riêng Unit tests thì chưa cung cấp đủ độ tin cậy chứng tỏ các thành phần hoạt động trơn tru với nhau như một khối thống nhất; chúng không thể nói lên (và verify) câu chuyện mà chúng tôi đang đạt tới. **Chúng tôi cần integration tests (kiểm thử tích hợp)**.
 
 #### Integration tests
 
-Integration tests prove that two or more "units" work correctly when combined (or integrated!). These units can be the code you write or the code you write integrated with someone else's code, such as a database.
+Integration tests chứng minh rằng hai hay nhiều "units" có thể hoạt động chính xác khi kết hợp (hay tích hợp!) lại cùng nhau. Các units này có thể là phần code của bạn viết, hoặc code do bạn viết tích hợp cùng thứ được viết bởi ai đó khác, như là database chẳng hạn.
 
-As a project grows, you want to write more integration tests to prove large parts of your system "hang together" - or integrates!
+Khj dự án phình to, bạn sẽ cần viết thêm integration tests để chứng minh những phần to lớn trong hệ thống "kết dính" với nhau hoàn hảo - hay gọi là integrates!
 
-You may be tempted to write more black-box acceptance tests, but they quickly become costly regarding your build time and maintenance costs. It can be too expensive to spin up an entire system when you only want to check a *subset* of the system (but not just a single unit) behaves how it should. Writing expensive black-box tests for every bit of functionality you do is not sustainable for larger systems.
+Bạn có thể cảm nhận được sự thôi thúc phải viết thêm những bài black-box acceptance tests (test nghiệm thu hộp đen), nhưng chúng sẽ sớm trở nên đắt đỏ về thời gian build và chi phí bảo trì. Có thể sẽ quá tốn kém để làm việc với toàn bộ hệ thống khi bạn chỉ muốn kiểm tra một *phân mảnh nhỏ (subset)* của hệ thống đó (nhưng không chỉ là 1 unit) xem nó có hoạt động đúng đắn chưa. Việc nhét một đống black-box tests tốn phí cho mọi chức năng bạn làm không phải là phương châm bền vững cho các hệ thống lớn.
 
-#### Enter: Fakes
+#### Fakes
 
-The problem was the way our units were tested was reliant on stubs, which are, for the most part, *stateless*. We wanted to write tests covering multiple, *stateful* API calls, where we may create a resource at the start and then edit it later.
+Vấn đề là cách các unit của chúng tôi được unit test lại phụ thuộc vào stubs, mà stubs bản chất lại thường mang hệ *không trạng thái (stateless)*. Chúng tôi muốn viết những test bao phủ nhiều API calls *có dính dáng đến trạng thái (stateful)*, nơi chúng tôi có thể tạo một resource ở lúc đầu và sau đó chỉnh sửa lại nó.
 
-The following is a cut-down version of a test we want to do.
+Bên dưới là một phiên bản rút gọn của bài test mà chúng tôi muốn thực hiện.
 
-The SUT is a "service layer" dealing with "use case" requests. We want to prove if a customer is created, when their details change, we successfully update the resources we made in the respective APIs.
+Mục tiêu SUT là "service layer" xử lý các request "use case". Chúng tôi muốn chứng minh là nếu một khách hàng được tạo, khi thông tin của họ thay đổi, chúng tôi cũng cập nhật thành công các resources chúng tôi đã tạo ở các API liên đới.
 
-Here are the requirements given to the team as a user story.
+Dưới đây là các yêu cầu được cung cấp cho team dưới dạng một user story (câu chuyện người dùng).
 
-> ***Given*** a user is registered with API 1, 2 and 3
+> ***Cho trước (Given)*** người dùng đăng ký với API 1, 2 và 3 
 >
-> ***When*** the customer's social security number is changed
+> ***Khi (When)*** mã số an sinh xã hội (social security number) của khách hàng được thay đổi
 >
-> ***Then**,* the change is propagated into APIs 1, 2 and 3
+> ***Thì (Then)*** thay đổi đó được cập nhật vào các APIs 1, 2 và 3
 
 ```mermaid
 sequenceDiagram
@@ -208,15 +209,15 @@ sequenceDiagram
 	SUT->>API2: Update resource
 ```
 
-Tests that cut across multiple units are usually incompatible with stubs **because they're not suited to maintaining state**. We _could_ write a black-box acceptance test, but the costs of these tests would quickly spiral out of control.
+Các bài tests chạy xuyên qua nhiều units thường không tương thích với stubs **bởi lẽ bọn hắn hoàn toàn không phù hợp cho việc duy trì trạng thái (maintaining state)**. Chúng tôi _có thể_ viết một bài black-box acceptance test, nhưng chi phí cho các bài test này sẽ nhanh chóng vượt ra ngoài tầm kiểm soát.
 
-In addition, it is complicated to test edge cases with a black-box test because you cannot control the dependencies. For instance, we wanted to prove that a rollback mechanism would be fired if one API call failed.
+Thêm vào đó, việc kiểm thử các góc khuất (edge cases) bằng một con black-box test là rất phức tạp vì bạn không thể kiểm soát các dependencies. Ví dụ, chúng tôi muốn chứng minh rằng cơ chế rollback (hoàn tác) sẽ bắt đầu nếu một lệnh gọi API gặp lỗi.
 
-We needed to use **fakes**. By modelling our dependencies as stateful APIs with in-memory fakes, we were able to write integration tests with a much broader scope, **to allow us to test real use cases worked**, again *without* having to spin up the whole system, and instead have almost the same speed as unit tests.
+Chúng tôi cần dùng **fakes**. Bằng cách mô hình hóa các dependencies của chúng tôi thành stateful APIs cùng các in-memory fakes, chúng tôi có thể viết integration tests theo phạm vi rộng hơn nhiều, **cho phép chúng tôi kiểm tra các use case thực tế có hoạt động không**, và một lần nữa *mà không cần* động tới toàn bộ hệ thống (spin up the whole system), đổi lại tốc độ chạy test nhanh tương đương như unit tests.
 
-![integration tests with fakes](https://i.imgur.com/9Q6FMpw.png)
+![integration tests với fakes](https://i.imgur.com/9Q6FMpw.png)
 
-Using fakes, **we can make assertions based on the final states of the respective systems rather than relying on complicated spying**. We'd ask each fake what records it held for the customer and assert they were updated. This feels more natural; if we manually checked our system, we would query those APIs to check their state, not inspect our request logs to see if we sent particular JSON payloads.
+Bằng cách sử dụng fakes, **chúng ta có thể thực hiện kiểm tra (assertions) dựa trên trạng thái sau cùng (final states) của các hệ thống tương ứng thay vì phụ thuộc vào việc spying phức tạp**. Chúng ta sẽ hỏi từng fake những bản ghi (records) mà nó lưu giữ cho vị khách hàng đó là gì và kiểm tra (assert) xem chúng đã được update chưa. Điều này có vẻ tự nhiên hơn; nếu chúng ta kiểm tra hệ thống của mình theo cách thủ công (manually check), chúng ta sẽ truy vấn các API đó để kiểm tra trạng thái của chúng, chứ không phải đi săm soi request logs của chúng ta xem thử ta đã bắn đi đúng định dạng JSON payloads chưa.
 
 ```go
 // take our lego-bricks and assemble the system for the test
@@ -246,34 +247,34 @@ updatedFakeAPICustomer := fakeAPI1.Get(createdCustomer.FakeAPI1Details.ID)
 assert.Equal(t, updatedFakeAPICustomer.SocialSecurityNumber, updatedCustomerRequest.SocialSecurityNumber)
 ```
 
-This is simpler to write and easier to read than checking various function call arguments made via spies.
+Cách làm này vừa đơn giản để viết, vừa dễ đọc hơn nhiều so với việc kiểm tra các argument khác nhau của function call bằng spies.
 
-This approach lets us have tests that cut across broad parts of our system, letting us write more **meaningful** tests about the use cases we'd be discussing at stand-up whilst still executing exceptionally quickly.
+Cách tiếp cận này cho phép chúng ta có các bài test chéo qua phần lớn hệ thống, cho phép ta viết các bài test **có ý nghĩa (meaningful)** xoay quanh những use case mà đội ngũ đang bàn tới mỗi lúc stand-up mà vẫn giữ được cái tốc độ thực thi cực kỳ nhanh (exceptionally quickly).  
 
-#### Fakes bring more of the benefits of encapsulation
+#### Fakes mang đến nhiều hơn những lợi ích từ sự đóng gói (encapsulation)
 
-In the example above, the tests were not concerned with how the dependencies behaved beyond verifying their end state. We created the fake versions of the dependencies and injected them into the part of the system we're testing.
+Quay lại ví dụ trên, các bài test không bị bận tâm bằng cách nào các dependencies hoạt động ngoài mặt kiểm tra trạng thái cuối cùng của nó (verifying their end state). Chúng ta tạo ra các fake version của dependency và nhét (inject) chúng vào vùng hệ thống mà chúng ta đang test.
 
-With mocks/stubs, we'd have to set up each dependency to handle certain scenarios, return certain data, etc. This brings behaviour and implementation detail into your tests, weakening the benefits of encapsulation. 
+Nếu là dùng mocks/stubs, chúng ta đã phải dàn dựng (set up) mỗi phần dependency để làm sao xử lý một kịch bản nhất định (scenarios), trả về các dữ liệu đặc thù nào đó, v.v. Việc này đã mang cả hành vi (behavior) lẫn chi tiết triển khai (implementation details) vào trong test, làm suy yếu đi lợi ích cấu trúc đóng gói (encapsulation). 
 
-We model dependencies behind interfaces so that, as clients, _we don't have to care how it works_, but with a "mockist" approach, _we do have to care **in every test**_. 
+Chúng ta mô hình hóa các dependencies ẩn sau các interface thế nên, mang tư cách là người gọi hàm (clients), _ta không cần e dè ngó ngàng việc nó hoạt động ra làm sao (we don't have to care how it works)_, nhưng với cái hướng tiếp cận hệ "mockist" (mô phỏng bằng mọi giá), _ta bắt buộc phải để mắt mọi việc **trên từng chặng test (in every test)***.
 
-#### The maintenance costs of fakes
+#### Chi phí bảo trì của fakes
 
-Fakes are costlier than other test doubles, at least in terms of code written; they must carry state and simulate the behaviour of whatever they're faking. Any discrepancies in behaviour between your fake and the real thing **carry a risk** that your tests aren't in line with reality. This leads to the scenario where you have passing tests but broken software.
+Fakes thì sẽ tốn phí hơn các nhóm test doubles khác, ít nhất là về lượng code viết ra; chúng phải gánh vác việc ghi nhớ tình trạng (state) và mô phỏng được hành vi của bất kỳ thứ gì chúng đang fake. Mọi sự sai lệch trong hành vi giữa bản fake của bạn và bản "hàng thật" đều **mang theo rủi ro (carry a risk)** rằng phần code test của bạn trật nhịp với thực tế. Điều này dẫn đến sự cố thường gặp là bạn có các bài test thi nhau trả ra kết quả xanh (pass) trơn tru, mà phần mềm thì thực sự đang lỗi phần lõi.
 
-Whenever you integrate with another system, be it another team's API or a database, you'll make assumptions based on its behaviour. These could be captured from API docs, in-person conversations, emails, Slack threads, etc.
+Bất cứ khi nào bạn được yêu cầu phải tích hợp (integrate) với hệ thống ngoài, giả dụ một cái API đến từ team khác hay cả một nhóm database, bạn đều sẽ nhào theo xu hướng bấu víu vài phán đoán (assumptions) rập khuôn trên cách thức nó hoạt động. Và đây là những thứ giả định mà bạn có thể nhặt, bắt, lấy được qua quá trình rà đọc tài liệu API docs, vài câu đối thoại mồm, email hay những tệp trao đổi trên Slack, tin nhắn công ty...
 
-Wouldn't it be helpful if we could **codify our assumptions** to run them against both our fake *and* the actual system to see if our knowledge is correct in a repeatable and documented way?
+Không phải sẽ rất tốt sao nếu ta có thể **mã hóa lại các giả định (codify our assumptions)** và cho phép chạy đồng bộ xuyên suốt cả bản fake *lẫn* hệ thống thực để kiểm tra tự động xem là kiến thức của chúng ta có thực sự đứng vững trên một phương thức cho phép lặp lại dễ dàng (repeatable) hay không? 
 
-**Contracts** are the means to this end. They helped us manage the assumptions we made on the other team's systems and make them explicit. Way more explicit and useful than email exchanges or endless Slack threads!
+Và **Contracts** chính là cánh cửa dẫn tới con đường này. Chúng giúp chúng ta quản lý các phán đoán trên hệ thống của team khác được phơi bày một cách dứt khoát. Và một nền tảng bộc lộ theo hướng dứt khoát thì luôn hữu ích hơn là hàng lô email lộn xộn hay những chuỗi chat trên Slack không bao giờ vơi!
 
 ![fakes and contracts illustrated](https://i.imgur.com/l9aTe2x.png)
 
-By having a contract, we can assume that we can use a fake and an actual dependency interchangeably. This is not only useful for constructing tests but also for local development.
+Có trong tay một Contract, ta có có thể mặc định rằng mình luôn có thể an toàn dùng fake thay cho dependency đời thực và đổi qua lại dễ dàng (interchangeably). Cách này không những hữu hiệu trong mục tiêu thiết lập chạy mớ test mà cho cả trên cục bộ lúc phát triển - the local development.
 
-Here is an example of a contract for one of the APIs the system depends on
-
+Dưới đây là một ví dụ về một cái contract bao thầu cho 1 cục API nằm trong chuỗi mà hệ thống phải phụ thuộc
+ 
 ```go
 type API1Customer struct {
 	Name string
@@ -327,14 +328,14 @@ func (c API1Contract) Test(t *testing.T) {
 }
 ```
 
-As discussed in [Scaling Acceptance Tests](https://quii.gitbook.io/learn-go-with-tests/testing-fundamentals/scaling-acceptance-tests), by testing against an interface rather than a concrete type, the test becomes:
+Như đã thảo luận trong [Mở rộng Acceptance Tests](https://quii.gitbook.io/learn-go-with-tests/testing-fundamentals/scaling-acceptance-tests), bằng cách kiểm thử dựa trên một interface thay vì một kiểu dữ liệu cụ thể (concrete type), bài test trở nên:
 
-- Decoupled from implementation detail
-- Can be re-used in different contexts.
+- Được tách rời (decoupled) khỏi chi tiết triển khai bên dưới
+- Có thể được tái sử dụng trong nhiều ngữ cảnh khác nhau.
 
-Which are the requirements for a contract. It allows us to verify and develop our fake _and_ test it against the actual implementation.
+Đó chính là những yêu cầu cần thiết cho một hợp đồng (contract). Nó cho phép chúng ta xác minh và phát triển bản fake của mình _và_ đồng thời dùng nó để kiểm tra luôn việc triển khai thực tế.
 
-To create our in-memory fake, we can use the contract in a test.
+Để tạo bản in-memory fake, chúng ta có thể sử dụng contract trong một bài test.
 
 ```go
 func TestInMemoryAPI1(t *testing.T) {
@@ -344,7 +345,7 @@ func TestInMemoryAPI1(t *testing.T) {
 }
 ```
 
-And here is the fake's code
+Và đây là đoạn code của bản fake đó
 
 ```go
 func NewAPI1() *API1 {
@@ -382,44 +383,44 @@ func (a *API1) UpdateCustomer(ctx context.Context, id string, name string) error
 }
 ```
 
-### Evolving software
+### Tiến hóa phần mềm (Evolving software)
 
-Most software is not built and "finished" forever, in one release.
+Hầu hết phần mềm không được xây dựng và "hoàn thiện" vĩnh viễn chỉ trong một bản phát hành.
 
-It's an incremental learning exercise, adapting to customer demands and other external changes. In the example, the APIs we were calling were also evolving and changing; plus, as we developed _our_ software, we learned more about what system we _really_ needed to make. Assumptions we made in our contracts turned out to be wrong or _became_ wrong.
+Đó là một bài tập học hỏi tăng dần, thích ứng với nhu cầu của khách hàng và những thay đổi bên ngoài. Trong ví dụ trước, các API mà chúng tôi gọi cũng đang tiến hóa và biến đổi; cộng thêm, trong quá trình phát triển phần mềm của _chính mình_, chúng tôi cũng hiểu thêm về hệ thống mà chúng tôi _thực sự_ cần tạo ra. Những giả định chúng tôi đã đặt ra trong contracts hóa ra lại là sai lầm hoặc _đã trở nên_ sai lầm.
 
-Thankfully, once the setup for the contracts was made, we had a simple way to deal with change. Once we learned something new, as a result of a bug being fixed or a colleague informing us that the API was changing, we'd:
+May mắn thay, một khi đã thiết lập xong contracts, chúng tôi có một phương pháp đơn giản để đối phó với sự thay đổi. Khi chúng tôi nạp thêm kiến thức mới, do một bug được sửa hoặc do một đồng nghiệp thông báo rằng API sẽ thay đổi, chúng tôi sẽ:
 
-1. Write a test to exercise the new scenario. A part of this will involve changing the contract to **drive** you to simulate the behaviour in the fake
-2. Running the test should fail, but before anything else, run the contract against the real dependency to ensure the change to the contract is valid.
-3. Update the fake so it conforms to the contract.
-4. Make the test pass.
-5. Refactor.
-6. Run all the tests and ship.
+1. Viết một bài test để chạy kịch bản mới này. Một phần của việc này yêu cầu sửa đổi contract nhằm **định hướng (drive)** bạn mô phỏng lại hành vi tương ứng trong bản fake.
+2. Việc chạy test lúc này sẽ báo fail, nhưng trước lúc đó, hãy chạy thử contract này với dependency thực tế để đảm bảo những thay đổi đối với contract là hoàn toàn hợp lệ.
+3. Cập nhật bản fake để nó tuân thủ contract.
+4. Chỉnh sửa code để bài test pass.
+5. Refactor (tái cấu trúc).
+6. Chạy tất cả các bài test và xuất bản (ship).
 
-Running the _full_ test suite before checking in _may_ result in other tests failing due to the fake having a different behaviour. This is a **good thing**!  You can now fix all the other areas of the system depending on the changed system; confident they will also handle this scenario in production. Without this approach, you'd have to *remember* to find all the relevant tests and update the stubs. Error-prone, labourious and boring.
+Việc chạy _toàn bộ_ test suite trước khi nạp code vào (checking in) _có thể_ dẫn đến một số bài test khác bị fail do bản fake giờ có hành vi khác đi. Điều này là một **điều tốt**! Bây giờ bạn đã có thể tiếp tục và vá lỗi ở các khu vực khác trong hệ thống (những phần phụ thuộc vào cái hệ thống vừa được cập nhật); bạn cũng có thể tự tin rắng chúng cũng có thể giải quyết được tình huống này trong môi trường sản phẩm thật (production). Nếu không có cách tiếp cận này, bạn sẽ phải tự *nhớ* đi rà soát mọi test có liên quan nhằm cập nhật toàn bộ stubs. Việc này dễ mắc lỗi, cực nhọc và nhàm chán.
 
-### Superior developer experience
+### Trải nghiệm lập trình viên vượt trội
 
-Having the suite of fakes with corresponding contracts felt like a superpower. We could finally tame the complexity of the APIs we had to deal with.
+Sở hữu bộ fakes đi kèm với contracts tương ứng mang lại cảm giác như đang có siêu năng lực. Cối cùng, chúng tôi cũng có thể làm chủ được sự phức tạp của vô số các API mà chúng tôi phải đương đầu hàng ngày.
 
-Writing tests for various scenarios became much simpler. We no longer had to assemble a series of stubs and spies for every test; we could take our set of units or modules (the fakes, our own "services") and assemble them very easily to exercise the various weird and wonderful scenarios we needed.
+Việc viết test cho vô số các kịch bản khác nhau giờ đây đã trở nên đơn giản hơn nhiều. Chúng tôi không còn phải mày mò chắp vá một loạt stubs và spies ở mỗi bài test; giờ đây chúng tôi hoàn toàn có thể sử dụng các unit hoặc module của mình (các fakes, các "services" riêng của chúng tôi) rồi lắp ráp chúng rất dễ dàng để mô phỏng các kịch bản kỳ quặc và đa dạng mà chúng tôi cần làm rõ.
 
-Every test with a stub, spy or mock has to _care_ about how the external system behaves, due to the ad-hoc setup. On the other hand, fakes can be treated like any other well-encapsulated unit of code, where the details are hidden away from you, and you can just use them.
+Từng bài test sử dụng stub, spy hay mock sẽ luôn phải _bận tâm_ việc hệ thống bên ngoài chạy thế nào, do đặc thù thiết lập kiểu chắp vá (ad-hoc setup). Trái lại, fakes có thể được coi trọng và đối xử như bất kỳ một unit code có cấu trúc đóng gói (encapsulated) tốt nào khác, nơi mọi chi tiết đã được giấu gọn, và bạn chỉ việc thoải mái lấy ra sử dụng.
 
-We could run a very realistic version of the system locally, and as it was all in memory, it would start and run extremely quickly. This meant our test times were extremely fast, which felt very impressive, given how comprehensive the suite was.
+Chúng tôi có quyền năng khởi chạy một phiên bản vô cùng thực tế của hệ thống ngay trên máy tính local, và vì tất cả được đưa lên memory (RAM), ứng dụng sẽ khởi chạy và load với tốc độ siêu tốc. Điều đó đồng nghĩa thời gian chạy test của chúng tôi là cực kỳ nhanh nhẹn, mang lại trải nghiệm vô cùng ấn tượng, đặc biệt là khi phải chạy test trên toàn bộ suite.
 
-If our acceptance tests failed in our staging environment, our first step was to run our contracts against the APIs we depended on. We often identified issues **before the other systems' developers did**.
+Nếu bộ acceptance tests báo fail tại môi trường dàn dựng (staging) của team, bước đầu tiên chúng tôi sẽ làm là đem bộ contracts đi chạy test đối chiếu với cụm API bên thứ ba. Thường thì chúng tôi sẽ phát hiện ra các lỗi hệ thống **ngay trước cả lúc các developer của đội kia tự điều tra ra**.
 
-### Off the happy path with decorators
+### Kiểm thử lỗi (off the happy path) với decorators
 
-For error scenarios, stubs are more convenient because you have direct access to *how* it behaves in the test, whereas fakes tend to be fairly black-box. This is a deliberate design choice, as we want the users of them (e.g. tests) not to be concerned with how they work; they should trust they do the right thing due to the backing of the contract.
+Trong các kịch bản phát sinh lỗi (error scenarios), sử dụng stubs lại mang đến thuận tiện rõ nét nhờ việc bạn có toàn quyền quản lý trực tiếp vào việc nó vận hành *ra sao* (how it behaves) ngay trong test đó, trong khi đó fakes đa phần thiên về định lý làm hộp đen (black-box). Đây là một triết lý thiết kế có chủ đích, bởi chúng ta muốn người dùng (ví dụ: bộ tests tests) không cần bận tâm chi đến cách chúng vận hành ra sao; họ chỉ phải tin cẩn rằng mọi hoạt động của tụi nó là luôn chính gốc do lớp bảo trợ từ contract.
 
-How do we make the fakes fail, to exercise non-happy path concerns?
+Vậy thì làm thế nào đưa hệ thống fakes trả ra kết quả fail, nhằm test kịch bản không theo luồng tiêu chuẩn (non-happy path concerns)?
 
-There are plenty of scenarios where, as a developer, you need to modify the behaviour of some code without changing its source. The **decorator pattern** is often a way to take a unit of code and add things like logging, telemetry, retries and more. We can use it to wrap our fakes to override behaviours when necessary.
+Có rất nhiều tình huống, với tư cách một dev, bạn cần tinh chỉnh hành vi hoạt động (behaviour) của đoạn code mà việc sửa code nguyên bản bị cấm ngặt. **Mô hình lập trình Decorator (decorator pattern)** thường hay sáp vào để gói gọn lại đoạn code unit kia và đồng thời nhét thêm các lớp chức năng phụ trợ ví như logging (nhật ký hệ thống), telemetry (đo lượng từ xa), retries (thử lại kết nối tự động),... Chúng ta cũng có thể tái dùng chiêu này bao tròn xung quanh các bạn fake để chỉnh sửa đè (override) các lớp xử lý (behaviours) khi cần thiết.
 
-Returning to the `API1` example, we can create a type that implements the needed interface and wraps around the fake.
+Quay lại ví dụ `API1`, ta có thể tạo ra loại tuỳ chỉnh với tính năng thực thi giao thức hiện thời (interface), đồng thời khoác lớp ngoài bao bọc lớp code chạy của fake.
 
 ```go
 type API1Decorator struct {
@@ -458,7 +459,7 @@ func (a *API1Decorator) UpdateCustomer(ctx context.Context, id string, name stri
 }
 ```
 
-In our tests, we can then use the `XXXFunc` field to modify the behaviour of the test-double, just like you would with stubs, spies or mocks.
+Trong đoạn code của test, từ đó chúng ta có thể gọi tới trường thông số (field) `XXXFunc` nhằm cải tạo lại mảng vận hành của cục test-double này, tương tự hệ thống stubs, spies đèo mocks.
 
 ```go
 failingAPI1 = NewAPI1Decorator(inmemory.NewAPI1())
@@ -467,48 +468,48 @@ failingAPI1.UpdateCustomerFunc = func(ctx context.Context, id string, name strin
 }
 ```
 
-However, this _is_ awkward and requires you to exercise some judgement. With this approach, you are losing the guarantees from your contract as you are introducing ad-hoc behaviour to your fake in tests.
+Tuy vậy, phương thức áp dụng này khá *khiên cưỡng* và đòi hỏi khả năng định lượng của riêng bạn. Áp dụng theo mô-tuýp này, bạn sẽ tự thân phá vỡ những lời hứa đảm bảo từ hợp đồng (guarantees) bởi trong một bộ bài tests, ta đã tự ý mang lớp xử lý tuỳ hứng (ad-hoc behaviour) lên đầu bản fakes rồi.
 
-It would be best to examine your context, you may conclude it would be simpler to test specific unhappy paths at the unit test level using a stub.
+Cách tốt nhất là rà soát bối cảnh thực tại (context) ở toàn cục, chắc hẳn bạn sẽ tự chốt lại kết luận, giả định test một bài xử đổi nhọc nhằm vào kịch bản lỗi lầm (unhappy paths) thì nên quay ngoắt qua áp dụng stub tại hạng mục unit test cho thuận tiện, dễ tu sửa về sau.
 
-### Isn't this extra code waste?
+### Lượng code bổ sung này có phải là lãng phí không?
 
-It is wishful thinking to believe we should only ever write code that serves customers and expect a system we can build on efficiently. People have a very warped opinion of what waste is (see my post: [The ghost of Henry Ford is ruining your development team](https://quii.dev/The_ghost_of_Henry_Ford_is_ruining_your_development_team)).
+Thật viển vông khi tin rằng chúng ta chỉ nên viết những đoạn code phục vụ trực tiếp cho khách hàng và kỳ vọng sẽ có một hệ thống mà ta có thể xây dựng dựa trên đó một cách hiệu quả. Mọi người thường có một góc nhìn rất sai lệch về sự lãng phí (xem bài viết của tôi: [Bóng ma của Henry Ford đang hủy hoại team phát triển của bạn (The ghost of Henry Ford is ruining your development team)](https://quii.dev/The_ghost_of_Henry_Ford_is_ruining_your_development_team)).
 
-Automated tests do not directly benefit customers, but we write them to make ourselves more efficient with our work (you don't write tests to chase coverage scores, right?).
+Các bài test tự động (Automated tests) không mang lại lợi ích trực tiếp cho khách hàng, nhưng chúng ta viết chúng để giúp bản thân làm việc hiệu quả hơn (bạn không viết test chỉ để chạy theo thành tích độ phủ coverage, đúng không?).
 
-Engineers must easily simulate scenarios (in a repeatable fashion, not ad-hocly) to debug, test, and fix issues. **In-memory fakes and good modular design allow us to isolate the relevant actors for a scenario to write fast, appropriate tests extremely cheaply**. This flexibility enables developers to iterate on a system far more manageably than a tangled mess, tested via expensive to-write and run black-box tests or, worse, manual testing on a shared environment.
+Các kỹ sư rât cần khả năng mô phỏng các kịch bản một cách dễ dàng (theo một cách lặp lại được, không phải tùy hứng) để gỡ rối (debug), kiểm thử và sửa lỗi. **Các bản in-memory fakes và một thiết kế module tốt cho phép chúng ta cô lập các tác nhân (actors) liên quan cho một kịch bản nhất định, để từ đó viết các bài test kiểm định nhanh chóng, phù hợp và cực kỳ ít tốn kém**. Sự linh hoạt này cho phép developer có thể tinh chỉnh ứng dụng một cách dễ kiểm soát hơn nhiều so với một mớ hỗn độn bị đem đi kiểm thử thông qua các bài test hộp đen tốn kém cả công viết và thời gian chạy, hoặc tệ hơn, kiểm thử thủ công trên một môi trường chung.
 
-This is an example of [simple vs. easy](https://www.youtube.com/watch?v=SxdOUGdseq4). Of course, fakes and contracts will result in more code being written than stubs and spies in the short term, but the result is a more straightforward and cheaper-to-maintain system in the longer run. Updating spies, stubs and mocks piecemeal is labour-intensive and error-prone, as you won't have corresponding contracts to check your test doubles behave correctly.
+Đây là một bối cảnh ví dụ về [đơn giản hay dễ dàng (simple vs. easy)](https://www.youtube.com/watch?v=SxdOUGdseq4). Cố nhiên, fakes và contracts sẽ dẫn đến việc phải viết nhiều code hơn stubs và spies trong ngắn hạn, nhưng kết quả là một hệ thống tinh gọn hơn và tiết kiệm chi phí bảo trì hơn về mặt dài hạn. Cập nhật spies, stubs và mocks một cách chắp vá là hành động làm việc thủ công mệt mỏi và dễ dính lỗi, do bạn sẽ không có lớp contracts tương ứng để xác thực rắng hệ objects thay thế test doubles đang hành xử đúng mực.
 
-This approach represents a _slightly_ increased upfront cost but with far lower costs once the contracts and fakes are set up. Fakes are more reusable and reliable than ad-hoc test doubles like stubs.
+Cách tiếp cận này yêu cầu một chi phí trả trước chỉ _tăng nhẹ_ nhưng kéo theo mức chi phí tiết kiệm hơn hẳn mỗi khi contracts và fakes đã được cấu hình xong. Fakes mang tính tái sử dụng và đáng tin cậy hơn hẳn những cấu trúc thử nghiệm tùy biến như stubs.
 
-It feels *very* liberating and gives you **confidence** when using an existing, battle-tested fake rather than setting up a stub when writing a new test.
+Điều này tạo ra cảm giác *cực kỳ* tự do và củng cố sự **tự tin (confidence)** cho bạn mỗi khi dùng một bản fake đã được thẩm tra trong thực chiến, thay vì ngồi cấu hình lại 1 mô thức stub mỗi khi bắt tay viết bài test mới.
 
-### How does this fit into TDD?
+### Cách này tích hợp vào phương thức TDD ra sao?
 
-I wouldn't recommend _starting_ with a contract; that's bottom-up design, which, in general, I find I need to be more clever for, and there's a danger I'll overthink hypothetical requirements.
+Tôi sẽ không khuyên bạn _bắt đầu_ công việc với contract; làm vậy mang đặc thù một thiết kế đi lên từ đáy (bottom-up design), tựu chung lại, tôi thấy mình thường cần phải tư duy sắc bén hơn nếu đi theo cách này, đồng thời có nguy cơ tôi đắm chìm suy nghĩ thái quá (overthink) vào các yêu cầu không có thực (hypothetical requirements).
 
-This technique is compatible with the "acceptance test driven approach" as discussed in earlier chapters, [The Why of TDD](https://quii.dev/The_Why_of_TDD) and in [GOOS](http://www.growing-object-oriented-software.com)
+Kỹ thuật này đi cùng với "quy trình hướng kiểm định nghiệm thu" (acceptance test driven approach) như đã từng thảo luận tại các chương trước, như trong bài [Lý do ra đời của TDD (The Why of TDD)](https://quii.dev/The_Why_of_TDD) và cuốn [GOOS](http://www.growing-object-oriented-software.com)
 
-- Write a failing [acceptance test](https://quii.gitbook.io/learn-go-with-tests/testing-fundamentals/scaling-acceptance-tests).
-- Drive out enough code to make it pass, which usually will result in some "service layer" that'll depend on an API, a database, or whatever. Usually, you will have business logic code decoupled from external concerns (such as persistence, calling a database, etc.) via an interface.
-- Implement the interface with an in-memory fake at first to make all the tests pass locally and validate the initial design.
-- To push to production, you can't use in-memory! Encode the assumptions you made against the fake into a contract.
-- Use the contract to create the actual dependency, such as a MySQL version of a store.
-- Ship.
+- Tạo một bài [acceptance test](https://quii.gitbook.io/learn-go-with-tests/testing-fundamentals/scaling-acceptance-tests) chạy fail.
+- Hình thành một lượng code đủ để đẩy kết quả pass, thường thì điều này sẽ nảy nở ra các lớp "service layer" chạy ngầm, phụ thuộc vào một hệ tầng API, cơ sở dữ liệu (database), hoặc gì đó. Thông thường, bạn sẽ có các mã business logic được bóc tách giải nén độc lập (decoupled) khỏi các thiết chế gắn với ngoại vi (như mô hình lưu liệu liên tục (persistence), các cú kết nối kêu gọi database) băng qua sự liên đới theo cấu trúc một lớp interface.
+- Thiết kế một lớp in-memory fake bám sát lớp interface ở ban đầu nhằm vượt mọi chuỗi bài test local và dán kết quả xác thực cho các bản phác thảo thiết kế.
+- Bước kế khi chuẩn bị môi trường chạy thật (production), bạn sẽ không được sử dụng mô hình in-memory này! Hãy gói đóng mọi quy tắc giả định cho bản fake vào trong bộ công ước (contract).
+- Hãy để contract xây ra luồng dependency thực thụ, lấy ví dụ như kết nối thực thụ tới phiên bản data từ cấu trúc MySQL.
+- Xuất bản lưu hành (Ship).
 
-##  Where's the chapter on testing databases?
+## Chương hướng dẫn test database đâu rồi?
 
-This has been a common request that I have put off for over five years. The reason is this chapter will always be my answer.
+Đây là một câu hỏi thường gặp mà tôi đã phải trì hoãn trả lời trong hơn năm năm qua. Lý do là vì chương này sẽ luôn là câu trả lời của tôi cho câu hỏi đó.
 
-<u>Don't mock the database driver and spy on calls</u>. These tests are difficult to write and potentially bring very little value. You shouldn't assert whether a particular `SQL` statement was sent to the database, that is, implementation detail; **your tests should only care about behaviour**. Proving a specific SQL statement was compiled _does not_ prove your code _behaves_ how you need it to.
+<u>Đừng mock database driver và cũng đừng spy (theo dõi) các lời gọi hàm</u>. Những bài test này rất khó viết và phần lớn mang lại rất ít giá trị. Bạn không nên viết test để kiểm định xem một câu lệnh `SQL` cụ thể nào đó có được gửi vào cơ sở dữ liệu (database) hay không, đó là chi tiết nội hàm (implementation detail); **các bài test của bạn chỉ nên quan tâm đến kết quả hành vi (behaviour)**. Việc chứng minh một câu lệnh SQL cụ thể đã được biên dịch _không hề_ chứng minh được rắng mã code của bạn đang _hoạt động_ đúng như yêu cầu dự án.
 
-**Contracts** force you to decouple your tests from implementation details and focus on behaviour.
+**Contracts** buộc bạn phải tách rời (decouple) các bài test khỏi các chi tiết triển khai (implementation details) của hệ thống và chỉ tập trung rà soát hành vi thực tế (behaviour).
 
-Follow the TDD approach described above to drive out your persistence needs.
+Hãy tuân theo phương pháp tiếp cận TDD như đã thảo luận ở trên để xây dựng các yêu cầu lưu trữ dữ liệu (persistence) cho dự án của bạn.
 
-[The example repository](https://github.com/quii/go-fakes-and-contracts) has some examples of contracts, and how they're used to test in-memory and SQLite implementations of some persistence needs.
+[Repository ví dụ của khóa học](https://github.com/quii/go-fakes-and-contracts) có chứa một số ví dụ về contracts, cũng như phương pháp sử dụng chúng để test các bản triển khai in-memory và bản triển khai SQLite nhằm đáp ứng một số nhu cầu về lưu trữ dữ liệu.
 
 ```go
 package inmemory_test
@@ -553,47 +554,47 @@ func TestSQLitePantry(t *testing.T) {
 }
 ```
 
-Whilst Docker et al. _do_ make running databases locally easier, they can still carry a significant performance overhead. Fakes with contracts allow you to use restrict the need to use the "heavier" dependency to only when you're validating the contract, and not needed for other kinds of tests.
+Mặc dù Docker và các công cụ tương tự _thực sự_ làm cho việc chạy cơ sở dữ liệu trên máy tính local trở nên dễ dàng hơn, chúng vẫn mang tới một hao tổn hiệu suất đáng kể (performance overhead). Fakes kết hợp với contracts cho phép bạn hạn chế tần suất dùng các dependency "nặng nề" này, để chỉ viện tới chúng khi bạn thực sự cần xác nhận (validate) phần contract, và hoàn toàn không cần thiết phải dùng cho các thể loại bài test khác.
 
-Using in-memory fakes for acceptance and integration tests for *the rest* of the system provides a much faster and simpler developer experience.
+Sử dụng in-memory fakes trong acceptance tests và integration tests cho *toàn bộ phần còn lại* của hệ thống sẽ mang lại một trải nghiệm dễ dàng và nhanh chóng hơn rất nhiều cho developer.
 
 ## Tổng kết
 
-It’s common for software projects to be organised with various teams building systems concurrently to try to reach a common goal.
+Các dự án phần mềm thường được tổ chức với nhiều đội nhóm lập trình viên cùng xây dựng các hệ thống song song với nhau nhằm hướng tới một mục tiêu chung.
 
-This method of work requires a high degree of collaboration and communication. Many feel with an "API first" approach, we can define some API contracts (often on a wiki page!) and then work independently for six months and stick it all together. This rarely works well in practice because as we start writing code, we understand the domain and the problem better, which challenges our assumptions. We have to react to these changes in knowledge, which often require cross-team changes.
+Phương pháp làm việc này đòi hỏi tính hợp tác và giao tiếp cao. Đa số mọi người cảm thấy nếu đi theo phương thức tiếp cận ưu tiên API ("API first"), chúng ta có thể làm rõ những nguyên tắc nền của hợp đồng (API contracts) - thường là trên một trang wiki page! - và sau đấy làm việc độc lập sáu tháng trời, rồi rốt cuộc cố mài dũa để chắp nối lại mọi thứ với nhau. Điều đó hiếm khi thành công trên thực tiễn ứng dụng, bởi vì mỗi khi bắt đầu viết code, chúng ta sẽ mở rộng thấu cảm về bài toán và mảng nghiệp vụ (domain) thêm thông suốt hơn ngần nào, và điều này tất yếu đánh đổ đi những giả định (assumptions) ban đầu. Chúng ta buộc lòng phản ứng và điều chỉnh theo sự đổi mới tri thức (changes in knowledge), vốn dĩ đòi hỏi khá nhiều những sự thay đổi liên đới chéo qua lại giữa các đội nhóm (cross-team changes).
 
-So, if you're in this situation, you need to structure and test your system optimally to deal with unpredictable changes, both inside and outside of the system you're working on.
+Cho nên, nếu bạn nằm trong hoàn cảnh tương tự, bạn cần định dạng cấu trúc mã và xây dựng test cho hệ thống của mình một cách tối ưu nhằm đối trả những thay đổi khó lường, cả ở từ bên trong lẫn bên ngoài hệ thống bạn đang trực tiếp nắm.
 
-> “One of the defining characteristics of high-performing teams in software development is their ability to make progress and to change their minds, without asking for permission from any person or group outside of their small team.”
+> “Một trong những đặc điểm tiêu biểu nhất của các team làm phần mềm đạt hiệu suất cao (high-performing teams) là khả năng không ngừng tiến bước và sự linh hoạt tự do thay đổi các sáng kiến của riêng họ mà không cần phải đi xin xỏ phê duyệt từ bất kỳ cá nhân hay hội nhóm nào bên ngoài nhóm nhỏ của họ.”
 >
-> Modern Software Engineering
+> Kỹ nghệ phần mềm hiện đại (Modern Software Engineering)
 > David Farley
 
-Don't rely on weekly meetings or Slack threads to flesh out changes. **Codify your assumptions in contracts**. Run those contracts against the systems in your build pipelines so you get fast feedback if new information comes to light. These contracts, in conjunction with **fakes,** mean you can work independently and manage external changes sustainably.
+Đừng chỉ trông cậy hằng tuần vào những cuộc trò chuyện cố định hay các luồng tin nhắn Slack để làm rõ một chi tiết nào đó. **Hãy hệ thống hóa các giả định của nhóm qua việc đưa vào quy kết bằng contracts (Codify your assumptions in contracts)**. Vác hệ quy chiếu contracts đi chạy test lên bộ dàn build pipelines của bạn; với bước này nhóm sẽ gặt được trọn chuỗi phản hồi thông tin siêu tốc giả sử nảy sinh thêm thông tin mới. Những hợp đồng này, đi chung với **fakes,** đồng nghĩa với việc bạn có thể làm việc độc lập và quản lý các thay đổi từ bên ngoài một cách bền vững (sustainably).
 
-### Your system as a collection of modules
+### Hệ thống của bạn dưới hình chiếu là một tổ hợp các modules
 
-Referring back to Farley's book, I'm describing the idea of **incrementalism**. Building software is a *constant learning exercise*. Understanding the requirements we must solve for a given system to deliver value up-front is unrealistic. So, we have to optimise our systems and ways of work to **gather feedback quickly and experiment**.
+Liên hệ lại với ý tưởng trong cuốn sách của Farley, tôi đang diễn giải đến khái niệm **phát triển hệ thống mở rộng dần (incrementalism)**. Xây dựng phần mềm vốn là một vòng lặp *học hỏi dài kỳ (constant learning exercise)*. Sẽ rất thiếu tính thực tế nếu yêu cầu nhóm phải hiểu được trọn vẹn toàn bộ các yêu cầu bài toán (the requirements) để mang lại chuỗi giá trị (deliver value) ngay từ những bước cấu trúc ban đầu (up-front). Thay vào đó, chúngामु ta phải liên tục tối ưu hoá hệ thống và cách thức vận hành để **liên tục thu thập thông tin phản hồi siêu tốc và tạo tính thử nghiệm linh hoạt (gather feedback quickly and experiment)**.
 
-You need a **modular system** to take advantage of the ideas discussed in this chapter. If you have modular code with reliable fakes, it allows you to experiment with your system via automated tests cheaply.
+Bạn cần một **hệ thống có tính module hóa (modular system)** nhằm phát huy lợi thế từ những khái niệm được vạch ra trong chương học này. Nếu nắm giữ các đoạn code module gắn chặt với lớp fakes đáng tin cậy, nó sẽ cung cấp cho bạn cơ hội được thử nghiệm (experiment) trên hệ thống thông qua các bài test tự động với chi phí cực kỳ tiết kiệm.
 
-We found it extremely easy to translate weird, hypothetical (but possible) scenarios into self-contained tests to help us understand the problem and drive out more robust software by composing our modules together and trying out different data in different order, with some APIs failing, etc.
+Chúng tôi nhận thấy việc chuyển đổi những kịch bản kỳ quặc, giả định (nhưng có khả năng xảy ra) vào trong các bài test độc lập (self-contained tests) trở nên vô cùng dễ dàng. Việc này giúp chúng tôi hiểu nội tại vấn đề và phát triển phần mềm mạnh mẽ vững chắc hơn bằng cách lắp ghép các module lại với nhau rồi chạy thử các cấu trúc dữ liệu đa dạng theo các vòng thứ tự xen kẽ khác nhau, hay mô phỏng một số API bị lỗi, v.v.
 
-Well-defined, well-tested modules allow you to increment your system without changing and understanding _everything_ at once.
+Các module được thiết kế rõ ràng và được test bao phủ tốt sẽ cho phép bạn nâng cấp hệ thống liên tục mà không còn nỗi lo phải sửa đổi hay cần am hiểu về _tất cả mọi thứ (everything)_ trong cùng một thời điểm.
 
-### But I'm working on something small with stable APIs
+### Nhưng tôi đang làm việc trên một dự án nhỏ với các API ổn định
 
-Even with stable APIs, you do not want your developer experience, builds and so on to be tightly coupled to other people’s code. When you get this approach right, you end up with a composable set of modules to piece together your system for production, running locally and writing different kinds of tests with doubles you trust.
+Ngay cả với các API đã ổn định, bạn cũng không nên để trải nghiệm với tư cách dev (developer experience), các tiến trình code builds, v.v vô tình dính chặt (tightly coupled) với phần mã code của người khác. Khi bạn áp dụng đúng phương pháp tiếp cận này, bạn sẽ nhận được một bộ các module có khả năng lắp ráp tùy ý để xây dựng nền phần mềm chạy trên môi trường thực tiễn (production), hoặc khởi chạy trên máy local, hoặc thiết lập khả năng viết các loại bài test khác nhau với các bản thay thế (doubles) mà bạn tin cậy.
 
-It allows you to isolate the parts of your system you're concerned about and write meaningful tests about the real problem you're trying to solve.
+Cách tiếp cận này cho phép bạn cô lập riêng phân lớp chức năng bạn quan tâm trong hệ thống và yên tâm viết các bài kiểm định logic có ý nghĩa phục vụ tập trung thẳng vào vấn đề thực sự mà nhóm dự án đang cần giải.
 
-### Make your dependencies first-class citizens.
+### Đưa các thành phần phụ thuộc (dependencies) lên hàng "công dân hạng nhất (first-class citizens)"
 
-Of course, stubs and spies have their place. Simulating different behaviours of your dependencies ad-hocly in tests will always have its use, but be careful not to let the costs go out of control.
+Tuy vậy, stubs hay spies dĩ nhiên vẫn có chỗ đứng cho riêng chúng. Việc mô phỏng ad-hoc các hành vi xử lý đa dạng của các cụm phân nhánh dependencies trong bài test sẽ luôn có góc độ hữu dụng nhất định, tuy thế, hãy cẩn thận đừng để chi phí bảo trì của chúng vượt ra tầm kiểm soát (costs go out of control).
 
-So many times in my career, I have seen carefully written software written by talented devs fall apart due to integration problems. Integration is challenging for engineers _because_ it's hard to reproduce the exact behaviours of a system written by other engineers, who also change it simultaneously.
+Tự nhìn nhận lại chặng đường nghề nghiệp đã qua, tôi đã chứng kiến không ít những hệ mã nguồn phần mềm được viết rất cẩn trọng bởi các dev tài năng, cuối cùng rã đám chỉ vì hệ lụy từ quá trình tích hợp (integration problems). Quá trình tích hợp cực kỳ nhiều biến số đầy thách thức đối với các kỹ sư _bởi vì_ việc mô phỏng lại hoàn hảo chính xác toàn vẹn hành vi của hệ thống do tay những kỹ sư khác thiết kế nên vốn là bất khả, khi mà ngay những người viết nên mã code đó cũng thay đổi hệ thống của họ không ngừng ở cùng một thời điểm.
 
-Some teams rely on everyone deploying to a shared environment and testing there. The problem is this doesn't give you **isolated** feedback, and the **feedback is slow**. You still won't be able to construct different experiments with how your system works with other dependencies, at least not efficiently.
+Nhiều đội ngũ quá trông cậy dồn code lên chạy ở một môi trường giả định chung (shared environment) và dựa lưng vào kết quả test trên đó. Nhược điểm của hướng tiếp cận này là nó không đem tới khả năng chạy bắt **kết quả kiểm định phản hồi một cách cô lập (isolated)**, cộng thêm chu kỳ nhận kết quả **thực chất rất chậm (feedback is slow)**. Bằng cách đó, bạn lại càng không có khả năng kiến tạo hay dựng lên vô số những cấu hình hệ kịch bản thử nghiệm (experiments) đa dạng để đo lường cách thức hệ thống của bạn phối kết với các luồng dependencies nhánh khác vận hành ra sao, hoạ may nếu có thì tính hiệu quả là cực thấp.  
 
-**We have to tame this complexity by adopting more sophisticated ways of modelling our dependencies** to quickly test/experiment on our dev machines before it gets to production. Create realistic and manageable fakes of your dependencies, verified by contracts. Then, you can start writing more meaningful tests and experimenting with your system, making you more likely to succeed.
+**Chúng ta bắt buộc phải khắc chế triệt để cấu trúc phức tạp này qua thao tác chuyển đổi định hướng áp dụng những tư duy phức hợp tỉ mỉ hơn trong việc mô hình hóa các dependencies** nhằm tăng tốc phục vụ giai đoạn diễn tập và test chéo trên máy tính cá nhân dev trước thời khoảnh khắc hệ phần mềm được tung ra môi trường chốt (production). Hãy kiến tạo nhóm mô thức fakes giả lập độ chân thực và khả năng quản lý tốt nhất dành cho dependencies phụ trợ; tiếp đến là bảo chứng chất lượng dựa theo hợp đồng contracts. Rồi đến một lúc khi mọi sự hoàn chỉnh, bạn khởi mào viết thêm nhiều và ngày càng nhiều lớp test sát sườn đi liền vô vàn hình thử nghiệm đa dạng ngay trên lớp phần mềm của dự án thì chắc chắn điểm tới của bạn sẽ tiệm cận thành công mỹ mãn.
