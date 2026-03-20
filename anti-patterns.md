@@ -1,136 +1,135 @@
-# TDD Anti-patterns
+# Các Anti-pattern trong TDD (TDD Anti-patterns)
 
+Thỉnh thoảng, việc xem lại các kỹ thuật TDD của bạn và tự nhắc nhở bản thân về những hành vi cần tránh là điều rất cần thiết.
 
-From time to time it's necessary to review your TDD techniques and remind yourself of behaviours to avoid.
+Quy trình TDD về mặt lý thuyết là đơn giản để làm theo, nhưng khi thực hiện, bạn sẽ thấy nó thử thách kỹ năng thiết kế của mình. **Đừng nhầm lẫn việc này với việc TDD là khó, chính thiết kế mới là thứ khó!**
 
-The TDD process is conceptually simple to follow, but as you do it you'll find it challenging your design skills. **Don't mistake this for TDD being hard, it's design that's hard!**
-
-This chapter lists a number of TDD and testing anti-patterns, and how to remedy them.
+Chương này liệt kê một số anti-pattern (mẫu ngược/lỗi thiết kế) trong TDD và kiểm thử, cũng như cách khắc phục chúng.
 
 (Người dịch) Các bạn có thể đọc thêm về anti-pattern [tại đây](https://en.wikibooks.org/wiki/Introduction_to_Software_Engineering/Architecture/Anti-Patterns) để hiểu thêm về nó.
 
-## Not doing TDD at all
+## Không thực hiện TDD chút nào
 
-Of course, it is possible to write great software without TDD but, a lot of problems I've seen with the design of code and the quality of tests would be very difficult to arrive at if a disciplined approach to TDD had been used.
+Tất nhiên, bạn hoàn toàn có thể viết được phần mềm tuyệt vời mà không cần TDD, nhưng rất nhiều vấn đề tôi từng thấy về thiết kế mã nguồn và chất lượng của các bài kiểm thử sẽ rất khó xảy ra nếu một phương pháp TDD có kỷ luật được sử dụng.
 
-One of the strengths of TDD is that it gives you a formal process to break down problems, understand what you're trying to achieve (red), get it done (green), then have a good think about how to make it right (blue/refactor).
+Một trong những thế mạnh của TDD là nó mang lại cho bạn một quy trình chính thức để chia nhỏ các vấn đề, hiểu những gì bạn đang cố gắng đạt được (đỏ - red), hoàn thành nó (xanh - green), sau đó suy nghĩ kỹ về cách làm cho nó đúng (xanh dương/tái cấu trúc - blue/refactor).
 
-Without this, the process is often ad-hoc and loose, which _can_ make engineering more difficult than it _could_ be.
+Nếu không có điều này, quy trình thường mang tính tạm thời và lỏng lẻo, điều này _có thể_ làm cho việc kỹ thuật trở nên khó khăn hơn mức cần thiết.
 
-## Misunderstanding the constraints of the refactoring step
+## Hiểu sai các ràng buộc của bước tái cấu trúc (refactoring)
 
-I have been in a number of workshops, mobbing or pairing sessions where someone has made a test pass and is in the refactoring stage. After some thought, they think it would be good to abstract away some code into a new struct; a budding pedant yells:
+Tôi đã tham gia một số hội thảo, các buổi mobbing hoặc pairing, nơi ai đó đã làm cho một bài kiểm thử vượt qua và đang ở giai đoạn tái cấu trúc. Sau khi suy nghĩ, họ thấy rằng sẽ tốt nếu trừu tượng hóa một số mã nguồn vào một struct mới; một người mới bắt đầu cầu toàn hét lên:
 
-> You're not allowed to do this! You should write a test for this first, we're doing TDD!
+> Bạn không được phép làm điều này! Bạn nên viết một bài kiểm thử cho việc này trước, chúng ta đang làm TDD mà!
 
-This seems to be a common misunderstanding. **You can do whatever you like to the code when the tests are green**, the only thing you're not allowed to do is **add or change behaviour**.
+Đây dường như là một sự hiểu lầm phổ biến. **Bạn có thể làm bất cứ điều gì bạn thích với mã nguồn khi các bài kiểm thử đang ở trạng thái xanh**, điều duy nhất bạn không được phép làm là **thêm hoặc thay đổi hành vi**.
 
-The point of these tests are to give you the _freedom to refactor_, find the right abstractions and make the code easier to change and understand.
+Mục đích của các bài kiểm thử này là mang lại cho bạn sự _tự do để tái cấu trúc_, tìm ra các mức trừu tượng phù hợp và làm cho mã nguồn dễ thay đổi và dễ hiểu hơn.
 
-## Having tests that won't fail (or, evergreen tests)
+## Có các bài kiểm thử không bao giờ thất bại (hay còn gọi là evergreen tests)
 
-It's astonishing how often this comes up. You start debugging or changing some tests and realise: there are no scenarios where this test can fail. Or at least, it won't fail in the way the test is _supposed_ to be protecting against.
+Thật đáng kinh ngạc khi điều này lại xảy ra thường xuyên như vậy. Bạn bắt đầu gỡ lỗi hoặc thay đổi một số bài kiểm thử và nhận ra: không có kịch bản nào mà bài kiểm thử này có thể thất bại. Hoặc ít nhất, nó sẽ không thất bại theo cách mà bài kiểm thử _đáng lẽ_ phải bảo vệ.
 
-This is _next to impossible_ with TDD if you're following **the first step**,
+Điều này là _gần như không thể_ với TDD nếu bạn tuân thủ **bước đầu tiên**:
 
-> Write a test, see it fail
+> Viết một bài kiểm thử, thấy nó thất bại
 
-This is almost always done when developers write tests _after_ code is written, and/or chasing test coverage rather than creating a useful test suite.
+Điều này hầu như luôn xảy ra khi các lập trình viên viết các bài kiểm thử _sau khi_ mã nguồn đã được viết, và/hoặc chạy theo độ bao phủ kiểm thử (test coverage) thay vì tạo ra một bộ kiểm thử hữu ích.
 
-## Useless assertions
+## Các khẳng định vô ích (Useless assertions)
 
-Ever worked on a system, and you've broken a test, then you see this?
+Bạn đã bao giờ làm việc trên một hệ thống, và bạn làm hỏng một bài kiểm thử, sau đó bạn thấy thông báo này chưa?
 
-> `false was not equal to true`
+> `false was not equal to true` (false không bằng true)
 
-I know that false is not equal to true. This is not a helpful message; it doesn't tell me what I've broken. This is a symptom of not following the TDD process and not reading the failure error message.
+Tôi biết rằng false không bằng true. Đây không phải là một thông báo hữu ích; nó không cho tôi biết tôi đã làm hỏng cái gì. Đây là triệu chứng của việc không tuân thủ quy trình TDD và không đọc thông báo lỗi khi thất bại.
 
-Going back to the drawing board,
+Quay lại bảng vẽ nào,
 
-> Write a test, see it fail (and don't be ashamed of the error message)
+> Viết một bài kiểm thử, thấy nó thất bại (và đừng xấu hổ về thông báo lỗi)
 
-## Asserting on irrelevant detail
+## Khẳng định trên các chi tiết không liên quan
 
-An example of this is making an assertion on a complex object, when in practice all you care about in the test is the value of one of the fields.
+Một ví dụ về điều này là thực hiện một khẳng định trên một đối tượng phức tạp, trong khi trên thực tế tất cả những gì bạn quan tâm trong bài kiểm thử là giá trị của một trong các trường.
 
 ```go
-// not this, now your test is tightly coupled to the whole object
+// đừng làm thế này, giờ đây bài kiểm thử của bạn bị ràng buộc chặt chẽ với toàn bộ đối tượng
 if !cmp.Equal(complexObject, want) {
 	t.Error("got %+v, want %+v", complexObject, want)
 }
 
-// be specific, and loosen the coupling
+// hãy cụ thể, và nới lỏng sự ràng buộc
 got := complexObject.fieldYouCareAboutForThisTest
 if got != want {
 	t.Error("got %q, want %q", got, want)
 }
 ```
 
-Additional assertions not only make your test more difficult to read by creating 'noise' in your documentation, but also needlessly couples the test with data it doesn't care about. This means if you happen to change the fields for your object, or the way they behave you may get unexpected compilation problems or failures with your tests.
+Các khẳng định bổ sung không chỉ làm cho bài kiểm thử của bạn khó đọc hơn bằng cách tạo ra "tiếng nhiễu" trong tài liệu của bạn, mà còn ràng buộc bài kiểm thử với các dữ liệu mà nó không quan tâm một cách vô ích. Điều này có nghĩa là nếu bạn tình cờ thay đổi các trường cho đối tượng của mình, hoặc cách chúng hoạt động, bạn có thể gặp các lỗi biên dịch hoặc thất bại không mong muốn với các bài kiểm thử của mình.
 
-This is an example of not following the red stage strictly enough.
+Đây là một ví dụ về việc không tuân thủ giai đoạn đỏ (red) một cách đủ nghiêm ngặt.
 
-- Letting an existing design influence how you write your test **rather than thinking of the desired behaviour**
-- Not giving enough consideration to the failing test's error message
+- Để một thiết kế hiện có ảnh hưởng đến cách bạn viết bài kiểm thử **thay vì nghĩ về hành vi mong muốn**.
+- Không cân nhắc đầy đủ thông báo lỗi của bài kiểm thử khi thất bại.
 
-## Lots of assertions within a single scenario for unit tests
+## Có quá nhiều khẳng định trong một kịch bản đơn lẻ cho unit test
 
-Many assertions can make tests difficult to read and challenging to debug when they fail.
+Quá nhiều khẳng định có thể làm cho các bài kiểm thử khó đọc và khó gỡ lỗi khi chúng thất bại.
 
-They often creep in gradually, especially if test setup is complicated because you're reluctant to replicate the same horrible setup to assert on something else. Instead of this you should fix the problems in your design which are making it difficult to assert on new things.
+Chúng thường len lỏi vào một cách dần dần, đặc biệt nếu việc thiết lập (setup) bài kiểm thử phức tạp vì bạn ngại phải lặp lại cùng một thiết lập tồi tệ đó để khẳng định về một thứ khác. Thay vì làm điều này, bạn nên khắc phục các vấn đề trong thiết kế của mình - những thứ đang làm cho việc khẳng định các điều mới trở nên khó khăn.
 
-A helpful rule of thumb is to aim to make one assertion per test. In Go, take advantage of subtests to clearly delineate between assertions on the occasions where you need to. This is also a handy technique to separate assertions on behaviour vs implementation detail.
+Một quy tắc ngón tay cái hữu ích là đặt mục tiêu thực hiện một khẳng định cho mỗi bài kiểm thử. Trong Go, hãy tận dụng các bài kiểm thử con (subtests) để phân định rõ ràng giữa các khẳng định trong những trường hợp bạn cần. Đây cũng là một kỹ thuật tiện lợi để tách biệt các khẳng định về hành vi so với chi tiết triển khai.
 
-For other tests where setup or execution time may be a constraint (e.g an acceptance test driving a web browser), you need to weigh up the pros and cons of slightly trickier to debug tests against test execution time.
+Đối với các bài kiểm thử khác mà thời gian thiết lập hoặc thực thi có thể là một ràng buộc (vídụ: một bài kiểm thử chấp nhận - acceptance test điều khiển trình duyệt web), bạn cần cân nhắc ưu và nhược điểm của việc các bài kiểm thử hơi khó gỡ lỗi hơn một chút so với thời gian thực thi bài kiểm thử.
 
-## Not listening to your tests
+## Không lắng nghe các bài kiểm thử của bạn
 
-[Dave Farley in his video "When TDD goes wrong"](https://www.youtube.com/watch?v=UWtEVKVPBQ0&feature=youtu.be) points out,
+[Dave Farley trong video của mình "When TDD goes wrong"](https://www.youtube.com/watch?v=UWtEVKVPBQ0&feature=youtu.be) đã chỉ ra rằng,
 
-> TDD gives you the fastest feedback possible on your design
+> TDD mang lại cho bạn phản hồi nhanh nhất có thể về thiết kế của bạn
 
-From my own experience, a lot of developers are trying to practice TDD but frequently ignore the signals coming back to them from the TDD process. So they're still stuck with fragile, annoying systems, with a poor test suite.
+Từ kinh nghiệm của bản thân, rất nhiều lập trình viên đang cố gắng thực hành TDD nhưng thường xuyên bỏ qua các tín hiệu gửi ngược lại cho họ từ quy trình TDD. Vì vậy, họ vẫn bị mắc kẹt với các hệ thống mỏng manh, gây khó chịu, với một bộ kiểm thử kém chất lượng.
 
-Simply put, if testing your code is difficult, then _using_ your code is difficult too. Treat your tests as the first user of your code and then you'll see if your code is pleasant to work with or not.
+Nói một cách đơn giản, nếu việc kiểm thử mã nguồn của bạn là khó khăn, thì việc _sử dụng_ mã nguồn của bạn cũng sẽ khó khăn. Hãy coi các bài kiểm thử là người dùng đầu tiên của mã nguồn và sau đó bạn sẽ thấy mã của mình có dễ chịu khi làm việc cùng hay không.
 
-I've emphasised this a lot in the book, and I'll say it again **listen to your tests**.
+Tôi đã nhấn mạnh điều này rất nhiều trong cuốn sách, và tôi sẽ nói lại lần nữa: **hãy lắng nghe các bài kiểm thử của bạn**.
 
-### Excessive setup, too many test doubles, etc.
+### Thiết lập quá mức, quá nhiều test double, v.v.
 
-Ever looked at a test with 20, 50, 100, 200 lines of setup code before anything interesting in the test happens? Do you then have to change the code and revisit the mess and wish you had a different career?
+Bạn đã bao giờ nhìn vào một bài kiểm thử với 20, 50, 100, 200 dòng mã thiết lập (setup) trước khi có bất kỳ điều gì thú vị trong bài kiểm thử xảy ra chưa? Sau đó, bạn có phải thay đổi mã nguồn và xem lại cái mớ hỗn độn đó và ước rằng mình đã chọn một nghề nghiệp khác không?
 
-What are the signals here? _Listen_, complicated tests `==` complicated code. Why is your code complicated? Does it have to be?
+Các tín hiệu ở đây là gì? _Hãy lắng nghe_, các bài kiểm thử phức tạp `==` mã nguồn phức tạp. Tại sao mã của bạn lại phức tạp? Nó có nhất thiết phải như vậy không?
 
-- When you have lots of test doubles in your tests, that means the code you're testing has lots of dependencies - which means your design needs work.
-- If your test is reliant on setting up various interactions with mocks, that means your code is making lots of interactions with its dependencies. Ask yourself whether these interactions could be simpler.
+- Khi bạn có nhiều test double trong các bài kiểm thử, điều đó có nghĩa là mã bạn đang kiểm thử có nhiều phụ thuộc - nghĩa là thiết kế của bạn cần được cải thiện.
+- Nếu bài kiểm thử của bạn dựa vào việc thiết lập các tương tác khác nhau với mock, điều đó có nghĩa là mã của bạn đang thực hiện nhiều tương tác với các phụ thuộc của nó. Hãy tự hỏi liệu những tương tác này có thể đơn giản hơn không.
 
-#### Leaky interfaces
+#### Giao diện bị rò rỉ (Leaky interfaces)
 
-If you have declared an `interface` that has many methods, that points to a leaky abstraction. Think about how you could define that collaboration with a more consolidated set of methods, ideally one.
+Nếu bạn đã khai báo một `interface` có nhiều phương thức, điều đó chỉ ra một sự trừu tượng bị rò rỉ (leaky abstraction). Hãy suy nghĩ về cách bạn có thể định nghĩa sự cộng tác đó với một tập hợp các phương thức hợp nhất hơn, lý tưởng nhất là chỉ một phương thức.
 
-#### Interface pollution
+#### Ô nhiễm giao diện (Interface pollution)
 
-As a Go proverb says, *the bigger the interface, the weaker the abstraction*. If you expose a huge interface to the users of your package, you force them to create in their tests a stub/mock that matches the entire API, providing an implementation also for methods they do not use (sometimes, they just panic to make clear that they should not be used). This situation is an anti-pattern known as [interface pollution](https://rakyll.org/interface-pollution/) and this is the reason why the standard library offers you just tiny little interfaces. 
+Như một câu châm ngôn của Go đã nói, *giao diện càng lớn, sự trừu tượng càng yếu*. Nếu bạn để lộ một giao diện khổng lồ cho người dùng gói của mình, bạn buộc họ phải tạo trong các bài kiểm thử của họ một stub/mock khớp với toàn bộ API, cung cấp triển khai cho cả các phương thức mà họ không sử dụng (đôi khi, họ chỉ gọi panic để làm rõ rằng chúng không nên được sử dụng). Tình huống này là một anti-pattern được gọi là [ô nhiễm giao diện (interface pollution)](https://rakyll.org/interface-pollution/) và đây là lý do tại sao thư viện chuẩn chỉ cung cấp cho bạn những giao diện rất nhỏ.
 
-Instead, you should expose from your package a bare struct with all relevant methods exported, leaving to the clients of your API the freedom to declare their own interfaces abstracting over the subset of the methods they need: e.g [go-redis](https://github.com/redis/go-redis) exposes a struct (`redis.Client`) to the API clients.
+Thay vào đó, bạn nên để lộ từ gói của mình một struct thuần túy với tất cả các phương thức liên quan được export, nhường cho các khách hàng (clients) sử dụng API của bạn sự tự do để khai báo các giao diện của riêng họ trừu tượng hóa trên tập hợp con các phương thức mà họ cần: ví dụ [go-redis](https://github.com/redis/go-redis) để lộ một struct (`redis.Client`) cho các khách hàng API.
 
-Generally speaking, you should expose an interface to the clients only when:
-- the interface consists of a small and coherent set of functions.
-- the interface and its implementation need to be decoupled (e.g. because users can choose among multiple implementations or they need to mock an external dependency).
+Nói chung, bạn chỉ nên để lộ một giao diện cho khách hàng khi:
+- Giao diện bao gồm một tập hợp các hàm nhỏ và mạch lạc.
+- Giao diện và triển khai của nó cần được tách rời (vídụ: vì người dùng có thể chọn giữa nhiều triển khai hoặc họ cần mock một phụ thuộc bên ngoài).
 
-#### Think about the types of test doubles you use
+#### Suy nghĩ về các loại test double bạn sử dụng
 
-- Mocks are sometimes helpful, but they're extremely powerful and therefore easy to misuse. Try giving yourself the constraint of using stubs instead.
-- Verifying implementation detail with spies is sometimes helpful, but try to avoid it. Remember your implementation detail is usually not important, and you don't want your tests coupled to them if possible. Look to couple your tests to **useful behaviour rather than incidental details**.
-- [Read my posts on naming test doubles](https://quii.dev/Start_naming_your_test_doubles_correctly) if the taxonomy of test doubles is a little unclear
+- Mock đôi khi hữu ích, nhưng chúng cực kỳ mạnh mẽ và do đó dễ bị lạm dụng. Hãy thử tự đặt ra hạn chế cho bản thân là chỉ sử dụng stub.
+- Việc xác thực chi tiết triển khai bằng các spy (gián điệp) đôi khi hữu ích, nhưng hãy cố gắng tránh nó. Hãy nhớ rằng chi tiết triển khai của bạn thường không quan trọng, và bạn không muốn các bài kiểm thử của mình bị ràng buộc vào chúng nếu có thể. Hãy tìm cách ràng buộc bài kiểm thử của bạn vào **hành vi hữu ích thay vì các chi tiết ngẫu nhiên**.
+- [Đọc các bài viết của tôi về việc đặt tên test double chính xác](https://quii.dev/Start_naming_your_test_doubles_correctly) nếu việc phân loại test double còn hơi mơ hồ với bạn.
 
-#### Consolidate dependencies
+#### Hợp nhất các phụ thuộc (Consolidate dependencies)
 
-Here is some code for a `http.HandlerFunc` to handle new user registrations for a website.
+Dưới đây là một số mã nguồn cho một `http.HandlerFunc` để xử lý việc đăng ký người dùng mới cho một trang web.
 
 ```go
 type User struct {
-	// Some user fields
+	// Một số trường của người dùng
 }
 
 type UserStore interface {
@@ -144,35 +143,35 @@ type Emailer interface {
 
 func NewRegistrationHandler(userStore UserStore, emailer Emailer) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		// extract out the user from the request body (handle error)
-		// check user exists (handle duplicates, errors)
-		// store user (handle errors)
-		// compose and send confirmation email (handle error)
-		// if we got this far, return 2xx response
+		// trích xuất người dùng từ request body (xử lý lỗi)
+		// kiểm tra người dùng đã tồn tại chưa (xử lý trùng lặp, lỗi)
+		// lưu trữ người dùng (xử lý lỗi)
+		// soạn và gửi email xác nhận (xử lý lỗi)
+		// nếu thực hiện được đến đây, trả về phản hồi 2xx
 	}
 }
 ```
 
-At first pass it's reasonable to say the design isn't so bad. It only has 2 dependencies!
+Ở lần nhìn đầu tiên, có thể nói rằng thiết kế này không quá tệ. Nó chỉ có 2 phụ thuộc!
 
-Re-evaluate the design by considering the handler's responsibilities:
+Hãy đánh giá lại thiết kế bằng cách xem xét các trách nhiệm của handler:
 
-- Parse the request body into a `User` :white_check_mark:
-- Use `UserStore` to check if the user exists :question:
-- Use `UserStore` to store the user :question:
-- Compose an email :question:
-- Use `Emailer` to send the email :question:
-- Return an appropriate http response, depending on success, errors, etc :white_check_mark:
+- Phân tích request body thành một `User`: :white_check_mark:
+- Sử dụng `UserStore` để kiểm tra xem người dùng có tồn tại không: :question:
+- Sử dụng `UserStore` để lưu trữ người dùng: :question:
+- Soạn một email: :question:
+- Sử dụng `Emailer` để gửi email: :question:
+- Trả về phản hồi http phù hợp, tùy thuộc vào thành công, lỗi, v.v.: :white_check_mark:
 
-To exercise this code, you're going to have to write many tests with varying degrees of test double setups, spies, etc
+Để thực thi mã này, bạn sẽ phải viết nhiều bài kiểm thử với các mức độ thiết lập test double, spy, v.v., khác nhau.
 
-- What if the requirements expand? Translations for the emails? Sending an SMS confirmation too? Does it make sense to you that you have to change a HTTP handler to accommodate this change?
-- Does it feel right that the important rule of "we should send an email" resides within a HTTP handler?
-    - Why do you have to go through the ceremony of creating HTTP requests and reading responses to verify that rule?
+- Điều gì xảy ra nếu các yêu cầu mở rộng? Thêm bản dịch cho các email? Gửi cả tin nhắn SMS xác nhận? Bạn có thấy hợp lý không khi bạn phải thay đổi một HTTP handler để đáp ứng sự thay đổi này?
+- Bạn có cảm thấy đúng đắn không khi quy tắc quan trọng "chúng ta nên gửi một email" lại nằm trong một HTTP handler?
+    - Tại sao bạn lại phải trải qua quy trình tạo các yêu cầu HTTP và đọc các phản hồi để xác thực quy tắc đó?
 
-**Listen to your tests**. Writing tests for this code in a TDD fashion should quickly make you feel uncomfortable (or at least, make the lazy developer in you be annoyed). If it feels painful, stop and think.
+**Hãy lắng nghe các bài kiểm thử của bạn**. Việc viết các bài kiểm thử cho mã nguồn này theo phong cách TDD sẽ nhanh chóng khiến bạn cảm thấy khó chịu (hoặc ít nhất, khiến lập trình viên lười biếng trong bạn thấy phiền phức). Nếu nó mang lại cảm giác đau đớn, hãy dừng lại và suy nghĩ.
 
-What if the design was like this instead?
+Sẽ ra sao nếu thiết kế giống như thế này thay vì vậy?
 
 ```go
 type UserService interface {
@@ -181,31 +180,31 @@ type UserService interface {
 
 func NewRegistrationHandler(userService UserService) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		// parse user
-		// register user
-		// check error, send response
+		// phân tích người dùng
+		// đăng ký người dùng
+		// kiểm tra lỗi, gửi phản hồi
 	}
 }
 ```
 
-- Simple to test the handler ✅
-- Changes to the rules around registration are isolated away from HTTP, so they are also simpler to test ✅
+- Dễ dàng kiểm thử handler ✅
+- Các thay đổi đối với các quy tắc xung quanh việc đăng ký được tách biệt khỏi HTTP, vì vậy chúng cũng đơn giản hơn để kiểm thử ✅
 
-## Violating encapsulation
+## Vi phạm tính đóng gói (Violating encapsulation)
 
-Encapsulation is very important. There's a reason we don't make everything in a package exported (or public). We want coherent APIs with a small surface area to avoid tight coupling.
+Tính đóng gói (Encapsulation) là rất quan trọng. Có lý do để chúng ta không để mọi thứ trong một gói (package) ở trạng thái export (hoặc public). Chúng ta muốn các API mạch lạc với bề mặt tiếp xúc nhỏ để tránh sự ràng buộc chặt chẽ (tight coupling).
 
-People will sometimes be tempted to make a function or method public in order to test something. By doing this you make your design worse and send confusing messages to maintainers and users of your code.
+Lập trình viên đôi khi sẽ bị cám dỗ để chuyển một hàm hoặc phương thức thành public nhằm mục đích kiểm thử một thứ gì đó. Bằng cách làm này, bạn làm cho thiết kế của mình trở nên tệ hơn và gửi những thông điệp gây nhầm lẫn cho những người bảo trì và người dùng mã nguồn của bạn.
 
-A result of this can be developers trying to debug a test and then eventually realising the function being tested is _only called from tests_. Which is obviously **a terrible outcome, and a waste of time**.
+Kết quả của việc này có thể là lập trình viên cố gắng gỡ lỗi một bài kiểm thử và cuối cùng nhận ra hàm đang được kiểm thử _chỉ được gọi từ các bài kiểm thử_. Đây rõ ràng là **một kết quả tồi tệ và lãng phí thời gian**.
 
-In Go, consider your default position for writing tests as _from the perspective of a consumer of your package_. You can make this a compile-time constraint by having your tests live in a test package e.g `package gocoin_test`. If you do this, you'll only have access to the exported members of the package so it won't be possible to couple yourself to implementation detail.
+Trong Go, hãy coi vị trí mặc định của bạn khi viết bài kiểm thử là _từ quan điểm của một người tiêu dùng gói của bạn_. Bạn có thể đặt điều này thành một ràng buộc tại thời điểm biên dịch bằng cách để các bài kiểm thử nằm trong một gói kiểm thử, ví dụ `package gocoin_test`. Nếu bạn làm điều này, bạn sẽ chỉ có quyền truy cập vào các thành viên được export của gói, vì vậy bạn sẽ không thể tự ràng buộc mình vào chi tiết triển khai.
 
-## Complicated table tests
+## Các bài kiểm thử dạng bảng phức tạp (Complicated table tests)
 
-Table tests are a great way of exercising a number of different scenarios when the test setup is the same, and you only wish to vary the inputs.
+Các bài kiểm thử dạng bảng (Table tests) là một cách tuyệt vời để thực thi một số kịch bản khác nhau khi thiết lập bài kiểm thử là giống nhau và bạn chỉ muốn thay đổi các đầu vào.
 
-_But_ they can be messy to read and understand when you try to shoehorn other kinds of tests under the name of having one, glorious table.
+_Nhưng_ chúng có thể trở nên lộn xộn khi đọc và khó hiểu khi bạn cố gắng gượng ép các loại bài kiểm thử khác vào dưới cái danh nghĩa là có một bảng kiểm thử "vĩ đại" duy nhất.
 
 ```go
 cases := []struct {
@@ -219,25 +218,25 @@ cases := []struct {
 }{}
 ```
 
-**Don't be afraid to break out of your table and write new tests** rather than adding new fields and booleans to the table `struct`.
+**Đừng ngần ngại tách ra khỏi bảng của bạn và viết các bài kiểm thử mới** thay vì thêm các trường và các biến boolean mới vào `struct` của bảng.
 
-A thing to bear in mind when writing software is,
+Một điều cần ghi nhớ khi viết phần mềm là:
 
-> [Simple is not easy](https://www.infoq.com/presentations/Simple-Made-Easy/)
+> [Đơn giản không có nghĩa là dễ dàng (Simple is not easy)](https://www.infoq.com/presentations/Simple-Made-Easy/)
 
-"Just" adding a field to a table might be easy, but it can make things far from simple.
+"Chỉ cần" thêm một trường vào bảng có thể là dễ dàng, nhưng nó có thể làm cho mọi thứ xa rời sự đơn giản.
 
-## Summary
+## Tổng kết
 
-Most problems with unit tests can normally be traced to:
+Hầu hết các vấn đề với unit test thường có thể được truy nguyên từ:
 
-- Developers not following the TDD process
-- Poor design
+- Lập trình viên không tuân thủ quy trình TDD
+- Thiết kế kém
 
-So, learn about good software design!
+Vì vậy, hãy tìm hiểu về thiết kế phần mềm tốt!
 
-The good news is TDD can help you _improve your design skills_ because as stated in the beginning:
+Tin tốt là TDD có thể giúp bạn _cải thiện kỹ năng thiết kế của mình_ như đã nêu ở phần đầu:
 
-**TDD's main purpose is to provide feedback on your design.** For the millionth time, listen to your tests, they are reflecting your design back at you.
+**Mục đích chính của TDD là cung cấp phản hồi về thiết kế của bạn.** Lần thứ một triệu, hãy lắng nghe các bài kiểm thử của bạn, chúng đang phản chiếu lại thiết kế của bạn cho chính bạn thấy.
 
-Be honest about the quality of your tests by listening to the feedback they give you, and you'll become a better developer for it.
+Hãy trung thực về chất lượng các bài kiểm thử của bạn bằng cách lắng nghe các phản hồi mà chúng cung cấp cho bạn, và bạn sẽ trở thành một lập trình viên giỏi hơn nhờ điều đó.
