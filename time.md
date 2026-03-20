@@ -2,24 +2,24 @@
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/time)**
 
-The product owner wants us to expand the functionality of our command line application by helping a group of people play Texas-Holdem Poker.
+Product owner muốn chúng ta mở rộng chức năng của ứng dụng command line bằng cách giúp một nhóm người chơi Texas-Holdem Poker.
 
-## Just enough information on poker
+## Kiến thức cơ bản về poker
 
-You won't need to know much about poker, only that at certain time intervals all the players need to be informed of a steadily increasing "blind" value.
+Bạn không cần biết nhiều về poker, chỉ cần biết rằng sau mỗi khoảng thời gian nhất định, tất cả người chơi cần được thông báo về giá trị "blind" (mức cược mù) tăng dần.
 
-Our application will help keep track of when the blind should go up, and how much it should be.
+Ứng dụng của chúng ta sẽ giúp theo dõi khi nào blind cần tăng và mức tăng là bao nhiêu.
 
-- When it starts it asks how many players are playing. This determines the amount of time there is before the "blind" bet goes up.
-  - There is a base amount of time of 5 minutes.
-  - For every player, 1 minute is added.
-  - e.g 6 players equals 11 minutes for the blind.
-- After the blind time expires the game should alert the players the new amount the blind bet is.
-- The blind starts at 100 chips, then 200, 400, 600, 1000, 2000 and continue to double until the game ends (our previous functionality of "Ruth wins" should still finish the game)
+- Khi bắt đầu, ứng dụng hỏi có bao nhiêu người chơi. Số người chơi quyết định khoảng thời gian trước khi mức cược "blind" tăng lên.
+  - Thời gian cơ bản là 5 phút.
+  - Mỗi người chơi thêm 1 phút.
+  - Ví dụ: 6 người chơi tương đương 11 phút cho mỗi blind.
+- Sau khi hết thời gian blind, trò chơi sẽ thông báo cho người chơi mức blind mới.
+- Blind bắt đầu ở 100 chip, sau đó 200, 400, 600, 1000, 2000 và tiếp tục nhân đôi cho đến khi trò chơi kết thúc (chức năng "Ruth wins" trước đó vẫn kết thúc trò chơi như bình thường)
 
-## Reminder of the code
+## Nhắc lại về code
 
-In the previous chapter we made our start to the command line application which already accepts a command of `{name} wins`. Here is what the current `CLI` code looks like, but be sure to familiarise yourself with the other code too before starting.
+Trong chương trước, chúng ta đã bắt đầu xây dựng ứng dụng command line với khả năng chấp nhận lệnh `{name} wins`. Đây là code `CLI` hiện tại, nhưng hãy nhớ tìm hiểu cả những phần code khác trước khi bắt đầu.
 
 ```go
 type CLI struct {
@@ -52,31 +52,31 @@ func (cli *CLI) readLine() string {
 
 ### `time.AfterFunc`
 
-We want to be able to schedule our program to print the blind bet values at certain durations dependant on the number of players.
+Chúng ta muốn lên lịch cho chương trình in ra giá trị blind tại các khoảng thời gian nhất định, phụ thuộc vào số lượng người chơi.
 
-To limit the scope of what we need to do, we'll forget about the number of players part for now and just assume there are 5 players so we'll test that _every 10 minutes the new value of the blind bet is printed_.
+Để giới hạn phạm vi công việc, chúng ta sẽ tạm bỏ qua phần số người chơi và giả định có 5 người chơi. Chúng ta sẽ test rằng _cứ mỗi 10 phút, giá trị blind mới sẽ được in ra_.
 
-As usual the standard library has us covered with [`func AfterFunc(d Duration, f func()) *Timer`](https://golang.org/pkg/time/#AfterFunc)
+Như thường lệ, thư viện chuẩn đã hỗ trợ sẵn với [`func AfterFunc(d Duration, f func()) *Timer`](https://golang.org/pkg/time/#AfterFunc)
 
-> `AfterFunc` waits for the duration to elapse and then calls f in its own goroutine. It returns a `Timer` that can be used to cancel the call using its Stop method.
+> `AfterFunc` đợi cho đến khi khoảng thời gian trôi qua rồi gọi hàm f trong goroutine riêng của nó. Nó trả về một `Timer` có thể dùng để hủy lời gọi bằng phương thức Stop.
 
 ### [`time.Duration`](https://golang.org/pkg/time/#Duration)
 
-> A Duration represents the elapsed time between two instants as an int64 nanosecond count.
+> Duration đại diện cho thời gian trôi qua giữa hai thời điểm dưới dạng số nano giây int64.
 
-The time library has a number of constants to let you multiply those nanoseconds so they're a bit more readable for the kind of scenarios we'll be doing
+Thư viện time có một số hằng số cho phép bạn nhân các nano giây đó để dễ đọc hơn cho các tình huống chúng ta sẽ gặp
 
 ```
 5 * time.Second
 ```
 
-When we call `PlayPoker` we'll schedule all of our blind alerts.
+Khi chúng ta gọi `PlayPoker`, chúng ta sẽ lên lịch tất cả các thông báo blind.
 
-Testing this may be a little tricky though. We'll want to verify that each time period is scheduled with the correct blind amount but if you look at the signature of `time.AfterFunc` its second argument is the function it will run. You cannot compare functions in Go so we'd be unable to test what function has been sent in. So we'll need to write some kind of wrapper around `time.AfterFunc` which will take the time to run and the amount to print so we can spy on that.
+Tuy nhiên, việc test điều này có thể hơi khó. Chúng ta muốn xác minh rằng mỗi khoảng thời gian được lên lịch với đúng số tiền blind. Nhưng nếu bạn nhìn vào signature của `time.AfterFunc`, tham số thứ hai là hàm sẽ được chạy. Trong Go, bạn không thể so sánh các hàm với nhau, nên chúng ta không thể test hàm nào đã được truyền vào. Vì vậy, chúng ta cần viết một wrapper (lớp bọc) quanh `time.AfterFunc` nhận thời gian chạy và số tiền cần in để chúng ta có thể spy (theo dõi) nó.
 
-## Write the test first
+## Viết test trước
 
-Add a new test to our suite
+Thêm một test mới vào bộ test
 
 ```go
 t.Run("it schedules printing of blind values", func(t *testing.T) {
@@ -93,11 +93,11 @@ t.Run("it schedules printing of blind values", func(t *testing.T) {
 })
 ```
 
-You'll notice we've made a `SpyBlindAlerter` which we are trying to inject into our `CLI` and then checking that after we call `PlayPoker` that an alert is scheduled.
+Bạn sẽ thấy chúng ta đã tạo một `SpyBlindAlerter` và đang cố inject (tiêm) nó vào `CLI`. Sau đó chúng ta kiểm tra rằng sau khi gọi `PlayPoker`, một thông báo đã được lên lịch.
 
-(Remember we are just going for the simplest scenario first and then we'll iterate.)
+(Nhớ rằng chúng ta đang bắt đầu với tình huống đơn giản nhất trước, rồi sẽ mở rộng dần.)
 
-Here's the definition of `SpyBlindAlerter`
+Đây là định nghĩa của `SpyBlindAlerter`
 
 ```go
 type SpyBlindAlerter struct {
@@ -117,7 +117,7 @@ func (s *SpyBlindAlerter) ScheduleAlertAt(duration time.Duration, amount int) {
 ```
 
 
-## Try to run the test
+## Thử chạy test
 
 ```
 ./CLI_test.go:32:27: too many arguments in call to poker.NewCLI
@@ -125,9 +125,9 @@ func (s *SpyBlindAlerter) ScheduleAlertAt(duration time.Duration, amount int) {
 	want (poker.PlayerStore, io.Reader)
 ```
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
+## Viết lượng code tối thiểu để test chạy được và kiểm tra output lỗi
 
-We have added a new argument and the compiler is complaining. _Strictly speaking_ the minimal amount of code is to make `NewCLI` accept a `*SpyBlindAlerter` but let's cheat a little and just define the dependency as an interface.
+Chúng ta đã thêm một tham số mới và trình biên dịch đang báo lỗi. _Nói chính xác_, lượng code tối thiểu là để `NewCLI` chấp nhận `*SpyBlindAlerter`. Nhưng hãy "gian lận" một chút và định nghĩa dependency (phụ thuộc) dưới dạng interface.
 
 ```go
 type BlindAlerter interface {
@@ -135,25 +135,25 @@ type BlindAlerter interface {
 }
 ```
 
-And then add it to the constructor
+Sau đó thêm nó vào constructor
 
 ```go
 func NewCLI(store PlayerStore, in io.Reader, alerter BlindAlerter) *CLI
 ```
 
-Your other tests will now fail as they don't have a `BlindAlerter` passed in to `NewCLI`.
+Các test khác của bạn sẽ fail vì chúng không truyền `BlindAlerter` vào `NewCLI`.
 
-Spying on BlindAlerter is not relevant for the other tests so in the test file add
+Spy trên BlindAlerter không liên quan đến các test khác, nên trong file test hãy thêm
 
 ```go
 var dummySpyAlerter = &SpyBlindAlerter{}
 ```
 
-Then use that in the other tests to fix the compilation problems. By labelling it as a "dummy" it is clear to the reader of the test that it is not important.
+Sau đó sử dụng nó trong các test khác để sửa lỗi biên dịch. Bằng cách đặt tên "dummy", người đọc test sẽ hiểu rõ rằng nó không quan trọng.
 
-[> Dummy objects are passed around but never actually used. Usually they are just used to fill parameter lists.](https://martinfowler.com/articles/mocksArentStubs.html)
+[> Dummy object được truyền đi nhưng không bao giờ thực sự được sử dụng. Thường chúng chỉ dùng để điền vào danh sách tham số.](https://martinfowler.com/articles/mocksArentStubs.html)
 
-The tests should now compile and our new test fails.
+Các test bây giờ sẽ biên dịch được và test mới của chúng ta fail.
 
 ```
 === RUN   TestCLI
@@ -163,9 +163,9 @@ The tests should now compile and our new test fails.
     	CLI_test.go:38: expected a blind alert to be scheduled
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ code để test pass
 
-We'll need to add the `BlindAlerter` as a field on our `CLI` so we can reference it in our `PlayPoker` method.
+Chúng ta cần thêm `BlindAlerter` làm field trong `CLI` để có thể tham chiếu trong phương thức `PlayPoker`.
 
 ```go
 type CLI struct {
@@ -183,7 +183,7 @@ func NewCLI(store PlayerStore, in io.Reader, alerter BlindAlerter) *CLI {
 }
 ```
 
-To make the test pass, we can call our `BlindAlerter` with anything we like
+Để test pass, chúng ta có thể gọi `BlindAlerter` với bất kỳ giá trị nào
 
 ```go
 func (cli *CLI) PlayPoker() {
@@ -193,9 +193,9 @@ func (cli *CLI) PlayPoker() {
 }
 ```
 
-Next we'll want to check it schedules all the alerts we'd hope for, for 5 players
+Tiếp theo, chúng ta muốn kiểm tra rằng nó lên lịch tất cả các thông báo mà chúng ta mong đợi cho 5 người chơi.
 
-## Write the test first
+## Viết test trước
 
 ```go
 	t.Run("it schedules printing of blind values", func(t *testing.T) {
@@ -246,11 +246,11 @@ Next we'll want to check it schedules all the alerts we'd hope for, for 5 player
 	})
 ```
 
-Table-based test works nicely here and clearly illustrate what our requirements are. We run through the table and check the `SpyBlindAlerter` to see if the alert has been scheduled with the correct values.
+Table-based test (test dựa trên bảng) hoạt động rất tốt ở đây và minh họa rõ ràng yêu cầu của chúng ta. Chúng ta duyệt qua bảng và kiểm tra `SpyBlindAlerter` để xem thông báo đã được lên lịch với đúng giá trị chưa.
 
-## Try to run the test
+## Thử chạy test
 
-You should have a lot of failures looking like this
+Bạn sẽ thấy nhiều lỗi như thế này
 
 ```
 === RUN   TestCLI
@@ -265,7 +265,7 @@ You should have a lot of failures looking like this
         	CLI_test.go:59: alert 1 was not scheduled [{5000000000 100}]
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ code để test pass
 
 ```go
 func (cli *CLI) PlayPoker() {
@@ -282,11 +282,11 @@ func (cli *CLI) PlayPoker() {
 }
 ```
 
-It's not a lot more complicated than what we already had. We're just now iterating over an array of `blinds` and calling the scheduler on an increasing `blindTime`
+Nó không phức tạp hơn nhiều so với trước. Chúng ta chỉ đang duyệt qua mảng `blinds` và gọi scheduler với `blindTime` tăng dần.
 
 ## Refactor
 
-We can encapsulate our scheduled alerts into a method just to make `PlayPoker` read a little clearer.
+Chúng ta có thể đóng gói các thông báo blind đã lên lịch vào một phương thức để `PlayPoker` dễ đọc hơn.
 
 ```go
 func (cli *CLI) PlayPoker() {
@@ -305,7 +305,7 @@ func (cli *CLI) scheduleBlindAlerts() {
 }
 ```
 
-Finally our tests are looking a little clunky. We have two anonymous structs representing the same thing, a `ScheduledAlert`. Let's refactor that into a new type and then make some helpers to compare them.
+Cuối cùng, các test của chúng ta trông hơi cồng kềnh. Chúng ta có hai anonymous struct đại diện cho cùng một thứ, một `ScheduledAlert`. Hãy refactor nó thành type mới và tạo một số helper để so sánh chúng.
 
 ```go
 type scheduledAlert struct {
@@ -326,9 +326,9 @@ func (s *SpyBlindAlerter) ScheduleAlertAt(at time.Duration, amount int) {
 }
 ```
 
-We've added a `String()` method to our type so it prints nicely if the test fails
+Chúng ta đã thêm phương thức `String()` cho type để nó in đẹp hơn khi test fail.
 
-Update our test to use our new type
+Cập nhật test để sử dụng type mới
 
 ```go
 t.Run("it schedules printing of blind values", func(t *testing.T) {
@@ -367,15 +367,15 @@ t.Run("it schedules printing of blind values", func(t *testing.T) {
 })
 ```
 
-Implement `assertScheduledAlert` yourself.
+Hãy tự triển khai `assertScheduledAlert`.
 
-We've spent a fair amount of time here writing tests and have been somewhat naughty not integrating with our application. Let's address that before we pile on any more requirements.
+Chúng ta đã dành khá nhiều thời gian ở đây để viết test và đã hơi "hư" khi chưa tích hợp với ứng dụng. Hãy giải quyết điều đó trước khi thêm bất kỳ yêu cầu nào nữa.
 
-Try running the app and it won't compile, complaining about not enough args to `NewCLI`.
+Thử chạy ứng dụng và nó sẽ không biên dịch được, báo lỗi không đủ tham số cho `NewCLI`.
 
-Let's create an implementation of `BlindAlerter` that we can use in our application.
+Hãy tạo một triển khai của `BlindAlerter` để dùng trong ứng dụng.
 
-Create `blind_alerter.go` and move our `BlindAlerter` interface and add the new things below
+Tạo file `blind_alerter.go` và di chuyển interface `BlindAlerter` của chúng ta vào đó, thêm các phần mới bên dưới
 
 ```go
 package poker
@@ -403,31 +403,31 @@ func StdOutAlerter(duration time.Duration, amount int) {
 }
 ```
 
-Remember that any _type_ can implement an interface, not just `structs`. If you are making a library that exposes an interface with one function defined it is a common idiom to also expose a `MyInterfaceFunc` type.
+Hãy nhớ rằng bất kỳ _type_ nào cũng có thể triển khai interface, không chỉ `struct`. Nếu bạn đang tạo một thư viện có interface với một hàm duy nhất, một quy ước phổ biến là cũng cung cấp type `MyInterfaceFunc`.
 
-This type will be a `func` which will also implement your interface. That way users of your interface have the option to implement your interface with just a function; rather than having to create an empty `struct` type.
+Type này sẽ là một `func` cũng triển khai interface của bạn. Nhờ đó, người dùng interface có thể triển khai nó chỉ với một hàm, thay vì phải tạo một `struct` rỗng.
 
-We then create the function `StdOutAlerter` which has the same signature as the function and just use `time.AfterFunc` to schedule it to print to `os.Stdout`.
+Sau đó chúng ta tạo hàm `StdOutAlerter` có cùng signature với hàm đó và sử dụng `time.AfterFunc` để lên lịch in ra `os.Stdout`.
 
-Update `main` where we create `NewCLI` to see this in action
+Cập nhật `main` nơi chúng ta tạo `NewCLI` để xem nó hoạt động
 
 ```go
 poker.NewCLI(store, os.Stdin, poker.BlindAlerterFunc(poker.StdOutAlerter)).PlayPoker()
 ```
 
-Before running you might want to change the `blindTime` increment in `CLI` to be 10 seconds rather than 10 minutes just so you can see it in action.
+Trước khi chạy, bạn có thể muốn thay đổi khoảng tăng `blindTime` trong `CLI` thành 10 giây thay vì 10 phút để có thể thấy nó hoạt động.
 
-You should see it print the blind values as we'd expect every 10 seconds. Notice how you can still type `Shaun wins` into the CLI and it will stop the program how we'd expect.
+Bạn sẽ thấy nó in ra các giá trị blind như mong đợi mỗi 10 giây. Lưu ý rằng bạn vẫn có thể gõ `Shaun wins` vào CLI và nó sẽ dừng chương trình như mong đợi.
 
-The game won't always be played with 5 people so we need to prompt the user to enter a number of players before the game starts.
+Trò chơi không phải lúc nào cũng chơi với 5 người, nên chúng ta cần hỏi người dùng nhập số lượng người chơi trước khi trò chơi bắt đầu.
 
-## Write the test first
+## Viết test trước
 
-To check we are prompting for the number of players we'll want to record what is written to StdOut. We've done this a few times now, we know that `os.Stdout` is an `io.Writer` so we can check what is written if we use dependency injection to pass in a `bytes.Buffer` in our test and see what our code will write.
+Để kiểm tra rằng chúng ta đang hỏi số lượng người chơi, chúng ta sẽ muốn ghi lại những gì được viết ra StdOut. Chúng ta đã làm điều này vài lần rồi. Chúng ta biết rằng `os.Stdout` là một `io.Writer`, nên có thể kiểm tra những gì được viết ra nếu dùng dependency injection để truyền vào `bytes.Buffer` trong test.
 
-We don't care about our other collaborators in this test just yet so we've made some dummies in our test file.
+Chúng ta không quan tâm đến các collaborator khác trong test này nên đã tạo một số dummy trong file test.
 
-We should be a little wary that we now have 4 dependencies for `CLI`, that feels like maybe it is starting to have too many responsibilities. Let's live with it for now and see if a refactoring emerges as we add this new functionality.
+Chúng ta nên hơi cẩn thận rằng `CLI` giờ đã có 4 dependency, có vẻ như nó đang bắt đầu có quá nhiều trách nhiệm. Hãy tạm chấp nhận và xem liệu cơ hội refactor có xuất hiện khi chúng ta thêm chức năng mới.
 
 ```go
 var dummyBlindAlerter = &SpyBlindAlerter{}
@@ -436,7 +436,7 @@ var dummyStdIn = &bytes.Buffer{}
 var dummyStdOut = &bytes.Buffer{}
 ```
 
-Here is our new test
+Đây là test mới
 
 ```go
 t.Run("it prompts the user to enter the number of players", func(t *testing.T) {
@@ -453,9 +453,9 @@ t.Run("it prompts the user to enter the number of players", func(t *testing.T) {
 })
 ```
 
-We pass in what will be `os.Stdout` in `main` and see what is written.
+Chúng ta truyền vào thứ sẽ là `os.Stdout` trong `main` và xem những gì được viết ra.
 
-## Try to run the test
+## Thử chạy test
 
 ```
 ./CLI_test.go:38:27: too many arguments in call to poker.NewCLI
@@ -463,19 +463,19 @@ We pass in what will be `os.Stdout` in `main` and see what is written.
 	want (poker.PlayerStore, io.Reader, poker.BlindAlerter)
 ```
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
+## Viết lượng code tối thiểu để test chạy được và kiểm tra output lỗi
 
-We have a new dependency so we'll have to update `NewCLI`
+Chúng ta có dependency mới nên cần cập nhật `NewCLI`
 
 ```go
 func NewCLI(store PlayerStore, in io.Reader, out io.Writer, alerter BlindAlerter) *CLI
 ```
 
-Now the _other_ tests will fail to compile because they don't have an `io.Writer` being passed into `NewCLI`.
+Bây giờ các test _khác_ sẽ không biên dịch được vì chúng không truyền `io.Writer` vào `NewCLI`.
 
-Add `dummyStdout` for the other tests.
+Thêm `dummyStdout` cho các test khác.
 
-The new test should fail like so
+Test mới sẽ fail như sau
 
 ```
 === RUN   TestCLI
@@ -486,9 +486,9 @@ The new test should fail like so
 FAIL
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ code để test pass
 
-We need to add our new dependency to our `CLI` so we can reference it in `PlayPoker`
+Chúng ta cần thêm dependency mới vào `CLI` để có thể tham chiếu trong `PlayPoker`
 
 ```go
 type CLI struct {
@@ -508,7 +508,7 @@ func NewCLI(store PlayerStore, in io.Reader, out io.Writer, alerter BlindAlerter
 }
 ```
 
-Then finally we can write our prompt at the start of the game
+Cuối cùng chúng ta có thể viết lời nhắc ở đầu trò chơi
 
 ```go
 func (cli *CLI) PlayPoker() {
@@ -521,17 +521,17 @@ func (cli *CLI) PlayPoker() {
 
 ## Refactor
 
-We have a duplicate string for the prompt which we should extract into a constant
+Chúng ta có chuỗi trùng lặp cho lời nhắc, nên trích xuất thành hằng số
 
 ```go
 const PlayerPrompt = "Please enter the number of players: "
 ```
 
-Use this in both the test code and `CLI`.
+Sử dụng hằng số này trong cả test code và `CLI`.
 
-Now we need to send in a number and extract it out. The only way we'll know if it has had the desired effect is by seeing what blind alerts were scheduled.
+Bây giờ chúng ta cần gửi một số và trích xuất nó ra. Cách duy nhất để biết nó có tác dụng mong muốn là xem những thông báo blind nào đã được lên lịch.
 
-## Write the test first
+## Viết test trước
 
 ```go
 t.Run("it prompts the user to enter the number of players", func(t *testing.T) {
@@ -570,15 +570,15 @@ t.Run("it prompts the user to enter the number of players", func(t *testing.T) {
 })
 ```
 
-Ouch! A lot of changes.
+Khá nhiều thay đổi!
 
-- We remove our dummy for StdIn and instead send in a mocked version representing our user entering 7
-- We also remove our dummy on the blind alerter so we can see that the number of players has had an effect on the scheduling
-- We test what alerts are scheduled
+- Chúng ta bỏ dummy cho StdIn và thay vào đó gửi phiên bản mock đại diện cho người dùng nhập 7
+- Chúng ta cũng bỏ dummy trên blind alerter để xem số người chơi đã ảnh hưởng đến việc lên lịch như thế nào
+- Chúng ta test những thông báo nào được lên lịch
 
-## Try to run the test
+## Thử chạy test
 
-The test should still compile and fail reporting that the scheduled times are wrong because we've hard-coded for the game to be based on having 5 players
+Test vẫn biên dịch được và fail, báo rằng thời gian lên lịch sai vì chúng ta đã hard-code trò chơi cho 5 người chơi
 
 ```
 === RUN   TestCLI
@@ -590,9 +590,9 @@ The test should still compile and fail reporting that the scheduled times are wr
 === RUN   TestCLI/it_prompts_the_user_to_enter_the_number_of_players/200_chips_at_12m0s
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ code để test pass
 
-Remember, we are free to commit whatever sins we need to make this work. Once we have working software we can then work on refactoring the mess we're about to make!
+Nhớ rằng, chúng ta tự do "phạm tội" bao nhiêu tùy thích để code hoạt động. Khi đã có phần mềm chạy được, chúng ta có thể refactor mớ hỗn độn mà chúng ta sắp tạo ra!
 
 ```go
 func (cli *CLI) PlayPoker() {
@@ -618,30 +618,30 @@ func (cli *CLI) scheduleBlindAlerts(numberOfPlayers int) {
 }
 ```
 
-- We read in the `numberOfPlayersInput` into a string
-- We use `cli.readLine()` to get the input from the user and then call `Atoi` to convert it into an integer - ignoring any error scenarios. We'll need to write a test for that scenario later.
-- From here we change `scheduleBlindAlerts` to accept a number of players. We then calculate a `blindIncrement` time to use to add to `blindTime` as we iterate over the blind amounts
+- Chúng ta đọc `numberOfPlayersInput` vào chuỗi
+- Chúng ta dùng `cli.readLine()` để nhận input từ người dùng rồi gọi `Atoi` để chuyển thành số nguyên - tạm bỏ qua các tình huống lỗi. Chúng ta sẽ cần viết test cho tình huống đó sau.
+- Từ đây, chúng ta thay đổi `scheduleBlindAlerts` để nhận số người chơi. Chúng ta tính `blindIncrement` để cộng vào `blindTime` khi duyệt qua các mức blind
 
-While our new test has been fixed, a lot of others have failed because now our system only works if the game starts with a user entering a number. You'll need to fix the tests by changing the user inputs so that a number followed by a newline is added (this is highlighting yet more flaws in our approach right now).
+Trong khi test mới đã được sửa, nhiều test khác fail vì hệ thống giờ chỉ hoạt động nếu trò chơi bắt đầu với người dùng nhập một số. Bạn cần sửa các test bằng cách thay đổi input người dùng sao cho một số theo sau bởi dấu xuống dòng được thêm vào (điều này làm lộ thêm các khuyết điểm trong cách tiếp cận hiện tại).
 
 ## Refactor
 
-This all feels a bit horrible right? Let's **listen to our tests**.
+Tất cả cảm giác khá tệ phải không? Hãy **lắng nghe test của chúng ta**.
 
-- In order to test that we are scheduling some alerts we set up 4 different dependencies. Whenever you have a lot of dependencies for a _thing_ in your system, it implies it's doing too much. Visually we can see it in how cluttered our test is.
-- To me it feels like **we need to make a cleaner abstraction between reading user input and the business logic we want to do**
-- A better test would be _given this user input, do we call a new type `Game` with the correct number of players_.
-- We would then extract the testing of the scheduling into the tests for our new `Game`.
+- Để test rằng chúng ta lên lịch một số thông báo, chúng ta phải thiết lập 4 dependency khác nhau. Khi nào bạn có nhiều dependency cho một _thứ_ trong hệ thống, điều đó ngụ ý nó đang làm quá nhiều việc. Trực quan chúng ta có thể thấy test rất lộn xộn; **lắng nghe test là rất quan trọng**.
+- Theo tôi, có vẻ như **chúng ta cần tạo một abstraction (trừu tượng hóa) rõ ràng hơn giữa việc đọc input người dùng và logic nghiệp vụ**.
+- Một test tốt hơn sẽ là _với input người dùng này, chúng ta có gọi type `Game` mới với đúng số người chơi không_.
+- Sau đó chúng ta sẽ tách việc test lên lịch vào các test cho `Game` mới.
 
-We can refactor toward our `Game` first and our test should continue to pass. Once we've made the structural changes we want we can think about how we can refactor the tests to reflect our new separation of concerns
+Chúng ta có thể refactor hướng tới `Game` trước và test vẫn nên pass. Khi đã thực hiện xong các thay đổi cấu trúc, chúng ta có thể nghĩ về cách refactor test để phản ánh việc phân tách trách nhiệm mới.
 
-Remember when making changes in refactoring try to keep them as small as possible and keep re-running the tests.
+Nhớ rằng khi thực hiện thay đổi trong refactoring, hãy giữ chúng nhỏ nhất có thể và chạy lại test sau mỗi thay đổi.
 
-Try it yourself first. Think about the boundaries of what a `Game` would offer and what our `CLI` should be doing.
+Hãy thử tự làm trước. Nghĩ về ranh giới của `Game` sẽ cung cấp gì và `CLI` nên làm gì.
 
-For now **don't** change the external interface of `NewCLI` as we don't want to change the test code and the client code at the same time as that is too much to juggle and we could end up breaking things.
+Hiện tại **đừng** thay đổi interface bên ngoài của `NewCLI` vì chúng ta không muốn thay đổi test code và client code cùng lúc, vì đó là quá nhiều thứ cần xử lý và có thể gây lỗi.
 
-This is what I came up with:
+Đây là kết quả của tôi:
 
 ```go
 // game.go
@@ -709,24 +709,24 @@ func (cli *CLI) readLine() string {
 }
 ```
 
-From a "domain" perspective:
-- We want to `Start` a `Game`, indicating how many people are playing
-- We want to `Finish` a `Game`, declaring the winner
+Từ góc nhìn "domain" (miền nghiệp vụ):
+- Chúng ta muốn `Start` (bắt đầu) một `Game`, chỉ ra có bao nhiêu người đang chơi
+- Chúng ta muốn `Finish` (kết thúc) một `Game`, tuyên bố người thắng
 
-The new `Game` type encapsulates this for us.
+Type `Game` mới đóng gói điều này cho chúng ta.
 
-With this change we've passed `BlindAlerter` and `PlayerStore` to `Game` as it is now responsible for alerting and storing results.
+Với thay đổi này, chúng ta đã truyền `BlindAlerter` và `PlayerStore` cho `Game` vì giờ nó chịu trách nhiệm thông báo và lưu kết quả.
 
-Our `CLI` is now just concerned with:
+`CLI` của chúng ta giờ chỉ quan tâm đến:
 
-- Constructing `Game` with its existing dependencies (which we'll refactor next)
-- Interpreting user input as method invocations for `Game`
+- Tạo `Game` với các dependency hiện có (sẽ refactor tiếp)
+- Diễn giải input người dùng thành các lời gọi phương thức cho `Game`
 
-We want to try to avoid doing "big" refactors which leave us in a state of failing tests for extended periods as that increases the chances of mistakes. (If you are working in a large/distributed team this is extra important)
+Chúng ta muốn tránh thực hiện refactoring "lớn" khiến test fail trong thời gian dài, vì điều đó tăng khả năng mắc lỗi. (Nếu bạn làm việc trong nhóm lớn/phân tán, điều này càng quan trọng hơn)
 
-The first thing we'll do is refactor `Game` so that we inject it into `CLI`. We'll do the smallest changes in our tests to facilitate that and then we'll see how we can break up the tests into the themes of parsing user input and game management.
+Điều đầu tiên chúng ta sẽ làm là refactor `Game` để inject nó vào `CLI`. Chúng ta sẽ thực hiện thay đổi nhỏ nhất trong test để hỗ trợ điều đó, rồi xem cách chia test thành các chủ đề: phân tích input người dùng và quản lý trò chơi.
 
-All we need to do right now is change `NewCLI`
+Tất cả những gì cần làm bây giờ là thay đổi `NewCLI`
 
 ```go
 func NewCLI(in io.Reader, out io.Writer, game *Game) *CLI {
@@ -738,11 +738,11 @@ func NewCLI(in io.Reader, out io.Writer, game *Game) *CLI {
 }
 ```
 
-This feels like an improvement already. We have less dependencies and _our dependency list is reflecting our overall design goal_ of CLI being concerned with input/output and delegating game specific actions to a `Game`.
+Điều này cảm giác đã cải thiện rồi. Chúng ta có ít dependency hơn và _danh sách dependency phản ánh mục tiêu thiết kế tổng thể_ của CLI: quan tâm đến input/output và ủy thác các hành động liên quan đến trò chơi cho `Game`.
 
-If you try and compile there are problems. You should be able to fix these problems yourself. Don't worry about making any mocks for `Game` right now, just initialise _real_ `Game`s just to get everything compiling and tests green.
+Nếu bạn thử biên dịch sẽ có lỗi. Bạn nên tự sửa được. Đừng lo tạo mock cho `Game` lúc này, chỉ cần khởi tạo `Game` _thật_ để mọi thứ biên dịch và test xanh.
 
-To do this you'll need to make a constructor
+Để làm điều này, bạn cần tạo constructor
 
 ```go
 func NewGame(alerter BlindAlerter, store PlayerStore) *Game {
@@ -753,7 +753,7 @@ func NewGame(alerter BlindAlerter, store PlayerStore) *Game {
 }
 ```
 
-Here's an example of one of the setups for the tests being fixed
+Đây là ví dụ về cách sửa setup cho một trong các test
 
 ```go
 stdout := &bytes.Buffer{}
@@ -765,7 +765,7 @@ cli := poker.NewCLI(in, stdout, game)
 cli.PlayPoker()
 ```
 
-It shouldn't take much effort to fix the tests and be back to green again (that's the point!) but make sure you fix `main.go` too before the next stage.
+Việc sửa test và quay lại trạng thái xanh không nên tốn nhiều công sức (đó là mục đích!). Nhưng hãy nhớ sửa cả `main.go` trước giai đoạn tiếp theo.
 
 ```go
 // main.go
@@ -774,9 +774,9 @@ cli := poker.NewCLI(os.Stdin, os.Stdout, game)
 cli.PlayPoker()
 ```
 
-Now that we have extracted out `Game` we should move our game specific assertions into tests separate from CLI.
+Bây giờ khi đã tách `Game` ra, chúng ta nên chuyển các assertion liên quan đến game vào test riêng, tách biệt khỏi CLI.
 
-This is just an exercise in copying our `CLI` tests but with less dependencies
+Đây chỉ là bài tập sao chép test CLI nhưng với ít dependency hơn
 
 ```go
 func TestGame_Start(t *testing.T) {
@@ -831,19 +831,19 @@ func TestGame_Finish(t *testing.T) {
 }
 ```
 
-The intent behind what happens when a game of poker starts is now much clearer.
+Ý định đằng sau những gì xảy ra khi bắt đầu trò chơi poker giờ rõ ràng hơn nhiều.
 
-Make sure to also move over the test for when the game ends.
+Hãy nhớ chuyển cả test cho khi trò chơi kết thúc.
 
-Once we are happy we have moved the tests over for game logic we can simplify our CLI tests so they reflect our intended responsibilities clearer
+Khi hài lòng rằng đã chuyển xong test cho logic game, chúng ta có thể đơn giản hóa test CLI để phản ánh rõ hơn trách nhiệm dự kiến:
 
-- Process user input and call `Game`'s methods when appropriate
-- Send output
-- Crucially it doesn't know about the actual workings of how games work
+- Xử lý input người dùng và gọi các phương thức của `Game` khi phù hợp
+- Gửi output
+- Quan trọng là nó không biết về cách hoạt động thực tế của trò chơi
 
-To do this we'll have to make it so `CLI` no longer relies on a concrete `Game` type but instead accepts an interface with `Start(numberOfPlayers)` and `Finish(winner)`. We can then create a spy of that type and verify the correct calls are made.
+Để làm điều này, chúng ta cần làm cho `CLI` không còn phụ thuộc vào type `Game` cụ thể mà thay vào đó chấp nhận interface với `Start(numberOfPlayers)` và `Finish(winner)`. Sau đó chúng ta có thể tạo spy của type đó và xác minh các lời gọi đúng được thực hiện.
 
-It's here we realise that naming is awkward sometimes. Rename `Game` to `TexasHoldem` (as that's the _kind_ of game we're playing) and the new interface will be called `Game`. This keeps faithful to the notion that our CLI is oblivious to the actual game we're playing and what happens when you `Start` and `Finish`.
+Ở đây chúng ta nhận ra rằng đặt tên đôi khi rất khó. Đổi tên `Game` thành `TexasHoldem` (vì đó là _loại_ trò chơi chúng ta đang chơi) và interface mới sẽ được gọi là `Game`. Điều này giữ đúng với ý tưởng rằng CLI không biết trò chơi thực tế chúng ta đang chơi và điều gì xảy ra khi bạn `Start` và `Finish`.
 
 ```go
 type Game interface {
@@ -852,11 +852,11 @@ type Game interface {
 }
 ```
 
-Replace all references to `*Game` inside `CLI` and replace them with `Game` (our new interface). As always keep re-running tests to check everything is green while we are refactoring.
+Thay thế tất cả tham chiếu đến `*Game` trong `CLI` bằng `Game` (interface mới). Như mọi khi, hãy chạy lại test để kiểm tra mọi thứ vẫn xanh trong khi refactoring.
 
-Now that we have decoupled `CLI` from `TexasHoldem` we can use spies to check that `Start` and `Finish` are called when we expect them to, with the correct arguments.
+Bây giờ khi đã tách `CLI` khỏi `TexasHoldem`, chúng ta có thể dùng spy để kiểm tra rằng `Start` và `Finish` được gọi khi mong đợi, với đúng tham số.
 
-Create a spy that implements `Game`
+Tạo spy triển khai `Game`
 
 ```go
 type GameSpy struct {
@@ -873,9 +873,9 @@ func (g *GameSpy) Finish(winner string) {
 }
 ```
 
-Replace any `CLI` test which is testing any game specific logic with checks on how our `GameSpy` is called. This will then reflect the responsibilities of CLI in our tests clearly.
+Thay thế các test CLI đang test logic game bằng kiểm tra cách `GameSpy` được gọi. Điều này sẽ phản ánh rõ ràng trách nhiệm của CLI trong test.
 
-Here is an example of one of the tests being fixed; try and do the rest yourself and check the source code if you get stuck.
+Đây là ví dụ sửa một test; hãy thử tự sửa phần còn lại và kiểm tra mã nguồn nếu bị kẹt.
 
 ```go
 	t.Run("it prompts the user to enter the number of players and starts the game", func(t *testing.T) {
@@ -899,15 +899,15 @@ Here is an example of one of the tests being fixed; try and do the rest yourself
 	})
 ```
 
-Now that we have a clean separation of concerns, checking edge cases around IO in our `CLI` should be easier.
+Bây giờ khi đã phân tách trách nhiệm rõ ràng, việc kiểm tra các trường hợp đặc biệt liên quan đến IO trong `CLI` sẽ dễ dàng hơn.
 
-We need to address the scenario where a user puts a non numeric value when prompted for the number of players:
+Chúng ta cần xử lý tình huống người dùng nhập giá trị không phải số khi được hỏi số lượng người chơi:
 
-Our code should not start the game and it should print a handy error to the user and then exit.
+Code không nên bắt đầu trò chơi. Nó nên in thông báo lỗi hữu ích cho người dùng rồi thoát.
 
-## Write the test first
+## Viết test trước
 
-We'll start by making sure the game doesn't start
+Chúng ta sẽ bắt đầu bằng cách đảm bảo trò chơi không bắt đầu
 
 ```go
 t.Run("it prints an error when a non numeric value is entered and does not start the game", func(t *testing.T) {
@@ -924,18 +924,18 @@ t.Run("it prints an error when a non numeric value is entered and does not start
 })
 ```
 
-You'll need to add to our `GameSpy` a field `StartCalled` which only gets set if `Start` is called
+Bạn cần thêm field `StartCalled` vào `GameSpy`, field này chỉ được set khi `Start` được gọi.
 
-## Try to run the test
+## Thử chạy test
 ```
 === RUN   TestCLI/it_prints_an_error_when_a_non_numeric_value_is_entered_and_does_not_start_the_game
     --- FAIL: TestCLI/it_prints_an_error_when_a_non_numeric_value_is_entered_and_does_not_start_the_game (0.00s)
         CLI_test.go:62: game should not have started
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ code để test pass
 
-Around where we call `Atoi` we just need to check for the error
+Ở chỗ gọi `Atoi`, chúng ta chỉ cần kiểm tra lỗi
 
 ```go
 numberOfPlayers, err := strconv.Atoi(cli.readLine())
@@ -945,11 +945,11 @@ if err != nil {
 }
 ```
 
-Next we need to inform the user of what they did wrong so we'll assert on what is printed to `stdout`.
+Tiếp theo chúng ta cần thông báo cho người dùng biết họ đã làm gì sai, nên sẽ assert trên những gì được in ra `stdout`.
 
-## Write the test first
+## Viết test trước
 
-We've asserted on what was printed to `stdout` before so we can copy that code for now
+Chúng ta đã assert trên những gì in ra `stdout` trước đó nên có thể sao chép code đó
 
 ```go
 gotPrompt := stdout.String()
@@ -961,9 +961,9 @@ if gotPrompt != wantPrompt {
 }
 ```
 
-We are storing _everything_ that gets written to stdout so we still expect the `poker.PlayerPrompt`. We then just check an additional thing gets printed. We're not too bothered about the exact wording for now, we'll address it when we refactor.
+Chúng ta đang lưu _mọi thứ_ được viết vào stdout nên vẫn mong đợi `poker.PlayerPrompt`. Sau đó chỉ kiểm tra thêm một thứ nữa được in ra. Chúng ta chưa quan tâm lắm đến từ ngữ chính xác, sẽ xử lý khi refactor.
 
-## Try to run the test
+## Thử chạy test
 
 ```
 === RUN   TestCLI/it_prints_an_error_when_a_non_numeric_value_is_entered_and_does_not_start_the_game
@@ -971,9 +971,9 @@ We are storing _everything_ that gets written to stdout so we still expect the `
         CLI_test.go:70: got 'Please enter the number of players: ', want 'Please enter the number of players: you're so silly'
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ code để test pass
 
-Change the error handling code
+Thay đổi code xử lý lỗi
 
 ```go
 if err != nil {
@@ -984,19 +984,19 @@ if err != nil {
 
 ## Refactor
 
-Now refactor the message into a constant like `PlayerPrompt`
+Giờ hãy refactor thông báo thành hằng số giống `PlayerPrompt`
 
 ```go
 wantPrompt := poker.PlayerPrompt + poker.BadPlayerInputErrMsg
 ```
 
-and put in a more appropriate message
+và đặt thông báo phù hợp hơn
 
 ```go
 const BadPlayerInputErrMsg = "Bad value received for number of players, please try again with a number"
 ```
 
-Finally our testing around what has been sent to `stdout` is quite verbose, let's write an assert function to clean it up.
+Cuối cùng, việc test những gì gửi đến `stdout` khá dài dòng. Hãy viết hàm assert để gọn hơn.
 
 ```go
 func assertMessagesSentToUser(t testing.TB, stdout *bytes.Buffer, messages ...string) {
@@ -1009,15 +1009,15 @@ func assertMessagesSentToUser(t testing.TB, stdout *bytes.Buffer, messages ...st
 }
 ```
 
-Using the vararg syntax (`...string`) is handy here because we need to assert on varying amounts of messages.
+Sử dụng cú pháp vararg (`...string`) rất tiện ở đây vì chúng ta cần assert trên số lượng thông báo khác nhau.
 
-Use this helper in both of the tests where we assert on messages sent to the user.
+Sử dụng helper này trong cả hai test nơi chúng ta assert trên thông báo gửi đến người dùng.
 
-There are a number of tests that could be helped with some `assertX` functions so practice your refactoring by cleaning up our tests so they read nicely.
+Có nhiều test có thể cải thiện với các hàm `assertX`, nên hãy luyện tập refactoring bằng cách dọn dẹp test để chúng dễ đọc hơn.
 
-Take some time and think about the value of some of the tests we've driven out. Remember we don't want more tests than necessary, can you refactor/remove some of them _and still be confident it all works_ ?
+Dành thời gian suy nghĩ về giá trị của một số test chúng ta đã viết. Nhớ rằng chúng ta không muốn nhiều test hơn mức cần thiết. Bạn có thể refactor/bỏ một số test _mà vẫn tự tin mọi thứ hoạt động_ không?
 
-Here is what I came up with
+Đây là kết quả của tôi
 
 ```go
 func TestCLI(t *testing.T) {
@@ -1062,53 +1062,54 @@ func TestCLI(t *testing.T) {
 	})
 }
 ```
-The tests now reflect the main capabilities of CLI, it is able to read user input in terms of how many people are playing and who won and handles when a bad value is entered for number of players. By doing this it is clear to the reader what `CLI` does, but also what it doesn't do.
 
-What happens if instead of putting `Ruth wins` the user puts in `Lloyd is a killer` ?
+Các test giờ phản ánh khả năng chính của CLI: nó có thể đọc input người dùng về số người chơi và ai thắng, đồng thời xử lý khi nhập giá trị sai cho số người chơi. Nhờ vậy, người đọc hiểu rõ `CLI` làm gì, và cũng hiểu rõ những gì nó _không_ làm.
 
-Finish this chapter by writing a test for this scenario and making it pass.
+Điều gì xảy ra nếu thay vì nhập `Ruth wins`, người dùng nhập `Lloyd is a killer`?
+
+Hãy kết thúc chương này bằng cách viết test cho tình huống đó và làm cho nó pass.
 
 ## Tổng kết
 
-### A quick project recap
+### Tóm tắt nhanh về dự án
 
-For the past 5 chapters we have slowly TDD'd a fair amount of code
+Trong 5 chương vừa qua, chúng ta đã từ từ TDD một lượng code đáng kể
 
-- We have two applications, a command line application and a web server.
-- Both these applications rely on a `PlayerStore` to record winners
-- The web server can also display a league table of who is winning the most games
-- The command line app helps players play a game of poker by tracking what the current blind value is.
+- Chúng ta có hai ứng dụng: một ứng dụng command line và một web server.
+- Cả hai ứng dụng đều dựa vào `PlayerStore` để ghi nhận người thắng.
+- Web server cũng có thể hiển thị bảng xếp hạng ai thắng nhiều nhất.
+- Ứng dụng command line giúp người chơi chơi poker bằng cách theo dõi giá trị blind hiện tại.
 
 ### time.Afterfunc
 
-A very handy way of scheduling a function call after a specific duration. It is well worth investing time [looking at the documentation for `time`](https://golang.org/pkg/time/) as it has a lot of time saving functions and methods for you to work with.
+Một cách rất tiện lợi để lên lịch gọi hàm sau một khoảng thời gian cụ thể. Rất đáng để đầu tư thời gian [xem tài liệu của `time`](https://golang.org/pkg/time/) vì nó có nhiều hàm và phương thức hữu ích.
 
-Some of my favourites are
+Một số mục yêu thích của tôi là
 
-- `time.After(duration)` returns a `chan Time` when the duration has expired. So if you wish to do something _after_ a specific time, this can help.
-- `time.NewTicker(duration)` returns a `Ticker` which is similar to the above in that it returns a channel but this one "ticks" every duration, rather than just once. This is very handy if you want to execute some code every `N duration`.
+- `time.After(duration)` trả về `chan Time` khi khoảng thời gian đã hết. Nếu bạn muốn thực hiện gì đó _sau_ một thời gian cụ thể, hàm này có thể giúp ích.
+- `time.NewTicker(duration)` trả về `Ticker` tương tự như trên, nó trả về channel nhưng channel này "tích tắc" sau mỗi khoảng duration, thay vì chỉ một lần. Rất hữu ích nếu bạn muốn thực thi code mỗi `N duration`.
 
-### More examples of good separation of concerns
+### Thêm ví dụ về phân tách trách nhiệm tốt
 
-_Generally_ it is good practice to separate the responsibilities of dealing with user input and responses away from domain code. You see that here in our command line application and also our web server.
+_Nói chung_, việc tách biệt trách nhiệm xử lý input/response người dùng khỏi code domain (miền nghiệp vụ) là thực hành tốt. Bạn thấy điều này ở đây trong ứng dụng command line và cả web server.
 
-Our tests got messy. We had too many assertions (check this input, schedules these alerts, etc) and too many dependencies. We could visually see it was cluttered; it is **so important to listen to your tests**.
+Test của chúng ta trở nên lộn xộn. Chúng ta có quá nhiều assertion (kiểm tra input này, lên lịch các thông báo kia, v.v.) và quá nhiều dependency. Chúng ta có thể nhìn thấy trực quan sự lộn xộn; **lắng nghe test là rất quan trọng**.
 
-- If your tests look messy try and refactor them.
-- If you've done this and they're still a mess it is very likely pointing to a flaw in your design
-- This is one of the real strengths of tests.
+- Nếu test trông lộn xộn, hãy thử refactor chúng.
+- Nếu đã refactor mà vẫn lộn xộn, rất có thể nó đang chỉ ra khuyết điểm trong thiết kế.
+- Đây là một trong những sức mạnh thực sự của test.
 
-Even though the tests and the production code was a bit cluttered we could freely refactor backed by our tests.
+Mặc dù test và code sản phẩm hơi lộn xộn, chúng ta có thể tự do refactor với sự hỗ trợ của test.
 
-Remember when you get into these situations to always take small steps and re-run the tests after every change.
+Nhớ rằng khi gặp những tình huống này, luôn thực hiện từng bước nhỏ và chạy lại test sau mỗi thay đổi.
 
-It would've been dangerous to refactor both the test code _and_ the production code at the same time, so we first refactored the production code (in the current state we couldn't improve the tests much) without changing its interface so we could rely on our tests as much as we could while changing things. _Then_ we refactored the tests after the design improved.
+Sẽ rất nguy hiểm nếu refactor cả test code _và_ code sản phẩm cùng lúc. Vì vậy, chúng ta refactor code sản phẩm trước (ở trạng thái hiện tại không thể cải thiện test nhiều) mà không thay đổi interface để có thể dựa vào test nhiều nhất có thể khi thay đổi. _Sau đó_ chúng ta mới refactor test khi thiết kế đã được cải thiện.
 
-After refactoring the dependency list reflected our design goal. This is another benefit of DI in that it often documents intent. When you rely on global variables responsibilities become very unclear.
+Sau khi refactor, danh sách dependency phản ánh mục tiêu thiết kế. Đây là một lợi ích khác của DI (Dependency Injection - tiêm phụ thuộc): nó thường ghi lại ý định. Khi bạn dựa vào biến toàn cục, trách nhiệm trở nên rất không rõ ràng.
 
-## An example of a function implementing an interface
+## Ví dụ về hàm triển khai interface
 
-When you define an interface with one method in it you might want to consider defining a `MyInterfaceFunc` type to complement it so users can implement your interface with just a function.
+Khi bạn định nghĩa interface với một phương thức duy nhất, bạn có thể cân nhắc định nghĩa type `MyInterfaceFunc` đi kèm để người dùng có thể triển khai interface chỉ với một hàm.
 
 ```go
 type BlindAlerter interface {
@@ -1124,15 +1125,15 @@ func (a BlindAlerterFunc) ScheduleAlertAt(duration time.Duration, amount int) {
 }
 ```
 
-By doing this, people using your library can implement your interface with just a function. They can use [Type Conversion](https://go.dev/tour/basics/13) to convert their function into a `BlindAlerterFunc` and then use it as a BlindAlerter (as `BlindAlerterFunc` implements `BlindAlerter`).
+Bằng cách này, người dùng thư viện có thể triển khai interface chỉ với một hàm. Họ có thể sử dụng [Type Conversion](https://go.dev/tour/basics/13) (chuyển đổi kiểu) để chuyển hàm thành `BlindAlerterFunc` và dùng nó như `BlindAlerter` (vì `BlindAlerterFunc` triển khai `BlindAlerter`).
 
 ```go
 game := poker.NewTexasHoldem(poker.BlindAlerterFunc(poker.StdOutAlerter), store)
 ```
 
-The broader point here is, in Go you can add methods to _types_, not just structs. This is a very powerful feature, and you can use it to implement interfaces in more convenient ways.
+Điểm quan trọng hơn ở đây là, trong Go bạn có thể thêm phương thức vào _type_, không chỉ struct. Đây là tính năng rất mạnh mẽ, và bạn có thể dùng nó để triển khai interface theo những cách tiện lợi hơn.
 
-Consider that you can not only define types of functions, but also define types around other types, so that you can add methods to them.
+Hãy cân nhắc rằng bạn không chỉ có thể định nghĩa type cho hàm, mà còn có thể định nghĩa type bao quanh các type khác để thêm phương thức cho chúng.
 
 ```go
 type Blog map[string]string
@@ -1142,4 +1143,4 @@ func (b Blog) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Here we've created an HTTP handler that implements a very simple "blog" where it will use URL paths as keys to posts stored in a map.
+Ở đây chúng ta đã tạo HTTP handler triển khai một "blog" rất đơn giản, sử dụng đường dẫn URL làm key cho các bài viết được lưu trong map.

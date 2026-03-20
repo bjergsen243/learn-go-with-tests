@@ -412,7 +412,7 @@ Các bản kiểm thử bây giờ đã vượt qua.
 
 ### Mã hóa (Encoding) và Giải mã (Decoding)
 
-HÃy chú ý sự đối xứng đáng yêu trong thư viện tiêu chuẩn.
+Hãy chú ý sự đối xứng đáng yêu trong thư viện tiêu chuẩn.
 
 - Để tạo một `Encoder`, bạn cần một `io.Writer`, chính là những gì `http.ResponseWriter` triển khai.
 - Để tạo một `Decoder`, bạn cần một `io.Reader`, chính là những gì trường `Body` của bản ghi phản hồi (response spy) triển khai.
@@ -663,7 +663,7 @@ if response.Result().Header.Get("content-type") != "application/json" {
 
 ## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-Cập nhập `leagueHandler`:
+Cập nhật `leagueHandler`:
 
 ```go
 // server.go

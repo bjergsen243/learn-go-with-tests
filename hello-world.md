@@ -31,9 +31,9 @@ Với lệnh `import "fmt"` sẽ dùng để nhập gói `fmt`, trong đó chứ
 
 Làm thế nào để test chương trình này?
 
-Một nguyên tắc quan trọng là cần tách biệt phần code xử lý logic khỏi các hiệu ứng phụ (side-effects)
+Một nguyên tắc quan trọng là cần tách biệt phần code xử lý logic khỏi các tác dụng phụ (side-effects)
 
--   `fmt.Println` là một hiệu ứng phụ vì nó in ra màn hình.
+-   `fmt.Println` là một tác dụng phụ vì nó in ra màn hình.
 -   Chuỗi truyền vào ("Hello, World!") là phần logic chính cần test.
 
 Để dễ test hơn, chúng ta có thể viết một hàm riêng để xử lý phần logic, sau đó gọi hàm này trong `main()`.
@@ -557,7 +557,7 @@ func greetingPrefix(language string) (prefix string) {
 Một số khái niệm mới:
 
 -   Trong phần khai báo hàm, chúng ta đã sử dụng _giá trị trả về có tên_ `(prefix string)`.
--   Điều này tạo ra một biến có tên là `prefix` ngay trong hàm `prefix`.
+-   Điều này tạo ra một biến có tên là `prefix` ngay trong hàm `greetingPrefix`.
     -   Biến này sẽ được gán giá trị mặc định của kiểu dữ liệu tương ứng (ví dụ: `int` mặc định là 0, còn `string` mặc định là `""`).
         -   Bạn có thể trả về giá trị của `prefix` bằng cách chỉ gọi `return` mà không cần viết `return prefix`
     -   Khi xem tài liệu Go Doc, giá trị trả về có tên giúp làm rõ ý nghĩa của hàm hơn.
@@ -570,7 +570,7 @@ Một số khái niệm mới:
 
 ## Tổng kết
 
-Ai mà ngờ được rằng một chương trình đơn giản như `Hello, world`lại có thể giúp ta học được nhiều thứ đến vậy!
+Ai mà ngờ được rằng một chương trình đơn giản như `Hello, world` lại có thể giúp ta học được nhiều thứ đến vậy!
 
 ### Một số cú pháp của Go mà bạn đã tìm hiểu
 

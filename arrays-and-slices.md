@@ -30,7 +30,7 @@ func TestSum(t *testing.T) {
 }
 ```
 
-Arrays có _dung lượng cố định_ mà bạn xác định khi khai báo biến. Chúng ta có thể khởi tạo array theo hai cách:
+Arrays có _kích thước cố định_ mà bạn xác định khi khai báo biến. Chúng ta có thể khởi tạo array theo hai cách:
 
 * \[N\]type{value1, value2, ..., valueN} ví dụ: `numbers := [5]int{1, 2, 3, 4, 5}`
 * \[...\]type{value1, value2, ..., valueN} ví dụ: `numbers := [...]int{1, 2, 3, 4, 5}`
@@ -481,7 +481,7 @@ func TestSumAllTails(t *testing.T) {
 
 Chúng ta có thể tạo hàm mới `checkSums` như thông thường, nhưng ở đây chúng ta đang giới thiệu một kỹ thuật mới — gán function vào biến. Trông có vẻ lạ, nhưng không khác gì gán biến kiểu `string` hay `int`, vì về bản chất function cũng là giá trị.
 
-Kỹ thuật này hữu ích khi bạn muốn gắn function với các biến cục bộ khác trong "scope" (ví dụ: trong một khối `{}`). Nó cũng giúp giảm bớt diện tích API.
+Kỹ thuật này hữu ích khi bạn muốn gắn function với các biến cục bộ khác trong "scope" (ví dụ: trong một khối `{}`). Nó cũng giúp thu hẹp phạm vi API.
 
 Bằng cách định nghĩa hàm này bên trong test, nó không thể được dùng bởi các hàm khác trong package. Việc ẩn các biến và hàm không cần export là một quyết định thiết kế quan trọng.
 

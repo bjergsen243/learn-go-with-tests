@@ -133,7 +133,7 @@ func main() {
 
 Hãy thử chạy chương trình và ngạc nhiên trước công sức của bạn.
 
-Đúng, điều này có vẻ tầm thường nhưng cách tiếp cận này là những gì tôi khuyên dùng cho bất kỳ dự án nào. **Hãy lấy một lát cắt mỏng của chức năng và làm cho nó hoạt động từ đầu đến cuối (end-to-end), được hỗ trợ bởi các bản kiểm thử.**
+Đúng, điều này có vẻ tầm thường nhưng cách tiếp cận này là những gì tôi khuyên dùng cho bất kỳ dự án nào. **Hãy lấy một phần nhỏ chức năng và làm cho nó hoạt động từ đầu đến cuối (end-to-end), được hỗ trợ bởi các bản kiểm thử.**
 
 Tiếp theo, chúng ta có thể làm cho nó in ra 2, 1 và sau đó là "Go!".
 
@@ -549,7 +549,7 @@ func (c *ConfigurableSleeper) Sleep() {
 
 Với thay đổi này, tất cả các test sẽ vượt qua trở lại và bạn có thể tự hỏi tại sao lại phiền phức như vậy khi chương trình chính không thay đổi chút nào. Hy vọng nó sẽ trở nên rõ ràng sau phần sau.
 
-### Tối ưu hóa và tái cấu trúc (Cleanup and refactor)
+### Dọn dẹp và tái cấu trúc (Cleanup and refactor)
 
 Điều cuối cùng chúng ta cần làm là thực sự sử dụng `ConfigurableSleeper` trong hàm main.
 

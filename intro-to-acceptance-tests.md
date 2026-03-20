@@ -1,130 +1,54 @@
-# Giới thiệu về kiểm thử chấp nhận (Acceptance testing)
+# Giới thiệu về Acceptance Tests (Kiểm thử chấp nhận)
 
-Tại `$WORK`, chúng tôi đã và đang gặp phải nhu cầu cần có tính năng "tắt an toàn" (graceful shutdown) cho các dịch vụ của mình. Tính năng tắt an toàn đảm bảo hệ thống của bạn hoàn thành công việc một cách thích hợp trước khi nó bị chấm dứt. Một ví dụ trong thế giới thực sẽ là ai đó cố gắng kết thúc một cuộc gọi điện thoại một cách đàng hoàng trước khi chuyển sang cuộc họp tiếp theo, thay vì chỉ dập máy giữa chừng.
+Tại `$WORK`, chúng tôi đã gặp nhu cầu cần có tính năng "tắt an toàn" (graceful shutdown) cho các dịch vụ của mình. Graceful shutdown đảm bảo hệ thống của bạn hoàn thành công việc đang dở trước khi bị chấm dứt. Một ví dụ thực tế là khi ai đó cố gắng kết thúc cuộc gọi điện thoại một cách lịch sự trước khi chuyển sang cuộc họp tiếp theo, thay vì dập máy giữa chừng.
 
-Chương này sẽ giới thiệu qua về việc tắt an toàn trong bối cảnh của một máy chủ HTTP, và cách viết các "bản kiểm thử chấp nhận" (acceptance tests) để giúp bạn tự tin vào hành vi mã nguồn của mình.
+Chương này sẽ giới thiệu về graceful shutdown trong bối cảnh của một máy chủ HTTP, và cách viết các acceptance test để giúp bạn tự tin vào hành vi của mã nguồn.
 
-Sau khi đọc xong chương này, bạn sẽ biết cách chia sẻ các gói (packages) đi kèm với những bản kiểm thử xuất sắc, giảm bớt nỗ lực bảo trì và tăng độ tin cậy vào chất lượng công việc của bạn.
+Sau khi đọc xong chương này, bạn sẽ biết cách chia sẻ các package đi kèm với những bài test tốt, giảm bớt nỗ lực bảo trì và tăng độ tin cậy vào chất lượng công việc của bạn.
 
 ## Vừa đủ thông tin về Kubernetes
 
-Chúng tôi chạy phần mềm của mình trên [Kubernetes](https://kubernetes.io/) (K8s). K8s sẽ chấm dứt các "pods" (trong thực tế là phần mềm của chúng ta) vì nhiều lý do khác nhau, và một lý do phổ biến là khi chúng ta đẩy (push) mã mới mà chúng ta muốn triển khai (deploy).
+Chúng tôi chạy phần mềm trên [Kubernetes](https://kubernetes.io/) (K8s). K8s sẽ chấm dứt các pod (thực chất là phần mềm của chúng ta) vì nhiều lý do khác nhau, và một lý do phổ biến là khi chúng ta push mã mới để triển khai (deploy).
 
-Chúng tôi đặt ra cho bản thân những tiêu chuẩn cao về [các chỉ số DORA](https://cloud.google.com/blog/products/devops-sre/using-the-four-keys-to-measure-your-devops-performance), do đó chúng tôi làm việc theo cách mà chúng tôi triển khai những cải tiến và tính năng nhỏ, tăng dần lên môi trường sản xuất (production) nhiều lần mỗi ngày.
+Chúng tôi đặt ra cho bản thân những tiêu chuẩn cao về [các chỉ số DORA](https://cloud.google.com/blog/products/devops-sre/using-the-four-keys-to-measure-your-devops-performance). Do đó, chúng tôi triển khai những cải tiến nhỏ, tăng dần lên môi trường production nhiều lần mỗi ngày.
 
-Khi k8s muốn chấm dứt một pod, nó khởi tạo một ["chu kỳ sống chấm dứt" (termination lifecycle)](https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-terminating-with-grace), và một phần trong đó là gửi đi một tín hiệu SIGTERM tới phần mềm của chúng ta. Đây là cách K8s báo với đoạn mã của mình rằng:
+Khi K8s muốn chấm dứt một pod, nó khởi tạo một [chu kỳ chấm dứt (termination lifecycle)](https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-terminating-with-grace). Một phần trong đó là gửi tín hiệu `SIGTERM` tới phần mềm của chúng ta. Đây là cách K8s thông báo với chương trình rằng:
 
-> Ngươi cần phải tự tắt máy đi, hoàn thành nốt bất cứ việc gì đang làm lỡ dở bởi vì sau một "thời gian ân hạn" (grace period) nhất định, ta sẽ gửi `SIGKILL`, và lúc đó thì ngươi tắt điện hằn.
+> Bạn cần tự tắt đi. Hãy hoàn thành nốt mọi công việc đang làm dở, bởi vì sau một khoảng thời gian ân hạn (grace period), tôi sẽ gửi `SIGKILL`, và lúc đó bạn sẽ bị buộc dừng ngay lập tức.
 
-Vào lúc tín hiệu `SIGKILL` được gọi ra, mọi công việc hiện thời được thực thi bởi chương trình của bạn sẽ bị dừng lại ngay tắp lự.
+Khi tín hiệu `SIGKILL` được gửi, mọi công việc đang được thực thi bởi chương trình sẽ bị dừng lại ngay lập tức.
 
-## Nếu bạn không cúp máy an toàn kiểu (graceful shutdown)
+## Nếu bạn không xử lý graceful shutdown
 
-Tùy vào đặc điểm phần mềm của bạn, nếu bạn bỏ ngoài tai thông điệp `SIGTERM`, bạn có thể gặp rắc rối.
+Tùy vào đặc điểm phần mềm của bạn, nếu bạn bỏ qua tín hiệu `SIGTERM`, bạn có thể gặp rắc rối.
 
-Vấn đề cụ thể của chúng tôi nằm ở các yêu cầu HTTP đang được xử lý (in-flight HTTP requests). Khi một công cụ kiểm thử tự động đang kiểm tra API của chúng tôi, nếu K8s quyết định dừng máy con (pod), theo lẽ thường máy chủ sẽ "đi đời", bài test không thể nhận phản hồi gì sất từ máy chủ nữa, và từ đó kiểm thử cũng chẳng thành công.
+Vấn đề cụ thể của chúng tôi nằm ở các yêu cầu HTTP đang được xử lý (in-flight HTTP requests). Khi một công cụ test tự động đang kiểm tra API của chúng tôi, nếu K8s quyết định dừng pod, máy chủ sẽ bị tắt đột ngột, bài test không thể nhận được phản hồi từ máy chủ, và từ đó test cũng thất bại.
 
-Điều này sẽ kích hoạt thông báo đỏ trên kênh chat của chúng tôi về vấn đề sự cố, một thông báo ép các dev phải ngưng tất tần tật công việc hiện tại rồi quay lại xúm vào tìm lỗi phát sinh. Những thất bại ngắt quãng kiểu này là sự phân tâm cực kỳ khó chịu đối với cả team.
+Điều này sẽ kích hoạt thông báo cảnh báo trên kênh chat của chúng tôi, buộc các lập trình viên phải dừng công việc hiện tại để đi tìm nguyên nhân lỗi. Những thất bại ngắt quãng kiểu này là sự phân tâm rất khó chịu đối với cả team.
 
-Các nhức nhối trên thì đâu có loại trừ gì đâu, với bài test hay với cái khác cũng thế. Nếu như một người khách gửi truy vấn tới hệ thống rồi gặp tình cảnh cúp điện giữa chừng (mid-flight), khả năng xui xẻo cao anh bạn đó sẽ ăn quả thông báo điếc 5xx HTTP. Chẳng hệ thống nào lại muốn nhai phải trãi nghiêm tồi tệ của khách hàng đâu nhỉ.
+Vấn đề này không chỉ giới hạn ở test. Nếu một người dùng gửi request tới hệ thống và gặp tình trạng bị ngắt giữa chừng, rất có thể họ sẽ nhận được lỗi 5xx HTTP. Không hệ thống nào muốn gây ra trải nghiệm tồi tệ cho người dùng cả.
 
-## Khi bạn xử lý được kiểu "graceful"
+## Khi bạn xử lý graceful shutdown
 
-Những gì chúng ta muốn làm là lắng nghe `SIGTERM`, và thay vì giết chết máy chủ ngay lập tức, chúng ta muốn:
+Những gì chúng ta muốn làm là lắng nghe `SIGTERM`, và thay vì dừng máy chủ ngay lập tức, chúng ta muốn:
 
-- Ngừng lắng nghe thêm bất kỳ yêu cầu nào nữa
-- Cho phép bất kỳ yêu cầu nào đang giải quyết dở (in-flight) được hoàn thành nốt
+- Ngừng nhận thêm bất kỳ yêu cầu mới nào
+- Cho phép các yêu cầu đang xử lý dở (in-flight) được hoàn thành
 - *Sau đó* mới chấm dứt tiến trình
 
-## Làm thế nào để có "grace"?
+## Làm thế nào?
 
-Rất đáng mừng thay, bản thân Go vốn dĩ đã có sẵn một cơ chế cho phép chúng ta chủ động dừng lại (shutdown) server cách an toàn với đoạn code [net/http/Server.Shutdown](https://pkg.go.dev/net/http#Server.Shutdown).
+Rất may, Go đã có sẵn cơ chế cho phép chúng ta tắt server một cách an toàn với [net/http/Server.Shutdown](https://pkg.go.dev/net/http#Server.Shutdown).
 
-> Shutdown sẽ tắt máy chủ một cách mượt mà mà không làm gián đoạn mọi kết nối đang diễn ra (dù là một). Shutdown xử lý qua thuật toán dừng lại hết toàn bộ danh sách "open listeners" hiện tại (nghe kết nối mở), kể cả các kết nối trạng thái nghỉ, từ từ nhâm nhi ly trà đợi ngóng nốt kết quả các active response trên kia phản hồi ra sao và đẩy vào "idle", và đoạn cuối là sập nguồn hẳn. Nếu mà gói Context đi kèm hết hạn chót thời điểm trước lúc lệnh Shutdown hoàn thành công việc của nó, thì Shutdown lại báo ngược lại lỗi do gói Context, không thì báo lỗi là kết quả do gói listeners ẩn của Server thu về lúc ép buộc kết nối ngừng lại.
+> Shutdown tắt máy chủ một cách mượt mà mà không làm gián đoạn các kết nối đang hoạt động. Đầu tiên, Shutdown đóng tất cả các listener đang mở, sau đó đóng các kết nối idle, rồi chờ vô thời hạn cho đến khi các kết nối đang hoạt động trở về trạng thái idle, và cuối cùng tắt hẳn. Nếu Context được cung cấp hết hạn trước khi Shutdown hoàn thành, Shutdown trả về lỗi từ Context. Ngược lại, Shutdown trả về bất kỳ lỗi nào phát sinh khi đóng các listener.
 
-Để thu nhận `SIGTERM` ta tận dụng module [os/signal.Notify](https://pkg.go.dev/os/signal#Notify), đây là chỗ báo các kênh Channel chúng ta cung cấp bất kỳ các signals đến nào.
+Để nhận tín hiệu `SIGTERM`, chúng ta sử dụng [os/signal.Notify](https://pkg.go.dev/os/signal#Notify). Hàm này cho phép chúng ta đăng ký một channel để nhận các tín hiệu từ hệ điều hành.
 
-Tối đa hóa sử dụng 2 món kỹ năng thượng thừa này do thư viện chuẩn (standard library) nhà làm, nay bạn đã có thể lắng tai nghe tín hiệu của thiên sứ báo ngày phán xét `SIGTERM` rồi dừng server lại lúc nào mình muốn một cách khá nhẹ nhàng êm ái.
+Kết hợp hai công cụ này từ thư viện chuẩn (standard library), bạn có thể lắng nghe tín hiệu `SIGTERM` và tắt server một cách an toàn.
 
-## Gói (Package) Graceful-Shutdown
+## Package Graceful Shutdown
 
-Vì lẽ đó, tôi đã viết ra [https://pkg.go.dev/github.com/quii/go-graceful-shutdown](https://pkg.go.dev/github.com/quii/go-graceful-shutdown). Nó cung cấp cho một function như một chức năng mở rộng cho `*http.Server` để gọi hàm `Shutdown` ngay thời khắc nó nhìn thấy có tiếng hò hét của thằng tín hiệu `SIGTERM`.
-
-```go
-func main() {
-	var (
-		ctx        = context.Background()
-		httpServer = &http.Server{Addr: ":8080", Handler: http.HandlerFunc(acceptancetests.SlowHandler)}
-		server     = gracefulshutdown.NewServer(httpServer)
-	)
-
-	if err := server.ListenAndServe(ctx); err != nil {
-		// Nhảy thông báo này về lý do phản hồi của bạn chưa in ra được thời điểm trước Context deadline, cũng bất lực chả thể làm gì sất.
-		log.Fatalf("uh oh, didn't shutdown gracefully, some responses may have been lost %v", err)
-	}
-
-	// thay vì vậy hy vọng luôn gặp dòng dưới này nhé
-	log.Println("shutdown gracefully! all responses were sent")
-}
-```
-
-Nội tiết tố (The specifics), thiết kế nội bên đoạn mã kia vốn không đao búa lắm cho chương này, ấy nhưng tôi cũng nên bỏ đi ít thời gian nghía ngang qua chót vài phần source code phía bên trên một xíu mới đành đi.
-
-## Các bản kiểm thử (Tests) và vòng lặp phản hồi (Feedback loops)
-
-Khi chúng tôi viết ứng dụng gói `gracefulshutdown`, chúng tôi có các phần mềm kiểm tra mức bộ phận (unit tests) để chứng thực thiết kế cho dự án vận hành mượt. Dẫu gì thì, đó được xem là trợ giúp nhỏ bé tạo thêm dũng cảm cho việc cắt xét, xây dựng (refactor) lại cấu trúc hệ thống. Cơ mà thành thực thì, chúng tôi vẫn cảm thấy thiếu "tự tin" rằng mọi thứ sẽ vận hành và nó **thực sự** không bung bét cả ra.
-
-Chúng tôi tạo thêm một tập code package mang tên `cmd` (lệnh) kết hợp cùng xây chương trình thử thực nghiệm qua mớ code chúng tôi dựng. Việc thử có những đoạn là phải thực hiện trên máy thủ công (manual) qua trò "bật chương trình - kích hoạt các http calls vào endpoint đó, chốt màn gửi cước lệnh tặc tử `SIGTERM` - đếm kết quả của màn thi coi như nào".
-
-**The engineer in you should be feeling uncomfortable with manual testing (người làm kỹ thuật nếu vướng vụ kiểm tra thủ công sẽ sinh tâm lý chướng vô cùm).**
-Rõ chán, cái đó sao dùng quy mô to được, thiếu tính sát thật (inaccurate) và hoàn toàn lãng phí của giời. Cứ giả thiết nếu bạn muốn viết nguyên 1 mảng lớn rồi tung hê nó để sài chung (share), nhưng mà kèm thêm tiêu chí ít rối não nhất rồi dể quất (change) nhất thì xin báo lun, làm manual có bằng cắt bỏ cho nó rảnh nợ.
-
-## Bản kiểm thử chấp nhận (Acceptance tests)
-
-Nãy giờ đọc được mấy chương của sách rồi, kiểu gì mớ bòng bong code mà các bạn phải viết ở dạng "tập tính khối lẻ" của unit tests thì chắc kha khá rồi đó nhỉ. Ở khía cạnh đó unit tests thực chất rèn vũ khí (tools) mang lại ưu quyền đập đi xây lại không phải ngán 1 bố con ai (fearless refactoring). Việc dẫn lái chúng giúp có định hướng cho sự phân vùng module cho tốt (drive good module), giảm thiểu vấp lỗi phát sinh theo thời gian (prevent regressions), từ đó tối cần các câu trả lời ngắn (fast feedbacks)
-
-Chỉ có điều, chúng chỉ kiểm tra được các mảnh rất bé tẹo của phần mềm theo đúng chức năng nhiệm vụ duyên cớ sinh ra chúng. Do đó thông thường phần unit tests không có cửa ( *không đủ* ) cho tư cách đánh giá toàn cục hệ thống được. Giữ cho vững, ta cần cho đứa con hệ thống nhà mình **luôn phải có thể xách kho mà đem giao** (always be shippable). Cái mớ manual tests mệt não quá, thế làm thế nào với rào cản mang tên "thủ công" ta cần gánh vào đây loại chiêu thức rà soát mới. Một tên là: Kiểm tra đánh giá thông qua nghiệm thu được gọi với cái mác **acceptance tests**.
-
-### Chúng là cái quái gì?
-
-Kiểm thử chấp nhận là một loại "kiểm thử hộp đen" (black-box test). Đôi khi chúng được gọi là "kiểm thử chức năng" (functional tests). Chúng nên dùng vào việc vận hành hệ thống giống như cách một người dùng hệ thống sẽ làm.
-
-Thuật ngữ hộp đen (black-box) hướng đến quan điểm chỉ ra là mã thực hiện testing chẳng thể soi dòm cấu kiện nội bộ bên trong hệ thống ra sao, những thứ dùng cho đánh giá là qua việc điều khiển các cổng chóp của nó (mặt tiền) rồi rút kết ra sự nhận định thông qua cái nết ứng xử thực thi bị đem ra khảo sát. Điều này cũng có nghĩa là người ta chỉ có tùy chọn khả dĩ là test cái hệ thống y một hệ thống mà thôi (system as a whole).
-
-Điều này là một ưu điểm, mang lợi ích cho quy trình bởi vì lúc test, ta kiểm duyệt nó cũng in hệt cái thao tác như người khách có trải nghiệm vậy, test chả thèm chơi chiêu "hack, vượt rào" - (kẻ phá rào, đi thủng đường tắt) nhằm cố mà gỡ cho bài báo cáo rớt đài lúc pass mà không soi xét thứ mà bạn cần nó pass. Bạn còn giữ phương châm không test trực quan code của package là thay vì là file test bạn không nên nằm ở `package mypkg` mà nên ném nó ra package chửi sau mới ngoan đúng luật `package mypkg_test` thì sẽ ngấm ra.
-
-### Lợi ích của các Acceptance tests
-
-- Nếu đặng mọi bài test đạt tiêu chuẩn (pass), bạn khẳng định hệ thống đang hành xử rạp y phăng rắc thứ bạn ra lệnh.
-- Rõ ràng nó cho phản hồi độ chuẩn cũng không tồi, báo kết quả lại lướt mây siêu cấp không tốn nhọc nhằn tý nào nếu đi đem so kè so đao với hàng làm bằng sức người chay test manual.
-- Còn nếu được gõ khéo code lại còn đẹp trai sáng láng thay thế một mớ tài liệu chuẩn cơm mẹ nấu với chứng chỉ chứng thực do nó đảm nhận luôn (accurate, verified documenation). Điều này dập tắt nguy cơ hệ thống hành động "một đằng", trong khi bản khai báo văn bản trôi qua thời gian lại thành mớ bòng bong ghi "một nẻo" chả giống cái mô tê chi dáo.
-- 100% người thực việc thực, giấu luôn kỹ năng diễn tuồng (Không Mock!). 
-
-### Mặt trái nếu đặt test rà nghiệm thu so đo cùng mảng unit tests
-
-- Vắt mồ hôi viết mã nên chát phết.
-- Chạy thì ỳ ạch chậm chứ bộ.
-- Sự phụ thuộc vào mặt định kỳ hay tính thiết kế mảng hệ thống là nhiều.
-- Rớt nhịp (fail) kiểm thử là dính chưởng luôn tại hông bao h cho mình ngó root cause là gì ở tận gốc lụi lỗi lầm. Rút cục công cán để debug kiếm cớ nó chua cực á.
-- Ngụy trang, chênh chếch với mã dỏm mà các acceptance này pass ầm ầm là chiêu quen do ẻm không thèm báo mãng của bác ntn về mặt bản chất đâu (internal quality system).
-- Bản chất hòm đen gây ngộp thở nên đâm ra việc lôi ứng dụng giả ra đục cho thành thật khó lắm nha, đâu phải ngữ cảnh gì mình cũng mò được mà test.
-
-Vì lý do này, sẽ là ngu ngốc nếu chỉ dựa vào mỗi kiểm thử chấp nhận. Chúng không có nhiều phẩm chất như bài unit tests gánh lấy, và một hệ thống với số lượng bài test chấp nhận khổng lồ thường sẽ chịu đựng theo nghĩa đen liên đới vì mấy khoản phí bảo hành cũng tốn hao kinh khủng nhọc mệt cả "lead time".
-
-#### "Lead time"? Ái dà có thế chứ? (Lead Time là thời điểm cái khỉ khô gì)
-
-Lead time (thời điểm tung lệnh gọi gộp, tính từ phút giây bắt tay đưa thay đổi mã xuống kho `merge commit -> branch chính` qua dóng hàng để xuất đi cho ra biển biển khai mạc - production deployment). Khoảng mốc báo cáo "hồn bay phách lạc" nay mai này nhỉnh cả đến mấy mùa, cũng chừng đó tuần với lắm lúc vác team tới gục cho được qua vài phút đồng hồ cho vài nhà phát triển nào trót xài. Cho nói rõ nốt cái, cái đám bọn `$WORK` thì lúc nào cũng chăm soi theo quan hệ với con số mà nhà DORA nó đề xướng làm gương mẫu nên ép bản thân cứ hỡ tầm chục phút 10 là chọt cái lead time vào rảnh cho đỡ xót.
-
-
-Phải giữ độ chuẩn nhịp kiểm tra bằng một chiến thuật cho một môi giới tốt đáng đồng tiền bát gạo nhưng ăn đứt vụ `lead time` này ngon nghẻ mới xong, do đó thông thường nó được gói thành hình tựa khái niệm như con [Hình tháp kiểm thử (Test Pyramid)](https://martinfowler.com/articles/practical-test-pyramid.html).
-
-## Cách để viết một bản kiểm thử chấp nhận cơ bản
-
-Thế thì nó có gì liên hệ qua trục trặc nguyên mẫu hông nhỉ? Để ý chút, bạn có thấy gói (package) mình nhào lặn vừa rồi ấy chẳng phải mọi khía cạnh là vọc unit test đều xử tuốt được hay sao.
-
-Như tui nói ở trên, cái đoạn code test Unit thì dường như nó thiếu mắm thiếu muối sao đó mới lột tả được niềm tin để ta dựa nương vào đó. Chúng tôi có mưu cầu khẳng định thật _chac chắn_ (phải là thật sự chắc) là gói tin của tôi còn xài vào hệ chương trình chần mứa sống ngắc ngứ kia thì nó vẫn trân tru vận hành. Ta hoàn toàn có thể nhồi nhét code tự giải những màn check nảy não như thế ở phía người dùng thật khi chuyển cái này sang tự động được.
-
-Nào bóc tách đoạn test nhúng vô nhé
+Vì lý do trên, tôi đã viết [https://pkg.go.dev/github.com/quii/go-graceful-shutdown](https://pkg.go.dev/github.com/quii/go-graceful-shutdown). Package này cung cấp một function bọc ngoài `*http.Server`, tự động gọi `Shutdown` khi nhận được tín hiệu `SIGTERM`.
 
 ```go
 func main() {
@@ -135,30 +59,104 @@ func main() {
 	)
 
 	if err := server.ListenAndServe(ctx); err != nil {
-		// Nhảy thông báo này về lý do phản hồi của bạn chưa in ra được thời điểm trước Context deadline, cũng bất lực chả thể làm gì sất.
+		// this will typically happen if our responses aren't finished before ctx deadline, not much we can do
 		log.Fatalf("uh oh, didn't shutdown gracefully, some responses may have been lost %v", err)
 	}
 
-	// thay vì vậy hy vọng luôn gặp dòng dưới này nhé
+	// hopefully, you'll always see this instead
 	log.Println("shutdown gracefully! all responses were sent")
 }
 ```
 
-Hẳn là bạn cũng soi ra cái rắp tâm vụ `SlowHandler` phải lù lù kèm con `time.Sleep` thì cũng mường tượng một xíu là chủ ý làm trễ quá trình đáp ứng để tôi cho nó tý đất diễn vụ tống ném biến thần thánh `SIGTERM` đặng xem phản ứng ntn. Cớ dư vậy chốc lát còn lại thì chỉ xem boilerplate là ra:
+Chi tiết thiết kế bên trong đoạn mã này không phải trọng tâm của chương này, nhưng tôi cũng nên dành chút thời gian xem qua phần mã nguồn phía trên.
 
-- Vòi cái mảng máy web `net/http/Server`;
-- Bọc nó vào trong thư viện (xem: [Mô hình Decorator](https://en.wikipedia.org/wiki/Decorator_pattern));
-- Triệu hồi phiên bản đã gói đấy vào sài tại `ListenAndServe`.
+## Tests và vòng lặp phản hồi (Feedback loops)
 
-### Liệt kê theo chuỗi thao tác (high-level) tại bộ kiểm duyệt cấp acceptances tests
+Khi viết package `gracefulshutdown`, chúng tôi có các unit test để kiểm chứng thiết kế. Tuy nhiên, chúng chỉ hỗ trợ phần nào cho việc refactor. Thành thực mà nói, chúng tôi vẫn chưa đủ tự tin rằng mọi thứ sẽ **thực sự** hoạt động đúng.
 
-- Cài build vào trình phần mềm
-- Ra lệnh cho chạy lên (mà chịu rình cho đên lúc nó nhạy ở tận `8080`)
-- Xin gửi 1 phong HTTP lên bác cửa máy cái
-- Nhá 1 phát cho sếp bự `SIGTERM` xuống cước nhưng phải giựt chớp mắt trước lúc có đường đáp trả lời response qua HTTP của máy chủ.
-- Xem bộ dạng em có chịu trả mình gì hông
+Chúng tôi tạo thêm một thư mục `cmd` chứa chương trình thử nghiệm sử dụng mã mà chúng tôi viết. Việc test phải thực hiện thủ công (manual): bật chương trình lên, gửi các HTTP request tới endpoint, gửi tín hiệu `SIGTERM`, rồi kiểm tra kết quả.
 
-### Xây dựng (Building) và Chạy chương trình
+**Là một kỹ sư, bạn nên cảm thấy không thoải mái với việc test thủ công.** Cách này không mở rộng được, thiếu chính xác, và lãng phí thời gian. Nếu bạn muốn chia sẻ code cho người khác sử dụng với yêu cầu bảo trì thấp nhất và dễ thay đổi nhất, thì test thủ công là không đủ.
+
+## Acceptance tests (Kiểm thử chấp nhận)
+
+Nếu bạn đã đọc các chương trước trong cuốn sách này, chắc hẳn bạn đã quen với việc viết unit test. Unit test là công cụ mạnh mẽ giúp bạn refactor mà không sợ phá vỡ chức năng. Chúng giúp thiết kế module tốt hơn, ngăn ngừa lỗi phát sinh theo thời gian, và cho phản hồi nhanh.
+
+Tuy nhiên, unit test chỉ kiểm tra được các phần nhỏ của phần mềm. Do đó, thông thường unit test *không đủ* để đánh giá toàn bộ hệ thống. Chúng ta cần đảm bảo hệ thống **luôn sẵn sàng để triển khai** (always shippable). Test thủ công thì quá mệt mỏi, vậy chúng ta cần thêm một loại test khác: **acceptance test** (kiểm thử chấp nhận).
+
+### Acceptance test là gì?
+
+Acceptance test là một loại kiểm thử hộp đen (black-box test). Đôi khi chúng được gọi là kiểm thử chức năng (functional test). Chúng kiểm tra hệ thống giống như cách một người dùng thực sự sẽ sử dụng hệ thống.
+
+Thuật ngữ "hộp đen" có nghĩa là mã test không biết cấu trúc bên trong hệ thống. Test chỉ tương tác với hệ thống thông qua các giao diện công khai (public interface) và đánh giá dựa trên hành vi quan sát được. Điều này cũng có nghĩa là bạn chỉ có thể test hệ thống như một tổng thể.
+
+Đây là một ưu điểm, bởi vì khi test, chúng ta kiểm tra hệ thống giống hệt cách người dùng trải nghiệm. Test không "đi đường tắt" để bài test pass mà không thực sự kiểm chứng đúng. Nếu bạn đã quen với nguyên tắc không test trực tiếp code nội bộ của package - tức là file test nên nằm trong `package mypkg_test` thay vì `package mypkg` - thì bạn sẽ hiểu ý tưởng này.
+
+### Lợi ích của acceptance test
+
+- Nếu tất cả test pass, bạn có thể khẳng định hệ thống đang hoạt động đúng như mong đợi.
+- Cho phản hồi nhanh hơn rất nhiều so với test thủ công.
+- Nếu được viết tốt, acceptance test còn đóng vai trò như tài liệu chính xác và luôn được cập nhật. Điều này loại bỏ nguy cơ hệ thống hoạt động một kiểu, trong khi tài liệu lại mô tả một kiểu khác.
+- Không có mock. Test chạy trên hệ thống thật.
+
+### Nhược điểm của acceptance test so với unit test
+
+- Viết phức tạp hơn.
+- Chạy chậm hơn.
+- Phụ thuộc nhiều vào kiến trúc và thiết kế hệ thống.
+- Khi test thất bại, khó xác định nguyên nhân gốc rễ (root cause). Việc debug tốn nhiều công sức hơn.
+- Acceptance test có thể pass trong khi chất lượng nội bộ của hệ thống (internal quality) vẫn kém, vì test không kiểm tra cấu trúc bên trong.
+- Do bản chất hộp đen, khó tái tạo mọi tình huống để test.
+
+Vì lý do này, sẽ là sai lầm nếu chỉ dựa vào acceptance test. Chúng không thay thế được unit test. Một hệ thống với quá nhiều acceptance test sẽ gặp vấn đề về chi phí bảo trì và lead time.
+
+#### Lead time là gì?
+
+Lead time là khoảng thời gian từ lúc merge code vào branch chính cho đến khi code được triển khai lên production. Con số này có thể dao động từ vài phút đến vài tuần, tùy thuộc vào tổ chức. Tại `$WORK`, chúng tôi luôn hướng tới các chỉ số DORA và cố gắng giữ lead time ở mức khoảng 10 phút.
+
+Cần duy trì một chiến lược test cân bằng, đảm bảo chất lượng nhưng không ảnh hưởng đến lead time. Đây là lý do khái niệm [Hình tháp kiểm thử (Test Pyramid)](https://martinfowler.com/articles/practical-test-pyramid.html) ra đời.
+
+## Cách viết một acceptance test cơ bản
+
+Vậy điều này liên quan gì đến vấn đề ban đầu? Hãy nhớ rằng package chúng ta vừa đề cập không thể kiểm tra mọi khía cạnh chỉ bằng unit test.
+
+Như đã nói ở trên, unit test chưa đủ để mang lại sự tự tin. Chúng tôi muốn khẳng định _chắc chắn_ rằng package hoạt động đúng khi được tích hợp vào một chương trình thực. Chúng ta hoàn toàn có thể tự động hóa các bước kiểm tra thủ công đã nói ở trên.
+
+Hãy cùng xem đoạn code cần test:
+
+```go
+func main() {
+	var (
+		ctx        = context.Background()
+		httpServer = &http.Server{Addr: ":8080", Handler: http.HandlerFunc(acceptancetests.SlowHandler)}
+		server     = gracefulshutdown.NewServer(httpServer)
+	)
+
+	if err := server.ListenAndServe(ctx); err != nil {
+		// this will typically happen if our responses aren't finished before ctx deadline, not much we can do
+		log.Fatalf("uh oh, didn't shutdown gracefully, some responses may have been lost %v", err)
+	}
+
+	// hopefully, you'll always see this instead
+	log.Println("shutdown gracefully! all responses were sent")
+}
+```
+
+Bạn có thể thấy `SlowHandler` sử dụng `time.Sleep` để cố tình làm chậm phản hồi. Điều này giúp chúng ta có thời gian gửi `SIGTERM` trong khi request đang được xử lý. Phần còn lại chỉ là boilerplate:
+
+- Tạo một `net/http/Server`
+- Bọc nó bằng thư viện của chúng ta (theo [Decorator pattern](https://en.wikipedia.org/wiki/Decorator_pattern))
+- Gọi `ListenAndServe` trên phiên bản đã bọc
+
+### Các bước ở mức tổng quan cho acceptance test
+
+- Build chương trình
+- Chạy chương trình (và chờ cho đến khi nó lắng nghe ở cổng `8080`)
+- Gửi một HTTP request tới máy chủ
+- Gửi tín hiệu `SIGTERM` trong khi chờ phản hồi HTTP
+- Kiểm tra xem có nhận được phản hồi hay không
+
+### Build và chạy chương trình
 
 ```go
 package acceptancetests
@@ -194,7 +192,7 @@ func LaunchTestProgram(port string) (cleanup func(), sendInterrupt func() error,
 	}
 
 	if err != nil {
-		cleanup() // dủ không thấy tín hiệu nó hoạt động, khả năng ngầm ứng dụng đang bay lạng quạng cũng không phải nhỏ
+		cleanup() // even though it errored, the incomplete process may have been started, so cleanup
 		return nil, nil, err
 	}
 
@@ -262,21 +260,22 @@ func randomString(n int) string {
 }
 ```
 
-Hàm thiết lập chương trình `LaunchTestProgram` có nghĩa vụ phải:
-- dựng (build) phần mềm
-- chạy và đẩy cỗ máy ấy hoạt động
-- ngây mặt mà chờ với rốn cho nó đáp tại cảng mạng `8080`
-- cấp phát một thủ tục để gọi dọn rửa sạch sẽ qua trình dọn gọi là `cleanup` rình lúc kill process là tiện tay đem luôn code giùm thùng rác đặng sau khi các khâu kiểm thử nghỉ ngơi tay ngực tui được thảnh thơi nhấm trà sảng khoái với cái môi trường được dọn xạch gọn y bong (rồi có sạch mà).
-- sắm luôn ra cái trò chơi lệnh ngắt `interrupt` mà trỏ cược qua em yêu chốt lời báo sập `SIGTERM` tiện bề thao túng cái hành trình đang xem.
-Thú nhận một điều thì, đoạn mã này không phải là đoạn code đẹp nhất trên đời, nhưng hãy chỉ tập trung vào cái hàm được đưa ra cộng đồng mạng dùng chung là (exported function) `LaunchTestProgram`, mấy cái hàm mờ nhạt gọi bên trong kia toàn mấy mớ rập khuôn vô vị (boilerplate).
+Hàm `LaunchTestProgram` có nhiệm vụ:
+- Build chương trình
+- Chạy chương trình
+- Chờ cho đến khi chương trình lắng nghe ở cổng chỉ định
+- Trả về hàm `cleanup` để dọn dẹp (kill process và xóa file binary) sau khi test xong
+- Trả về hàm `sendInterrupt` để gửi tín hiệu `SIGTERM` tới chương trình đang chạy
 
-Như đã bàn, kiểm thử chấp nhận (acceptance testing) có xu hướng rắc rối hơn để thiết lập. Đoạn code này thực sự làm cho mã code _kiểm thử_ giản tiện một cách đáng kể tới lúc đọc, và thường với các bài lập trình kiểm tra sự chấp nhận một lúc bạn mà nhọc công code xong được đống tổ bu nghi thức cúng kiến lằng nhằng này rồi, nó là cái vĩnh cửu, bạn chả cần phải xỉa não quan tâm nữa.
+Thú thật, đoạn mã này không phải đẹp nhất, nhưng hãy tập trung vào hàm được export là `LaunchTestProgram`. Các hàm bên trong chỉ là boilerplate.
 
-### Bản kiểm thử chấp nhận (acceptance tests)
+Như đã đề cập, acceptance test có xu hướng phức tạp hơn để thiết lập. Tuy nhiên, đoạn code thiết lập này giúp cho mã test trở nên rõ ràng và dễ đọc hơn rất nhiều. Thông thường với acceptance test, một khi bạn đã viết xong phần thiết lập, bạn không cần phải quan tâm đến nó nữa.
 
-Chúng tôi muốn có hai bản kiểm tra nhắm đích cho hai chương trình, một cái dùng cách thoát an nhàn (`graceful shutdown`) và cái còn lại kệ đời (without), qua đó, bọn mình và đương nhiên cả mấy ông bà đọc bài này mới rõ thấu được sự biến hóa trong cư xử của tụi nó. Cùng `LaunchTestProgram` làm đại ca sai múa may gõ búa đẽo code chạy lên app chương trình, chuyện đặt bút viết cho 2 mảng test này hóa ra trơn tuột như bôi mỡ, đã dứa tụi mình còn được nhờ ở phần dùng lại mớ `function helpers`.
+### Acceptance test
 
-Phác họa kiểm thử viết ra sài qua một máy chủ _có mặt_ chiêu rút lui trong danh dự, cho tiện bạn có thể [dạo quanh bản test vắng mặt tính năng ấy ngay trên repo kho GitHub này](https://github.com/quii/go-graceful-shutdown/blob/main/acceptancetests/withoutgracefulshutdown/main_test.go)
+Chúng tôi muốn có hai bài test cho hai chương trình: một chương trình sử dụng graceful shutdown và một chương trình không sử dụng. Qua đó, chúng ta có thể thấy rõ sự khác biệt trong hành vi. Nhờ `LaunchTestProgram` đã đóng gói phần thiết lập, việc viết hai bài test này trở nên dễ dàng và có thể tái sử dụng các helper function.
+
+Dưới đây là bài test cho máy chủ _có_ graceful shutdown. Bạn có thể [xem bài test cho máy chủ không có graceful shutdown trên GitHub](https://github.com/quii/go-graceful-shutdown/blob/main/acceptancetests/withoutgracefulshutdown/main_test.go).
 
 ```go
 package main
@@ -301,24 +300,24 @@ func TestGracefulShutdown(t *testing.T) {
 	}
 	t.Cleanup(cleanup)
 
-	// rẽ qua ngó máy chủ chạy vẫn phà phà xem chửa dính bùa lịm nào nhé
+	// verify the server is running and can respond
 	assert.CanGet(t, url)
 
-	// bắn bốc hơi một cái request, với lanh lẹ chợp thời cơ cho phi tiêu găm luôn SIGTERM khi ứng dụng ấp úng định nhả lời.
+	// send a request, and then send SIGTERM before the response is received
 	time.AfterFunc(50*time.Millisecond, func() {
 		assert.NoError(t, sendInterrupt())
 	})
-	// Không có thuốc tiên giải huyệt mang danh tắt có dự tính (graceful shutdown), khúc này sẽ rụng ngay.
+	// without graceful shutdown, this would fail
 	assert.CanGet(t, url)
 
-	// sau quả choáng váng do ngắt đột ngột cúp cầu giao mạng, server sẽ tắt dần đều, đừng hòng mống request nào ăn thua nữa nha.
+	// after the interrupt, the server should have shut down, no more requests should be served
 	assert.CantGet(t, url)
 }
 ```
 
-Bởi khâu nhúng chìm việc thiết lập vô trong vỏ (encapsulated) như vậy, những bài tính kiểm ngặt trở nên toàn diện hơn, lột tả được sắc nét cái tánh hành xử của đối tượng mà còn siêu đỗi dễ hình dung tuân theo.
+Nhờ việc đóng gói (encapsulate) phần thiết lập, bài test trở nên rõ ràng và dễ hiểu. Nó mô tả chính xác hành vi mà chúng ta muốn kiểm tra.
 
-`assert.CanGet/CantGet` đóng vai hai đứa sai vặt mà tôi chế ra hòng giữ châm ngôn tái chế code (chạm chuẩn DRY) dành cho cái luật lệ hay đem dùng đi sài lại với nguyên bộ bài (suite) test rả rích này.
+`assert.CanGet` và `assert.CantGet` là các helper function tôi viết để giữ cho code DRY (Don't Repeat Yourself), vì chúng được sử dụng lại trong nhiều bài test.
 
 ```go
 func CanGet(t testing.TB, url string) {
@@ -343,15 +342,15 @@ func CanGet(t testing.TB, url string) {
 }
 ```
 
-Một chú sẽ khai phát cuốc gọi điện kiểu `GET` gọi vào thẳng `URL`, bọc trong cái áo `goroutine`, với phước đức để lại mà nó réo chuông báo hoàn trót lọt với bằng chứng là ko một vết nhơ lỗi thì lúc ấy chốt sổ (not fail). `CantGet` nhường lối cất giấu qua khe do tốn hàng chứ chẳng có mưu mẹo gì, [chỉn chu hơn thì xem ngay tại cái nôi là trang chủ GitHub chốn này](https://github.com/quii/go-graceful-shutdown/blob/main/assert/assert.go#L61).
+Hàm này gửi một HTTP GET request tới URL trong một goroutine, và kiểm tra xem request có thành công mà không có lỗi hay không. `CantGet` thì làm ngược lại. [Bạn có thể xem chi tiết trên GitHub](https://github.com/quii/go-graceful-shutdown/blob/main/assert/assert.go#L61).
 
-Hãy cho đĩa than lên một lần nhắc sâu sắc lại, dòng Go cấp trọn thảy cho túi đồ mưu cầu việc nắn test rà nghiệm thu chả thiếu thứ chi, nguyên bản sẵn phom (out of the box). Mình _đâu rãnh_ kiếm chi trọn cái khung công trình (framework) cầu kì cho cất được loại kiểm thử đánh giá tính chấp nhận (acceptance tests) của sản phẩm.
+Xin nhắc lại, Go cung cấp đầy đủ mọi thứ bạn cần để viết acceptance test ngay từ thư viện chuẩn (out of the box). Bạn _không cần_ một framework đặc biệt nào để viết acceptance test.
 
-### Ngân lượng còm, sắm vàng ròng (bỏ chút sức thu hời cực đậm)
+### Đầu tư ít, thu lại nhiều
 
-Cảm giác đem được những bài test tung ra, hội độc giả có thể nhâm nhi nghiên cứ các phiên bản mồi mà mạnh tay ôm lấy cái tự tin bảo chứng: thí dụ này _chắc cú_ chạy được; thành thử củng cố lòng nương cậy vô bộ `packages`.
+Với những bài test này, người đọc có thể chạy thử và tự tin rằng code _thực sự_ hoạt động. Điều này củng cố niềm tin vào package.
 
-Khẳng khái vỗ ngực là tay "cha chú" chắp rặn nó ra, điều này giúp thu nhặt **phản hồi tức tốc (fast feedback)** song song châm trọn vẹn **đỉnh cao tự tin** báo hiệu nguyên kiện mã xài cực mướt bên luồng hiện thực.
+Là tác giả, điều này giúp tôi có **phản hồi nhanh (fast feedback)** và **sự tự tin cao** rằng code hoạt động đúng trong thực tế.
 
 ```shell
 go test -count=1 ./...
@@ -364,28 +363,28 @@ ok  	github.com/quii/go-graceful-shutdown/acceptancetests/withoutgracefulshutdow
 
 ## Tổng kết
 
-Trong bài blog này, tôi vừa "đầu độc" bạn vào mảng bài kiểm thử tính chấp thuận sắm trong túi áo chọc nghẹo mấy gã dev. Không có chúng sao trị được thiên hạ rộng mở, tụi nó sẽ được ươm vào chéo mảng với loại Unit test để dệt nên một hàng lá chắn.
+Trong bài viết này, tôi đã giới thiệu về acceptance test. Acceptance test không thay thế unit test, mà bổ sung cho unit test để tạo nên một lớp bảo vệ toàn diện hơn.
 
-Phương cách *ra sao* (how) mới viết nổi ba kiểm chứng vặt này thì lại dắt qua dựa trên quy chuẩn cho dạng cái "kiểu hệ thống" mấy cha đang cày cục dựng; dẫu rằng kim chỉ nam cốt yếu (principles) luôn chôn một chỗ như đinh rỉ. Hình dung bộ máy mình nắm dưới dạng khối mưu sầu quỷ dạ "Hộp đen" (black box). Bạn nặn ra cái mặt tiền của 1 cái Web thì, dàn test bạn biên nên hóa dạng một user bằng xương thịt, cờ nhét (click) qua links thì hãy mài rũa tool hỗ trợ trình duyệt kiểu headless như của [Selenium](https://www.selenium.dev/), hòng đọ phím tút léo tót chọc nhét, múa võ điền trang thông tin này (fill...forms),v.v.. Đẩy lên thành bản API của mảng RESTful, đâm lệnh đạn yêu cầu lọt cổng HTTP thì bạn quẩy tung lồng qua một `client` thế là đặng.
+*Cách* viết acceptance test phụ thuộc vào loại hệ thống bạn đang xây dựng, nhưng các nguyên tắc cốt lõi luôn giống nhau. Hãy coi hệ thống như một hộp đen (black box). Nếu bạn xây dựng một trang web, bài test nên mô phỏng hành vi của người dùng thực - click link, điền form - sử dụng công cụ trình duyệt headless như [Selenium](https://www.selenium.dev/). Nếu bạn xây dựng RESTful API, hãy gửi HTTP request thông qua một client.
 
-### Nâng cấp mở khóa vùng độ sâu với Hệ Thống chằng chịt rích rắc
+### Mở rộng cho hệ thống phức tạp hơn
 
-Cân đong vào cho cái thứ ko phải trò của dân chít chăn như loại dùng máy làm "đèn xanh đỏ một hướng" chúng tôi lỡ trót múa miệng bên trên á. Mà ở thực tại phũ phàng hơn, bạn đè nặng vác thêm một đàn các nền tảng khác phụ theo (ví dụ DB). Giải những con số cho vế đố ấy, đụng trúng bạn phải điều tự động cỗ môi trường nội bộ hòng làm đất cho code đi test. Có vài cái rổ kéo (tools) đồ nghề bọc mang tiếng tuổi oanh vàng như [docker-compose](https://docs.docker.com/compose/) sài rất xịn sò dùng sút xoáy sinh sản nhanh chớ mấy lớp chứa môi trường nội bộ hòng phục vụ quá trình ứng dụng của tay bạn hoạt động trơn khi ngụp lặn tại rốn con PC.
+Ví dụ trong bài viết này khá đơn giản - chỉ là một máy chủ HTTP đơn lẻ. Trong thực tế, hệ thống của bạn có thể phụ thuộc vào nhiều thành phần khác (ví dụ: cơ sở dữ liệu). Trong trường hợp đó, bạn cần thiết lập môi trường tự động để chạy test. Các công cụ như [docker-compose](https://docs.docker.com/compose/) rất hữu ích để khởi tạo nhanh các container phục vụ cho việc test trên máy cục bộ.
 
-### Nẻo tới tại chương tiếp chắp bút
+### Hướng đi tiếp theo
 
-Ngụp lặn tại trang post này ta sào nấu mã acceptance tests nhưng thiên về mảng hướng quy trình bồi đắp nhặt dần lại thứ đã đẽo. Xong xui mà nói, vùi trong quyền sách [Growing Object-Oriented Software](http://www.growing-object-oriented-software.com), cái tác giả chỉ thẳng mặt cướp điểm là bộ khung kiểm định của tests dọn đường dồn tâm làm mục tiêu chốt mỏm "chó-sói-ngắm-trăng" ("north-star") soi lấy cái rắp tâm thành thực của chún mình theo đúng tôn chỉ Test-Driven-Approach.
+Trong bài viết này, chúng ta viết acceptance test cho code đã có sẵn. Tuy nhiên, trong cuốn sách [Growing Object-Oriented Software](http://www.growing-object-oriented-software.com), tác giả khuyến khích sử dụng acceptance test như một "ngôi sao phương Bắc" (north star) - tức là viết acceptance test trước để định hướng cho quá trình phát triển theo phương pháp TDD.
 
-Cái tính "vùng sâu, hiểm hóc" nhú càng nhiều, mâm cúng thời lượng lẫn đạn tiền cho khâu chế cháo và sửa soạn mã acceptance tests này đội lên phi mã khó cản vô thiên. Cả thúng các màn kịch đội kỹ sư chán rầu tới phát điên trói bộ mặt do nguyên cây tiền đổ ập mà mua dầm rả cái bộ cùm mã đắt sắt này.
+Hệ thống càng phức tạp, thời gian và công sức để viết và duy trì acceptance test càng tăng. Nhiều đội kỹ sư đã gặp khó khăn vì chi phí bảo trì acceptance test quá cao.
 
-Ngay tại đoạn đường tương lai nãy mình trình lên cái khía sài nó cho hướng điều tâm vào thiết kế mang kèm tính tôn chỉ lẫn các xảo thực kìm dây nịt cho tiền phung phí chi ba mảng này thôi.
+Trong các chương tiếp theo, chúng ta sẽ tìm hiểu cách sử dụng acceptance test để định hướng thiết kế, cùng với các kỹ thuật giúp kiểm soát chi phí.
 
-### Nới Cửa sổ đánh bóng lớp chất của Open-Source 
+### Nâng cao chất lượng Open-Source
 
-Tính đường đi dạo vứt mớ packages mà tụi bay muốn thiên hạ cũng sờ tay mó dạo, trẫm khuyên bay rành đôi chút làm ví dụ cho tụi nó hiểu cái cốt tinh chương trình chạy là cái qué dóc gì đi cùng văng não chút lãng mạn vô chiêu tạo ra đám test nhắm lính trơn nhất cho họ soi để mình lẫn những ông con ghẻ muốn mớm có chỗ thấy niềm an ủi yên tâm.
+Nếu bạn định chia sẻ package cho cộng đồng, hãy cung cấp ví dụ minh họa cách sử dụng, kèm theo acceptance test để người dùng có thể tự kiểm chứng rằng code hoạt động đúng.
 
-Mang nghĩa như dạng bài tủ [Bài ví dụ đem Thể Kiểm Được (Testable Examples)](https://go.dev/blog/examples), dẫu chắp mồ hôi liếc cho vài con chữ trải đường (dev exp) sài cực dễ bắt tay thì lại ăn dăm ba con xảo xây cả môt kho uy tín độ nét công sức, với cả nhẩm cho dễ là bớt việc cho bác gánh sau này.
+Tương tự như [Testable Examples](https://go.dev/blog/examples), việc đầu tư một chút vào trải nghiệm người dùng (developer experience) sẽ giúp xây dựng uy tín và giảm bớt công việc bảo trì về sau.
 
-## Gạch dòng "Chào Hàng" lôi bạn tới công ty làm tại `$WORK`
+## Tuyển dụng tại `$WORK`
 
-Một khi bạn tăm tia cái chốn nán lại làm chung mâm các sư huynh (engineers) vừa ăn chè vừa phá cỗ mấy thứ lạ lạ để code, vị trí bạn định vị chui góc London hay phi sang tận Porto cơ đấy, lẫn máu lửa chực cày nội thất cái book với mớ dở của chương này - [tìm tui trên thánh địa chim xanh Twitter đê cha nội (nay là X nha)](https://twitter.com/quii), cũng khả quan tới vụ mình dắt tay vô đội đó mấy khứa ơi!
+Nếu bạn quan tâm đến việc làm việc cùng các kỹ sư đam mê code, tại London hoặc Porto, và thích nội dung của cuốn sách này - [hãy liên hệ với tôi trên Twitter (nay là X)](https://twitter.com/quii). Rất có thể chúng tôi sẽ hợp tác cùng nhau!

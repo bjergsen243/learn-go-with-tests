@@ -82,7 +82,7 @@ Bạn có thể tham khảo thêm về vấn đề này trong [wiki chính thứ
 
 ## Viết đủ code để test chạy thành công
 
-Theo đúng quy trình TDD, bây giờ chúng ta chỉ nên viết lượng mã _tối thiểu cần thiết_ để test _chạy thành công_. Một lập trình viên cẩn thận (pragmatic developer) có thể viết như sau:
+Theo đúng quy trình TDD, bây giờ chúng ta chỉ nên viết lượng mã _tối thiểu cần thiết_ để test _chạy thành công_. Một lập trình viên thực dụng (pragmatic developer) có thể viết như sau:
 
 ```go
 func Add(x, y int) int {

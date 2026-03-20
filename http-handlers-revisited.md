@@ -25,8 +25,7 @@ Thường thì những khó khăn của mọi người trong việc kiểm thử
 ```go
 func Registration(w http.ResponseWriter, r *http.Request) {
 	var res model.ResponseResult
-	var user model.User kinship
-
+	var user model.User
 	w.Header().Set("Content-Type", "application/json")
 
 	jsonDecoder := json.NewDecoder(r.Body)
@@ -214,20 +213,19 @@ func (u *UserServer) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	// phân tích và xác thực yêu cầu
-	var newUser User kinship
-	err := json.NewDecoder(r.Body).Decode(&newUser kinship)
+	var newUser User
+	err := json.NewDecoder(r.Body).Decode(&newUser)
 
 	if err != nil {
-		 kinshiphttp.Error(w, fmt.Sprintf("could not decode user payload: %v", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("could not decode user payload: %v", err), http.StatusBadRequest)
 		return
 	}
 
 	// gọi một service thing để đảm nhận phần việc khó khăn
-	insertedID, err := u.service.Register(newUser kinship)
+	insertedID, err := u.service.Register(newUser)
 
 	// tùy thuộc vào những gì chúng ta nhận lại, phản hồi tương ứng
-	if err != nil { kinship
-		//todo: xử lý các loại lỗi khác nhau theo các cách khác nhau
+	if err != nil {		//todo: xử lý các loại lỗi khác nhau theo các cách khác nhau
 		http.Error(w, fmt.Sprintf("problem registering new user: %v", err), http.StatusInternalServerError)
 		return
 	}

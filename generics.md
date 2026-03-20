@@ -595,7 +595,7 @@ func TestStack(t *testing.T) {
 Sử dụng kiểu dữ liệu generic, chúng ta đã:
 
 - Giảm bớt sự trùng lặp của logic quan trọng.
-- Làm cho `Pop` trả về `T` để nếu chúng ta tạo một `Stack[int]`, thực tế chúng ra nhận lại `int` từ `Pop`; bây giờ chúng ta có thể sử dụng `+` mà không cần các màn nhào lộn khẳng định kiểu.
+- Làm cho `Pop` trả về `T` để nếu chúng ta tạo một `Stack[int]`, thực tế chúng ta nhận lại `int` từ `Pop`; bây giờ chúng ta có thể sử dụng `+` mà không cần các màn nhào lộn khẳng định kiểu.
 - Ngăn chặn việc lạm dụng tại thời điểm biên dịch. Bạn không thể `Push` những quả cam vào một apple stack.
 
 

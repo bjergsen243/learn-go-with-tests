@@ -377,7 +377,7 @@ Nhưng trong trường hợp này:
 * `string` không có method như vậy nên nó không thỏa mãn interface
 * v.v.
 
-Trong Go **interface resolution là implicit**. Nếu kiểu bạn truyền vào khớp với những gì interface yêu cầu, nó sẽ biên dịch được.
+Trong Go, **cách xác định interface là ngầm định (implicit)**. Nếu kiểu bạn truyền vào khớp với những gì interface yêu cầu, nó sẽ biên dịch được.
 
 ### Decoupling (Tách rời)
 

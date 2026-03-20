@@ -228,7 +228,7 @@ Tuy nhiên, quan trọng nhất là chúng ta có một bản kiểm thử đã 
 
 ## Refactor
 
-Với tấm lưới an toàn của một bản kiểm thử đã vượt qua cho mã nguồn đang hoạt động, bây giờ chúng ta có thể nghĩ về việc thay đổi cách tiếp cập triển khai của mình ở giai đoạn tái cấu trúc.
+Với tấm lưới an toàn của một bản kiểm thử đã vượt qua cho mã nguồn đang hoạt động, bây giờ chúng ta có thể nghĩ về việc thay đổi cách tiếp cận triển khai của mình ở giai đoạn tái cấu trúc.
 
 ### Giới thiệu về template
 
@@ -667,19 +667,19 @@ Chúng tôi sẽ để phần này làm bài tập cho bạn, người đọc. B
 
 **Ghi chú**. Cẩn thận đừng lo lắng quá nhiều về việc kiểm thử rõ ràng cách một thư viện bên thứ ba hoạt động trong các bản kiểm thử đơn vị (unit tests).
 
-Viết các bản kiểm thử cho mã nguồn mà bạn không kiểm soát là lãng phí và thêm gánh nặng bảo trì. Đôi khi bạn có thể muốn sử dụng [dependency injection](./dependency-injection.md) to control a dependency and mock its behaviour for a test.
+Viết các bản kiểm thử cho mã nguồn mà bạn không kiểm soát là lãng phí và thêm gánh nặng bảo trì. Đôi khi bạn có thể muốn sử dụng [dependency injection](./dependency-injection.md) để kiểm soát một phụ thuộc và giả lập (mock) hành vi của nó cho một bản kiểm thử.
 
-In this case though, I view converting the markdown into HTML as implementation detail of rendering, and our approval tests should give us enough confidence.
+Tuy nhiên, trong trường hợp này, tôi xem việc chuyển đổi markdown thành HTML là chi tiết triển khai của quá trình hiển thị, và các approval tests của chúng ta sẽ mang lại đủ sự tin tưởng.
 
-### Render index
+### Hiển thị trang chủ (Render index)
 
-The next bit of functionality we're going to do is rendering an Index, listing the posts as a HTML ordered list. 
+Phần chức năng tiếp theo mà chúng ta sẽ thực hiện là hiển thị một trang Index, liệt kê các bài đăng dưới dạng một danh sách có thứ tự HTML.
 
-We're expanding upon our API, so we'll put our TDD hat back on. 
+Chúng ta đang mở rộng API của mình, vì vậy hãy đội lại chiếc mũ TDD.
 
-## Write the test first
+## Viết test trước tiên
 
-On the face of it an index page seems simple, but writing the test still prompts us to make some design choices
+Nhìn bề ngoài thì một trang chủ có vẻ đơn giản, nhưng việc viết bản kiểm thử vẫn thúc đẩy chúng ta đưa ra một số quyết định thiết kế.
 
 ```go
 t.Run("it renders an index of posts", func(t *testing.T) {
@@ -1003,25 +1003,24 @@ Nếu bạn kết hợp các bài học về chương [đọc file](reading-file
 
 Cách tiếp cận này mở rộng ra ngoài các blog. Lấy dữ liệu từ bất kỳ nguồn nào, có thể là cơ sở dữ liệu, một API hoặc một hệ thống file và chuyển đổi nó thành HTML và trả về từ một server là một kỹ thuật đơn giản kéo dài hàng thập kỷ. Mọi người thích than phiền về sự phức tạp của phát triển web hiện đại nhưng bạn có chắc mình không chỉ đang tự gây ra sự phức tạp cho chính mình không?
 
-Go là tuyệt vời cho phát triển web, especially when you think clearly about what your real requirements are for the website you're making. Generating HTML on the server is often a better, simpler and more performant approach than creating a "web application" with technologies like React.
+Go là tuyệt vời cho phát triển web, đặc biệt khi bạn suy nghĩ rõ ràng về yêu cầu thực sự của trang web mà bạn đang xây dựng. Việc tạo HTML phía server thường là một cách tiếp cận tốt hơn, đơn giản hơn và hiệu năng cao hơn so với việc tạo một "ứng dụng web" với các công nghệ như React.
 
-### What we've learned
+### Những gì chúng ta đã học
 
-- How to create and render HTML templates.
-- How to compose templates together and [DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself) up related markup and help us keep a consistent look and feel.
-- How to pass functions into templates, and why you should think twice about it.
-- How to write "Approval Tests", which help us test the big ugly output of things like template renderers. 
+- Cách tạo và hiển thị các mẫu HTML (HTML templates).
+- Cách kết hợp các mẫu với nhau và áp dụng nguyên tắc [DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself) cho các markup liên quan, giúp chúng ta duy trì giao diện nhất quán.
+- Cách truyền các hàm vào mẫu, và tại sao bạn nên suy nghĩ kỹ trước khi làm điều đó.
+- Cách viết "Approval Tests", giúp chúng ta kiểm thử các đầu ra lớn và lộn xộn của những thứ như trình hiển thị mẫu (template renderers).
 
-### On logic-less templates
+### Về các mẫu không logic (logic-less templates)
 
-As always, this is all about **separation of concerns**. It's important we consider what the responsibilities are of the various parts of our system. Too often people leak important business logic into templates, mixing up concerns and making systems difficult to understand, maintain and test.
+Như mọi khi, tất cả đều xoay quanh **tách biệt các mối quan tâm (separation of concerns)**. Điều quan trọng là chúng ta cân nhắc trách nhiệm của các phần khác nhau trong hệ thống. Quá thường xuyên, mọi người để rò rỉ logic nghiệp vụ quan trọng vào các mẫu, trộn lẫn các mối quan tâm và khiến hệ thống trở nên khó hiểu, khó bảo trì và khó kiểm thử.
 
-### Not just for HTML
+### Không chỉ dành cho HTML
 
-Remember that go has `text/template` to generate other kinds of data from a template. If you find yourself needing to transform data into some kind of structured output, the techniques laid out in this chapter can be useful. 
+Hãy nhớ rằng Go có `text/template` để tạo ra các loại dữ liệu khác từ một mẫu. Nếu bạn thấy mình cần chuyển đổi dữ liệu thành một loại đầu ra có cấu trúc nào đó, các kỹ thuật được trình bày trong chương này có thể hữu ích.
 
-### References and further material 
+### Tài liệu tham khảo và nội dung bổ sung
 
-- [John Calhoun's 'Learn Web Development with Go'](https://www.calhoun.io/intro-to-templates-p1-contextual-encoding/) has a number of excellent articles on templating.
-- [Hotwire](https://hotwired.dev) - You can use these techniques to create Hotwire web applications. It has been built by Basecamp who are primarily a Ruby on Rails shop, but because it is server-side, we can use it with Go. 
-
+- [Khóa học 'Learn Web Development with Go' của John Calhoun](https://www.calhoun.io/intro-to-templates-p1-contextual-encoding/) có một số bài viết xuất sắc về templating.
+- [Hotwire](https://hotwired.dev) - Bạn có thể sử dụng các kỹ thuật này để tạo các ứng dụng web Hotwire. Nó được xây dựng bởi Basecamp, chủ yếu là một công ty sử dụng Ruby on Rails, nhưng vì nó hoạt động phía server, chúng ta có thể sử dụng nó với Go.

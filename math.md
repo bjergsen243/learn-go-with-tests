@@ -274,7 +274,7 @@ func TestSecondsInRadians(t *testing.T) {
 }
 ```
 
-Ở đây chúng ta đang kiểm thử rằng 30 giây rưỡi nên đặt kim giây ở vị trí nửa vòng tròn. Và đây là lần đầu tiên chúng ta sử dụng package `math`! Nếu một vòng tròng hoàn chỉnh là 2π radian, chúng ta biết rằng nửa vòng tròn nên là π radian. `math.Pi` cung cấp cho chúng ta giá trị của π.
+Ở đây chúng ta đang kiểm thử rằng 30 giây rưỡi nên đặt kim giây ở vị trí nửa vòng tròn. Và đây là lần đầu tiên chúng ta sử dụng package `math`! Nếu một vòng tròn hoàn chỉnh là 2π radian, chúng ta biết rằng nửa vòng tròn nên là π radian. `math.Pi` cung cấp cho chúng ta giá trị của π.
 
 ### Thử chạy test
 
@@ -471,7 +471,7 @@ func secondsinradians() float64 {
 
 ### Lặp lại cho các yêu cầu mới
 
-Vậy chúng ta đã hoàn thành phần đầu tiên ở đây - chúng ta biết góc mà kim giây sẽ chỉ tới theo radian. Bây giờ chúng ta cần tính toán các họa độ.
+Vậy chúng ta đã hoàn thành phần đầu tiên ở đây - chúng ta biết góc mà kim giây sẽ chỉ tới theo radian. Bây giờ chúng ta cần tính toán các tọa độ.
 
 Lại một lần nữa, hãy làm cho mọi thứ đơn giản nhất có thể và chỉ làm việc với *vòng tròn đơn vị*; vòng tròn có bán kính là 1. Điều này có nghĩa là các kim đồng hồ của chúng ta đều có độ dài là 1 nhưng bù lại, toán học sẽ trở nên dễ dàng hơn cho chúng ta.
 
@@ -559,7 +559,7 @@ clockface_test.go:43: Wanted {-1 0} Point, but got {0 -1}
 
 ### Viết đủ code để test chạy thành công
 
-Còn nhớ hình ảnh vòng tròng đơn vị của chúng ta chứ?
+Còn nhớ hình ảnh vòng tròn đơn vị của chúng ta chứ?
 
 ![picture of the unit circle with the x and y elements of a ray defined as cos(a) and sin(a) respectively, where a is the angle made by the ray with the x axis](math/images/unit_circle_params.png)
 

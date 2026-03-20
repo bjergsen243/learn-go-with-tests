@@ -61,14 +61,14 @@ Các công cụ phù hợp sẽ giúp bạn thực hiện refactoring một các
 Bạn nên làm quen với trình soạn thảo của mình để có thể thực hiện các thao tác sau chỉ bằng một tổ hợp phím:
 
 - **Tách/Gộp biến**. Đặt tên cho các giá trị giúp mã nguồn dễ hiểu và bảo trì hơn. Hạn chế tạo các [magic values](https://en.wikipedia.org/wiki/Magic_number_(programming)).
-- **Tách phương thức/hàm**. Việc tách một đoạn mã thành hàm hoặc phương thức riêng biệt là rất quan trọng để cải thiện tính tải sử dụng và dễ đọc.
+- **Tách phương thức/hàm**. Việc tách một đoạn mã thành hàm hoặc phương thức riêng biệt là rất quan trọng để cải thiện tính tái sử dụng và dễ đọc.
 - **Đổi tên**. Bạn nên có khả năng đổi tên các biến, hàm hoặc cấu trúc trên nhiều tệp một cách an toàn.
 - **go fmt**. Go có trình định dạng mã mặc định là `go fmt`. Trình soạn thảo của bạn nên tự động chạy lệnh này mỗi khi lưu tệp.
 - **Chạy kiểm thử**. Sau khi thực hiện các thay đổi trên, bạn cần có khả năng chạy lại kiểm thử nhanh chóng để đảm bảo mã nguồn vẫn hoạt động chính xác.
 
 Ngoài ra, để làm việc hiệu quả hơn, bạn nên làm quen với các tính năng sau:
 
-- **Xem signature của hàm**. Bạn không nên mơ hồ về cách gọi một hàm trong Go. Trinh soạn thảo của bạn nên hiển thị tài liệu, danh sách tham số và giá trị trả về của hàm.
+- **Xem signature của hàm**. Bạn không nên mơ hồ về cách gọi một hàm trong Go. Trình soạn thảo của bạn nên hiển thị tài liệu, danh sách tham số và giá trị trả về của hàm.
 - **Xem định nghĩa của hàm**. Nếu vẫn chưa rõ một hàm hoạt động thế nào, bạn nên biết cách mở mã nguồn của nó để tìm hiểu.
 - **Tìm tất cả vị trí sử dụng của một symbol**. Biết được vị trí và cách một hàm được sử dụng sẽ giúp bạn đưa ra quyết định chính xác hơn khi refactoring.
 

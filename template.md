@@ -1,12 +1,12 @@
-# Chapter template
+# Mẫu chương
 
-Some intro
+Phần giới thiệu
 
-## Write the test first
-## Try to run the test
-## Write the minimal amount of code for the test to run and check the failing test output
-## Write enough code to make it pass
+## Viết test trước
+## Thử chạy test
+## Viết lượng code tối thiểu để test chạy được và kiểm tra output lỗi
+## Viết đủ code để test pass
 ## Refactor
 
-## Repeat for new requirements
+## Lặp lại cho yêu cầu mới
 ## Tổng kết

@@ -8,7 +8,7 @@ Hoạt động này thường bị nhầm lẫn với những sự thay đổi l
 
 Refactoring đơn thuần là cải thiện chất lượng mã code hiện có và <u>không làm thay đổi hành vi (behaviour)</u>; do đó, các bài test không cần thiết phải thay đổi.
 
-Đây là lý do tại sao nó lại là bước thứ 3 trong chu trình TDD. Khi bạn đã thêm một hành vi và một bài test để chứng thực cho nó, quá trình refactoring tiếp theo đây phải là một hoạt động không đòi hỏi bất kỳ sự thay đổi nào đối với code bài test. **Bạn đang làm một hoạt động gì đó khác thuật ngữ "refactoring"** nếu bạn đang thay đổi code rồi sau đó bắt buộc phải sửa lại cả bài test cùng một lúc.
+Đây là lý do tại sao nó lại là bước thứ 3 trong chu trình TDD. Khi bạn đã thêm một hành vi và một bài test để chứng thực cho nó, quá trình refactoring tiếp theo đây phải là một hoạt động không đòi hỏi bất kỳ sự thay đổi nào đối với code bài test. **Bạn đang làm một việc gì đó khác với "refactoring"** nếu bạn đang thay đổi code rồi sau đó bắt buộc phải sửa lại cả bài test cùng một lúc.
 
 Nhiều thao tác refactoring vô cùng hữu ích lại rất dễ học và thực hiện (IDE của bạn hầu như tự động hóa rất nhiều trong số đó) nhưng, theo thời gian, chúng tạo ra ảnh hưởng vô cùng to lớn đến chất lượng hệ thống của chúng ta.
 
@@ -58,40 +58,40 @@ Việc thiết kế có thể đòi hỏi những thay đổi đáng kể hơn v
 
 > [Nếu một cá nhân không thể **nhìn thấy khu rừng vì bị che khuất bởi bạt ngàn cây cối** trong văn hóa Anh Quốc, điều đó có nghĩa là họ đang trở nên quá gắn chặt vào một tiểu tiết vụn vặt nào đó và vì vậy không thể nhận thức được đặc điểm quan trọng đối với tổng thể toàn cục vấn đề.](https://www.collinsdictionary.com/dictionary/english/cant-see-the-wood-for-the-trees)
 
-Việc đàm luận về các vấn đề thiết kế "vĩ mô" sẽ dễ tiếp cận hơn nhiều khi **mã nguồn tầng dưới đã được tổ chức cấu trúc tốt (well-factored)**. Giả dụ bạn và các đồng nghiệp cứ phải hộc tốc tốn nhường ấy khoảng lượng lớn quỹ thời gian chỉ để phân tích thấu hiểu một mớ bòng bong code sau mỗi lúc mở file, hệ thống chứa cơ hội nào để các bạn ngẫm tới thiết kế bao quát của dự án code đó?
+Việc đàm luận về các vấn đề thiết kế "vĩ mô" sẽ dễ tiếp cận hơn nhiều khi **mã nguồn tầng dưới đã được tổ chức cấu trúc tốt (well-factored)**. Giả dụ bạn và các đồng nghiệp cứ phải hộc tốc tốn nhường ấy khoảng lượng lớn quỹ thời gian chỉ để phân tích thấu hiểu một mớ bòng bong code sau mỗi lúc mở file, làm sao có thể suy nghĩ về thiết kế tổng thể của dự án?
 
 Đó chính là nguyên nhân tại sao **khâu refactoring liên tục luôn đóng một vai trò vô cùng quan trọng trong quy trình TDD**. Nếu chúng ta lơ là bỏ quên thất bại ở khâu giải quyết các vấn đề thiết kế cỏn con, chúng ta rồi sẽ phải đối mặt vất vả khó nhằn mỗi lúc muốn vẽ lên mô hình tổng quan của hệ thống đồ sộ đang phải quản.
 
-Trớ trêu thay, những bộ source code được cấu trúc tồi tệ sẽ bị làm cho vỡ nát theo thứ bậc luỹ thừa khi những kỹ sư tiếp tục nhồi nhét sự rườm rà (complexity) lên trên một khối móng nền lung lay dễ đổ.
+Trớ trêu thay, những bộ source code được cấu trúc tồi tệ sẽ sẽ xuống cấp theo cấp số nhân khi những kỹ sư tiếp tục nhồi nhét sự rườm rà (complexity) lên trên một khối móng nền lung lay dễ đổ.
 
 ## Khởi đầu danh sách kiểm tra trong tâm trí (mental-checklist)
 
-**Hãy hình thành thói quen lướt qua một danh sách checklist cắm sẵn trong đầu ở mọi vòng đời TDD.** Càng ép bản thân trui rèn và thực hành nhiều tới đâu, chuyện ấy sẽ càng thuận tiện hơn tới đó. **Đó là dạng kỹ năng bắt buộc phải được thực hành rèn dũa.** Hãy nhớ lấy, mỗi bước trong hàng loạt những thao tác tu chỉnh này đều không làm phát sinh một bất cứ thứ bắt buộc đổi thay nào tại khâu tests mã của bạn.
+**Hãy hình thành thói quen lướt qua một danh sách checklist trong đầu ở mỗi vòng lặp TDD.** Càng thực hành nhiều, việc này sẽ càng trở nên tự nhiên. **Đây là kỹ năng cần được rèn luyện.** Hãy nhớ rằng, mỗi bước refactoring này đều không yêu cầu bất kỳ thay đổi nào trong các bài test của bạn.
 
-Tôi đã đính kèm các mã lệnh phím tắt thao tác nhanh dành cho IntelliJ/GoLand, bộ dụng cụ tôi cùng đội nhóm đang chuyên dùng. Mỗi bất cứ thời khắc nào bắt tay qua bộ môn đào tạo gửi thông điệp huấn luyện đôn đốc mảng kĩ sư lớp mới, tôi thường tạo điểm nhấn đẩy khuyên họ hãy tập quen rồi nắm nhuần thói quen dùng sức mạnh cơ tay thuộc nằm phím (muscle memory) cũng như nề nếp dùng thành thạo các tiện ích kia hòng múc đích thao tác refactor gọn lẹ và tĩnh tại an toàn.
+Tôi đã đính kèm các phím tắt dành cho IntelliJ/GoLand, bộ công cụ mà tôi và đội nhóm đang sử dụng. Mỗi khi hướng dẫn các kỹ sư mới, tôi thường nhấn mạnh rằng họ nên tập thành thói quen sử dụng phím tắt (muscle memory) và thành thạo các công cụ refactor để thao tác nhanh chóng và an toàn.
 
-### Gộp chung biến (Inline variables)
+### Gộp biến (Inline variables)
 
-Trường hợp bạn đi thiết lập khởi tạo một biến, mà nó chỉ để đem trao trả nhồi làm biến truyền số vào ở một cửa hàm method/function khác:
+Nếu bạn khai báo một biến chỉ để truyền nó vào một method/function khác:
 
 ```go
 url := baseURL + "/user/" + id
 res, err := client.Get(url)
 ```
 
-Nên suy tư về thao tác gộp thẳng dòng biến đó (`command+option+n`) *phân tích trừ phi* bản dạng đặc tả của biến chứa thêm một lớp ranh nghĩa rất rõ rệt quan trọng.
+Hãy cân nhắc gộp biến đó (`command+option+n`), *trừ khi* tên biến mang thêm một lớp ý nghĩa quan trọng.
 
 ```go
 res, err := client.Get(baseURL + "/user/" + id)
 ```
 
-Xin chớ múa lộng quá mức "quá độ thông minh" ở khu vực mảng dùng lệnh gộp inline; chuẩn điểm hướng về không phải vì nhằm diệt sạch chùi mất độ tồn tại của bất kì một cái biến số nào để đánh đổi lấy vài mảng khối hàm rụt lòi chỉ sót đúng dòng lệnh nực cười thảm bại cực kì đau mắt khiến chả có ai luận đọc code ra. Nếu như bạn kiếm mớm ra được một nhãn từ tên đặt gán lột tả đúng nghĩa quan yếu nhất cho mẫu giá trị đó, chắc khả năng bảo lưu vẹn nguyên nó lại là đỉnh quyết định tối cao rồi.
+Đừng lạm dụng inline quá mức. Mục tiêu không phải là loại bỏ mọi biến để rồi tạo ra những dòng code dài ngoằng khó đọc. Nếu bạn tìm được một cái tên mô tả đúng ý nghĩa cho giá trị đó, thì giữ nguyên biến có lẽ là lựa chọn tốt hơn.
 
-### Tránh dư thừa lặp giá trị qua công đoạn trích gán tách biến (DRY up values with extract variables)
+### Loại bỏ giá trị trùng lặp bằng trích xuất biến (DRY up values with extract variables)
 
-"Không được lặp lại chính bạn - Don't repeat yourself" (DRY). Đang đem gán lấy chính cùng chung một cái giá trị xuất hiện lọt thỏm không đếm xuể trong cấu bộ hàm? Xin hãy bớt một giây ngẫm đoái đến thao tác móc bóc trích gán khối value nọ trao qua cho một cái tên biến có gột mang sắc tính biểu nghĩa (`command+option+v`).
+"Đừng lặp lại chính mình" - Don't Repeat Yourself (DRY). Nếu cùng một giá trị xuất hiện nhiều lần trong code, hãy cân nhắc trích xuất nó thành một biến có tên mô tả rõ ràng (`command+option+v`).
 
-Quy chuẩn này thúc làm đòn bẩy độ trong sủa cho mã lọt mắt độ đọc hiểu (readability), mà còn gỡ rối giúp con đường sửa tu bồi đắp biến số đó thuận xu hướng hơn gấp trăm vạn lần, tại cớ rành rành đấy bạn sẽ thoát gánh chịu nỗi nhớ nhớ quên quên tự tay truy gõ sửa lặp bao hồi chung chạ một mã gán đấy mọi bề.
+Việc này không chỉ cải thiện tính dễ đọc (readability) của code, mà còn giúp việc cập nhật giá trị đó dễ dàng hơn nhiều, vì bạn chỉ cần sửa ở một chỗ duy nhất thay vì tìm và sửa ở nhiều nơi.
 
 ### Tránh lặp lại code (DRY) trong trường hợp tổng quát
 
@@ -369,5 +369,5 @@ Refactoring nên diễn ra cực kỳ nhanh chóng và an toàn khi bạn đã t
 
 Chúng ta nên luôn hướng tới việc bàn giao hệ thống code trong ở một trạng thái *mẫu mực (exemplary)*.
 
-Một cú refactoring tốt sẽ dẫn lối tới hệ thống code dễ dàng đọc hiểu hơn. Sự thấu hiểu về code có nghĩa là các sơ đồ thiết kế (designs) trở nên dễ dàng để phát hiện và nắm bắt hơn. Cực kỳ khó khăn để có thể nhìn ra được những designs ngon nghẻ nằm trong các hệ thống chứa đầy những function khổng lồ béo ú, code trùng lặp thừa mứa bừa bãi không cần thiết, đi kèm chuỗi lồng nhau sâu hoắm (deep nesting), vân vân. **Việc refactor tuy mang quy mô nhỏ bé nhưng xuất hiện xuất hiện thường xuyên là yếu tố cực thiết yếu cho một bản design tốt hơn.**
+Refactoring tốt giúp code dễ đọc hiểu hơn. Khi code dễ hiểu, các thiết kế (designs) trở nên dễ phát hiện và nắm bắt hơn. Rất khó để nhìn ra thiết kế tốt trong những hệ thống chứa đầy function khổng lồ, code trùng lặp không cần thiết, và chuỗi lồng nhau quá sâu (deep nesting). **Việc refactor nhỏ nhưng thường xuyên là yếu tố thiết yếu cho một thiết kế tốt hơn.**
 

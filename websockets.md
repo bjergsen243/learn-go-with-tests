@@ -171,7 +171,7 @@ Chúng ta có một trang web rất đơn giản:
 
  - Một vùng nhập văn bản để người dùng nhập tên người chiến thắng vào.
  - Một nút bấm để họ báo cáo người chiến thắng đó.
- - Trong JavaSript, mở một WebSocket kết nối với server của chúng ta và xử lý sự kiện người cùng nhấn nút gửi, dữ liệu khi nhấn sẽ được gửi qua WebSocket.
+ - Trong JavaScript, mở một kết nối WebSocket đến máy chủ của chúng ta và xử lý sự kiện khi người dùng nhấn nút gửi, dữ liệu sẽ được gửi qua kết nối WebSocket đó.
 
 `WebSocket` được tích hợp sẵn trong hầu hết các trình duyệt hiện đại nên chúng ta không cần lo lắng về việc mang thêm bất kỳ thư viện nào. Trang web sẽ không hoạt động trên các trình duyệt cũ hơn, nhưng chúng ta tạm ổn với điều đó cho kịch bản này.
 
@@ -202,15 +202,15 @@ func (p *PlayerServer) game(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-[`html/template`](https://golang.org/pkg/html/template/) là một gói (package) của Go để tạo thẻ HTML. Trong trường hợp của chúng ta, chúng ta gọi hàm `template.ParseFiles` rồi truyền vào đấy đường dẫn file html của mình. Nếu giả sử không có lỗi nào được trả về, bạn có thể gọi `tmpl.Execute` cho file mẫu vừa định ra, cái sẽ ghi thẻ html vào kiểu `io.Writer`. Ở đây chúng ta muốn in thẻ ra màn hình trình duyệt của người dùng, nên chúng ta sẽ chuyển dữ liệu cho kiểu ghi `http.ResponseWriter`.
+[`html/template`](https://golang.org/pkg/html/template/) là một gói (package) của Go để tạo HTML. Trong trường hợp của chúng ta, chúng ta gọi hàm `template.ParseFiles` và truyền vào đường dẫn tệp HTML. Nếu không có lỗi nào được trả về, bạn có thể gọi `Execute` trên template đó, hàm này sẽ ghi HTML ra một `io.Writer`. Trong trường hợp này, chúng ta muốn ghi ra trình duyệt của người dùng nên chúng ta truyền vào `http.ResponseWriter`.
 
-Vì chúng ta không viết chức năng test nào, việc có chút cẩn trọng thực hiện test server thủ công thì luôn chính đáng để đảm bảo ứng dụng có thể hoạt động đúng với kì vọng của mình. Đi tới `cmd/webserver` và chạy dòng lệnh tệp chạy `main.go`. Có thể xem chúng ở địa chỉ: `http://localhost:5000/game`.
+Vì chúng ta không viết bản kiểm thử nào, nên việc kiểm tra thủ công trên máy chủ là hoàn toàn hợp lý để đảm bảo mọi thứ hoạt động đúng như mong đợi. Hãy vào thư mục `cmd/webserver` và chạy tệp `main.go`. Sau đó truy cập `http://localhost:5000/game`.
 
-Bạn _lẽ ra_ có thể gặp lỗi về việc không thể tìm thấy tệp game.html. Bạn có thể sửa bằng cách chuyển đường dẫn của nó thành đường dẫn tương đối, hoặc chỉ việc sao chép `game.html` vào thư mục `cmd/webserver` đang chứa file chạy. Tôi thì đã chọn cách dùng symbolic link (liên kết hệ thống `ln -s ../../game.html game.html`) trỏ file trong hệ thống tới root lúc chạy. Nhờ cách này, lúc tôi chạy thì file lúc nào cũng được cập nhật những chỉnh sửa mới nhất.
+Bạn _có thể_ sẽ gặp lỗi về việc không thể tìm thấy tệp `game.html`. Bạn có thể sửa bằng cách thay đổi đường dẫn thành đường dẫn tuyệt đối, hoặc đơn giản là sao chép tệp `game.html` vào thư mục `cmd/webserver`. Cá nhân tôi đã chọn cách tạo một liên kết tượng trưng (symbolic link) bằng lệnh `ln -s ../../game.html game.html` để tệp luôn được cập nhật với phiên bản mới nhất.
 
-Làm cách của tôi rồi chạy lại, giờ bạn cũng có thể mường tượng được Giao diện người dùng trên web trông sẽ như nào.
+Sau khi hoàn tất, chạy lại chương trình và bạn sẽ thấy giao diện người dùng trên web trông như thế nào.
 
-Việc tiếp theo là kiểm thử trường hợp khi chúng ta nhận được một message chuỗi theo kết nối WebSocket tới máy chủ, server sẽ lấy giá trị đó để làm tên người chiến thắng của một game mới chơi.
+Bước tiếp theo là kiểm thử rằng khi chúng ta nhận được một tin nhắn dạng chuỗi qua kết nối WebSocket, máy chủ sẽ ghi nhận giá trị đó làm tên người chiến thắng của trò chơi.
 
 ## Viết bản kiểm thử trước tiên
 
@@ -245,13 +245,13 @@ t.Run("when we get a message over a websocket it is a winner of a game", func(t 
 
 Hãy đảm bảo rằng bạn đã thêm import thư viện `websocket` vào tệp của mình. IDE của tôi tự động làm điều đó cho tôi, mong là của bạn cũng vậy.
 
-Để kiểm thử những gì xảy ra từ phía trình duyệt, chúng ta phải tự mở một kết nối WebSocket và ghi dữ liệu (write) vào đó.
+Để kiểm thử những gì xảy ra từ phía trình duyệt, chúng ta phải tự mở một kết nối WebSocket và gửi dữ liệu (write) vào đó.
 
-Các bản kiểm thử trước đây của chúng ta xung quanh máy chủ (server) của mình thì chỉ dừng lại ở các function cho server thay vì có các luồng dữ liệu liên tiếp truyền tới máy chủ. Để giả định việc này, chúng ta sử dụng `httptest.NewServer`, hàm này sẽ tạo một interface xử lý `http.Handler`, nó bao gồm việc lắng nghe các kết nối tới server.
+Các bản kiểm thử trước đây của chúng ta đối với máy chủ chỉ gọi các phương thức đơn lẻ, không có các luồng kết nối liên tục. Để kiểm thử WebSockets, chúng ta cần sử dụng `httptest.NewServer`, hàm này nhận một `http.Handler` và khởi động một máy chủ lắng nghe các kết nối đến.
 
-Dùng hàm Dial `websocket.DefaultDialer.Dial` để cố gắng thử kết nối (dialing) tới server, sau đấy mới thử gửi tin nhắn tới nó với thông số `winner` đã chuẩn bị.
+Sử dụng `websocket.DefaultDialer.Dial` để thử kết nối đến máy chủ, sau đó gửi một tin nhắn chứa tên người chiến thắng.
 
-Cuối cùng, chúng ta khẳng định (assert) trên đối tượng player store của người chơi để kiểm tra xem liệu người chiến thắng đã thực sự được lưu lại vào CSDL hay chưa.
+Cuối cùng, chúng ta kiểm tra (assert) trên đối tượng player store để xác nhận rằng người chiến thắng đã được ghi lại.
 
 ## Thử chạy bản kiểm thử
 ```
@@ -260,17 +260,17 @@ Cuối cùng, chúng ta khẳng định (assert) trên đối tượng player st
         server_test.go:124: could not open a ws connection on ws://127.0.0.1:55838/ws websocket: bad handshake
 ```
 
-Chúng ta đã chưa thực sự cấu hình cho máy chủ của mình việc chấp nhận các kết nối giao thức qua web socket `/ws` nên có vẻ việc bắt lỗi đầu vào không thấy diễn ra.
+Chúng ta chưa cấu hình cho máy chủ chấp nhận kết nối WebSocket tại đường dẫn `/ws`, vì vậy quá trình bắt tay (handshake) thất bại là điều dễ hiểu.
 
 ## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-Thêm một route mới vào file:
+Thêm một route mới vào bộ định tuyến:
 
 ```go
 router.Handle("/ws", http.HandlerFunc(p.webSocket))
 ```
 
-Sau đó thêm hàm mới, hàm nghe HTTP từ websocket:
+Sau đó thêm hàm xử lý WebSocket:
 
 ```go
 func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
@@ -282,7 +282,7 @@ func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Để cấu hình nhận WebSocket, chúng ta phải truyền hàm `Upgrade` này để nâng cấp requet request HTTP thành một web socket request, có nhiệm vụ "chắp bút" bắt tay với socket của trình duyệt người dùng. Nửa chặng đường rồi, nếu chạy kiểm thử ngay lập tức thì khả năng lỗi sẽ như thế này:
+Để chấp nhận kết nối WebSocket, chúng ta cần sử dụng `Upgrade` để nâng cấp yêu cầu HTTP thành kết nối WebSocket. Quá trình này thực hiện bắt tay (handshake) với trình duyệt của người dùng. Nếu bạn chạy bản kiểm thử ngay lúc này, lỗi sẽ như sau:
 
 ```
 === RUN   TestGame/when_we_get_a_message_over_a_websocket_it_is_a_winner_of_a_game
@@ -290,7 +290,7 @@ func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
         server_test.go:132: got 0 calls to RecordWin want 1
 ```
 
-Cập nhật lại phương thức đọc luồng Websocket để nhận thông điệp tới và ghi điểm lại coi nào:
+Bây giờ hãy cập nhật hàm xử lý WebSocket để đọc tin nhắn và ghi lại người chiến thắng:
 
 ```go
 func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
@@ -304,15 +304,15 @@ func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-(Vầng, chúng ta cũng phớt lờ đi khá nhiều chi tiết xử lý lỗi!)
+(Đúng vậy, chúng ta đang bỏ qua khá nhiều lỗi ở đây!)
 
-Lệnh `conn.ReadMessage()` làm gián đoạn mọi việc khi nó phải đợi tin nhắn luồng trên trình duyệt. Lệnh tiếp theo dùng để lưu người thắng là kết quả của lệnh đó qua `RecordWin`. Khi việc này hoàn tất thì đồng nghĩa với việc kết nối sẽ dừng.
+`conn.ReadMessage()` sẽ chặn (block) cho đến khi nhận được một tin nhắn qua kết nối. Sau khi nhận được, chúng ta gọi `RecordWin` để ghi lại người chiến thắng. Khi hoàn tất, kết nối sẽ được đóng.
 
-Kiểm thử báo lỗi? Khoan, làm thế quái nào được khi ta làm đúng bài!
+Nếu bạn chạy bản kiểm thử, bạn có thể thấy nó vẫn thất bại.
 
-Lỗi ở đoạn timing giữa các hành động. Có một độ trễ nhỏ giữa lúc server đọc luồn dữ liệu, lấy kết quả ghi vào file của db và lúc trả lỗi kiểm thử của chúng ta. Bạn hoàn toàn có thể chứng thực điều đó bằng việc điền hàm ngủ ảo như lệnh `time.Sleep` để trì hoãn test báo lỗi.
+Vấn đề nằm ở thời gian (timing). Có một độ trễ nhỏ giữa lúc kết nối WebSocket đọc tin nhắn và ghi lại kết quả, với lúc bản kiểm thử thực hiện phép kiểm tra. Bạn có thể xác minh điều này bằng cách thêm một khoảng nghỉ ngắn `time.Sleep` trước phép kiểm tra.
 
-Cái kim trong bọc lâu chày cũng lòi ra rồi, để đó, chúng ta sẽ xem xét xem vì sao đây như là một trò đùa, và vì sao chèn những con số ảo vào trong mã kiểm thử lại là một **phương pháp rất tồi**.
+Hãy tạm ghi nhận vấn đề này. Chúng ta sẽ quay lại xem xét tại sao đây là một vấn đề, và tại sao việc chèn các giá trị sleep tùy ý vào mã kiểm thử là một **thực hành không tốt**.
 
 ```go
 time.Sleep(10 * time.Millisecond)
@@ -321,13 +321,13 @@ AssertPlayerWin(t, store, winner)
 
 ## Tái cấu trúc
 
-Chúng ta đã tạo ra nhiều "khối u" trong việc vừa cố để bản test làm việc trơn tru, vừa khiến cho máy chủ thực hiện đúng chức năng của mình. Nhưng trên quan điểm của quá trình hoàn thiện phần mềm, đây là phần việc khá dễ trôi.
+Chúng ta đã phải cắt vài góc để bản kiểm thử chạy được và máy chủ hoạt động đúng. Nhưng đây là một nền tảng tốt để chúng ta tiếp tục cải thiện.
 
-Mớ rác này đang hoạt động theo đúng kì vọng do một cái tool báo láo! Nhiệm vụ là gì? Chúng ta sẽ tự tay dọn dẹp mớ hỗn độn này sau chứ gì nữa, thay nó bằng đoạn mã "cool ngầu" hơn chả hạn, phải chắc rằng chúng chẳng làm ai sảy chân nữa mới được.
+Mã nguồn hiện tại hoạt động đúng theo mong đợi nhờ vào bộ công cụ kiểm thử. Nhiệm vụ bây giờ là dọn dẹp mã nguồn, thay thế bằng các đoạn mã sạch hơn, và đảm bảo rằng chúng không gây ra lỗi trong tương lai.
 
-Tới phần mã nguồn của hệ quy chiếu server, `PlayerServer`:
+Đầu tiên, hãy xem xét mã nguồn của `PlayerServer`.
 
-Bạn có thể thêm nó vào `upgrader` vì tính riêng biệt nên là ta sẽ khai báo nó chung bên ngoài package. Thay vì thế này:
+Đối tượng `upgrader` được sử dụng riêng cho phương thức WebSocket nên chúng ta có thể khai báo nó ở cấp package (cấp gói). Mã nguồn sẽ như sau:
 
 ```go
 var wsUpgrader = websocket.Upgrader{
@@ -342,9 +342,9 @@ func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Lời gọi hàm từ `template.ParseFiles("game.html")` bây giờ sẽ đi vào tất tần tật yêu cầu URL ở dạng `GET /game`. Cách làm này sẽ mang lại tác hại nhất định: trên mọi trang ở client trỏ vào yêu cầu URL đấy, server đều phải tự parse lại template, rõ ràng chẳng ai cần parse hai lần vào một template không hề bị chỉnh sửa (re-parse) bao giờ. Cách sửa thì là bạn parse duy nhất một lần qua file `NewPlayerServer` để có thể nhận luôn kết quả ra cho vào biến lưu, sau đó chèn vào code khi được gọi. Thử làm thế, bạn cũng cần biến hàm trả về giá trị là các mã lỗi liên quan phòng hờ hỏng lúc lấy file dữ liệu hệ thống ra để parse, hoặc file trống.
+Lời gọi `template.ParseFiles("game.html")` hiện đang được thực thi mỗi khi có yêu cầu `GET /game`. Điều này không cần thiết vì template không thay đổi giữa các yêu cầu, và việc phân tích cú pháp (parse) lại template mỗi lần là lãng phí tài nguyên. Giải pháp là phân tích template một lần duy nhất trong hàm `NewPlayerServer` và lưu kết quả vào một trường (field) của struct. Khi thực hiện thay đổi này, hàm khởi tạo cũng cần trả về lỗi trong trường hợp không thể đọc hoặc phân tích tệp template.
 
-Mã nguồn mới của tệp thiết lập server `PlayerServer`:
+Mã nguồn mới của `PlayerServer`:
 
 ```go
 type PlayerServer struct {
@@ -383,9 +383,9 @@ func (p *PlayerServer) game(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Bằng cách thay đổi cấu trúc thiết kế ở package `NewPlayerServer`, mã ở các file đang xài hàm đó đang gặp vấn đề biên dịch code. Để ý xem mình có fix được các chỗ trống của mã hổng không? Tự coi code cũng là một ý hay nếu bí.
+Vì chúng ta đã thay đổi chữ ký (signature) của `NewPlayerServer`, mã nguồn ở các tệp gọi hàm này sẽ gặp lỗi biên dịch. Hãy thử tự sửa các lỗi đó. Nếu gặp khó khăn, bạn có thể tham khảo mã nguồn gốc.
 
-Sửa các lỗi đó ở file tệp test của chúng ta khá dễ dàng, tôi đã thêm hàm helper trả về các pointer *của server* `mustMakePlayerServer(t *testing.T, store PlayerStore) *PlayerServer` để tôi có thể làm gọn các vấn đề vặt phát sinh lúc mình truyền tham số của `PlayerStore`
+Việc sửa lỗi trong tệp kiểm thử khá đơn giản. Tôi đã tạo một hàm hỗ trợ (helper) `mustMakePlayerServer` để xử lý gọn việc tạo server và kiểm tra lỗi:
 
 ```go
 func mustMakePlayerServer(t *testing.T, store PlayerStore) *PlayerServer {
@@ -397,7 +397,7 @@ func mustMakePlayerServer(t *testing.T, store PlayerStore) *PlayerServer {
 }
 ```
 
-Lại một trợ thủ đắc lực nữa giúp tôi khỏi phải bịt lỗ hổng cho hàm thiết lập websocket, dùng để báo lỗi: tên helper `mustDialWS`
+Tương tự, tôi cũng tạo một hàm hỗ trợ `mustDialWS` để đóng gói việc thiết lập kết nối WebSocket và xử lý lỗi:
 
 ```go
 func mustDialWS(t *testing.T, url string) *websocket.Conn {
@@ -411,7 +411,7 @@ func mustDialWS(t *testing.T, url string) *websocket.Conn {
 }
 ```
 
-Và một ông bạn cuối cùng dọn dẹp vấn đề nhắn lại message từ máy server.
+Và cuối cùng, một hàm hỗ trợ để gửi tin nhắn qua kết nối WebSocket:
 
 ```go
 func writeWSMessage(t testing.TB, conn *websocket.Conn, message string) {
@@ -422,20 +422,11 @@ func writeWSMessage(t testing.TB, conn *websocket.Conn, message string) {
 }
 ```
 
-Chạy file để kiểm thử test pass! Server cũng hoạt động, việc khai tên những người vô tiền khoáng hậu tại `/game` hoàn toàn bình thường, có thể coi điểm trực tiếp và tên được update liên tục từ bảng điểm chung của thư mục `/league`. Ghi nhớ lấy điều này: server cắt hẳn kết nối ngay lúc xác định người thứ bao nhiêu thắng, bạn sẽ phải chịu khó mở lại kết nối URL đấy để thêm lượt khác vào.
+Bây giờ các bản kiểm thử đã vượt qua. Hãy thử chạy máy chủ và khai báo một số người chiến thắng tại `/game`. Bạn sẽ thấy chúng được ghi lại trong `/league`. Hãy nhớ rằng mỗi khi chúng ta nhận được người chiến thắng, chúng ta _sẽ đóng kết nối_, vì vậy bạn sẽ cần tải lại trang để mở lại kết nối.
 
-Với biểu mẫu HTML web đơn giản để làm quen, ta đã thu hoạch được mục tiêu người thắng cuộc. Ở phiên bản tiếp theo, hãy cho tính năng tạo màn chơi, cho biết luật số lượng game chơi và báo tin nhắn về "Tiền mù" - blind qua client trong thời gian diễn ra ván đấu.
+Chúng ta đã tạo ra một biểu mẫu web đơn giản cho phép người dùng ghi lại người chiến thắng của trò chơi. Hãy tiếp tục lặp lại quá trình này để người dùng có thể bắt đầu trò chơi bằng cách cung cấp số lượng người chơi, và máy chủ sẽ đẩy (push) thông báo về giá trị blind đến trình duyệt khi thời gian trôi qua.
 
-<!-- PART 2 HERE -->age over ws connection %v", err)
-	}
-}
-```
-
-Bây giờ các bản kiểm thử đã vượt qua, hãy thử chạy máy chủ và khai báo một số người chiến thắng trong `/game`. Bạn sẽ thấy chúng được ghi lại trong `/league`. Hãy nhớ rằng mỗi khi chúng ta nhận được người chiến thắng, chúng ta _sẽ đóng kết nối_, bạn sẽ cần làm mới trang để mở lại kết nối.
-
-Chúng ta đã tạo ra một biểu mẫu web đơn giản cho phép người dùng ghi lại người chiến thắng của trò chơi. Hãy lặp lại quá trình đó để người dùng có thể bắt đầu trò chơi bằng cách cung cấp số lượng người chơi và máy chủ sẽ đẩy (push) tin nhắn đến máy khách (client) thông báo cho họ về giá trị blind khi thời gian trôi qua.
-
-Đầu tiên, hãy cập nhật `game.html` để cập nhật mã phía máy khách của chúng ta cho các yêu cầu mới:
+Đầu tiên, hãy cập nhật `game.html` để phản ánh các yêu cầu mới phía trình duyệt:
 
 ```html
 <!DOCTYPE html>
@@ -514,11 +505,11 @@ Chúng ta đã tạo ra một biểu mẫu web đơn giản cho phép người d
 </html>
 ```
 
-Các thay đổi chính là đưa vào một phần để nhập số lượng người chơi và một phần để hiển thị giá trị blind. Chúng ta có một chút logic để hiển thị/ẩn giao diện người dùng tùy thuộc vào giai đoạn của trò chơi.
+Các thay đổi chính là thêm một phần để nhập số lượng người chơi và một phần để hiển thị giá trị blind. Chúng ta cũng thêm một chút logic để hiển thị hoặc ẩn các phần của giao diện tùy thuộc vào giai đoạn của trò chơi.
 
-Bất kỳ tin nhắn nào chúng ta nhận được qua `conn.onmessage`, chúng ta đều cho rằng đó là các cảnh báo blind, vì vậy chúng ta đặt `blindContainer.innerText` tương ứng.
+Bất kỳ tin nhắn nào chúng ta nhận được qua `conn.onmessage`, chúng ta đều coi đó là thông báo blind, vì vậy chúng ta gán nội dung cho `blindContainer.innerText`.
 
-Làm thế nào để chúng ta gửi các cảnh báo blind? Trong chương trước, chúng ta đã giới thiệu ý tưởng về `Game` để mã CLI của chúng ta có thể gọi một `Game` và mọi thứ khác sẽ được lo liệu bao gồm cả việc lên lịch cho các cảnh báo blind. Điều này hóa ra lại là một sự phân tách ranh giới tốt.
+Làm thế nào để chúng ta gửi các thông báo blind? Trong chương trước, chúng ta đã giới thiệu khái niệm `Game` để mã CLI có thể gọi một `Game` và mọi thứ khác sẽ được xử lý, bao gồm cả việc lên lịch cho các thông báo blind. Đây hóa ra là một cách phân tách trách nhiệm (separation of concerns) rất tốt.
 
 ```go
 type Game interface {
@@ -527,9 +518,9 @@ type Game interface {
 }
 ```
 
-Khi người dùng được nhắc nhập số lượng người chơi trong CLI, nó sẽ `Bắt đầu` (`Start`) trò chơi, thao tác này sẽ khởi động các cảnh báo blind và khi người dùng kết thúc với kết quả người chiến thắng, họ sẽ chọn `Kết thúc` (`Finish`). Đây là những yêu cầu giống hệt như chúng ta có lúc này, chỉ là một cách khác để nhận đầu vào; vì vậy chúng ta nên tìm cách "tái chế" (re-use) logic này.
+Khi người dùng được nhắc nhập số lượng người chơi trong CLI, ứng dụng sẽ gọi `Start` để bắt đầu trò chơi, kích hoạt các thông báo blind. Khi người dùng khai báo người chiến thắng, ứng dụng sẽ gọi `Finish`. Đây chính xác là những yêu cầu mà chúng ta có bây giờ, chỉ khác cách nhận đầu vào. Vì vậy, chúng ta nên tái sử dụng (re-use) logic này.
 
-Sự triển khai "thực" của `Game` là hàm xử lý ván đấu `TexasHoldem`
+Triển khai thực tế của `Game` là `TexasHoldem`:
 
 ```go
 type TexasHoldem struct {
@@ -538,7 +529,7 @@ type TexasHoldem struct {
 }
 ```
 
-Bằng cách gửi vào một `BlindAlerter`, `TexasHoldem` có thể lập lịch đẩy thông báo tièn mù (blind) đến _bất cứ nơi nào_
+Bằng cách truyền vào một `BlindAlerter`, `TexasHoldem` có thể lên lịch gửi thông báo blind đến _bất cứ đâu_.
 
 ```go
 type BlindAlerter interface {
@@ -546,7 +537,7 @@ type BlindAlerter interface {
 }
 ```
 
-Nhắc một chút nha, đây là giao diện định nghĩa hàm blind đã sử dụng trong giao diện CLI `BlindAlerter`. 
+Để nhắc lại, đây là triển khai `BlindAlerter` mà chúng ta đang sử dụng trong CLI:
 
 ```go
 func StdOutAlerter(duration time.Duration, amount int) {
@@ -556,11 +547,11 @@ func StdOutAlerter(duration time.Duration, amount int) {
 }
 ```
 
-Nó hoạt động trong CLI vì chúng ta _luôn muốn gửi các cảnh báo đến `os.Stdout`_ nhưng điều này sẽ không hoạt động cho máy chủ web của chúng ta. Đối với mỗi yêu cầu, chúng ta nhận được một `http.ResponseWriter` mới và sau đó nâng cấp thành `*websocket.Conn`. Vì vậy, chúng ta không thể biết khi cấu trúc các phụ thuộc của mình thì các cảnh báo của chúng ta cần đi đâu.
+Cách này hoạt động tốt trong CLI vì chúng ta _luôn muốn gửi thông báo đến `os.Stdout`_. Tuy nhiên, nó sẽ không phù hợp với máy chủ web. Đối với mỗi yêu cầu, chúng ta nhận được một `http.ResponseWriter` mới và sau đó nâng cấp thành `*websocket.Conn`. Vì vậy, tại thời điểm khởi tạo các phụ thuộc, chúng ta không thể biết trước đích đến của các thông báo.
 
-Vì lý do đó, chúng ta cần thay đổi `BlindAlerter.ScheduleAlertAt` để nó nhận một đích đến cho các cảnh báo, nhằm mục đích tái sử dụng trong máy chủ web của mình.
+Vì lý do đó, chúng ta cần thay đổi `BlindAlerter.ScheduleAlertAt` để nó nhận thêm một đích đến (destination), nhằm có thể tái sử dụng trong máy chủ web.
 
-Mở `blind_alerter.go` và thêm tham số `io.Writer`:
+Mở tệp `blind_alerter.go` và thêm tham số `io.Writer`:
 
 ```go
 type BlindAlerter interface {
@@ -574,7 +565,7 @@ func (a BlindAlerterFunc) ScheduleAlertAt(duration time.Duration, amount int, to
 }
 ```
 
-Ý tưởng về một `StdoutAlerter` không còn phù hợp với mô hình mới của chúng ta nữa, vì vậy hãy đổi tên nó thành `Alerter`:
+Khái niệm `StdoutAlerter` không còn phù hợp với mô hình mới, vì vậy hãy đổi tên nó thành `Alerter`:
 
 ```go
 func Alerter(duration time.Duration, amount int, to io.Writer) {
@@ -584,11 +575,11 @@ func Alerter(duration time.Duration, amount int, to io.Writer) {
 }
 ```
 
-Nếu bạn thử biên dịch, nó sẽ báo lỗi trong `TexasHoldem` vì nó đang gọi `ScheduleAlertAt` mà không có đích đến (tham số `to`), để mọi thứ biên dịch lại được _ngay bây giờ_ ,tốt nhất cứ hãy gán cứng giá trị vào (hard-code) kiểu `os.Stdout` cái đã.
+Nếu bạn thử biên dịch, mã trong `TexasHoldem` sẽ báo lỗi vì đang gọi `ScheduleAlertAt` mà thiếu tham số `to`. Để mã biên dịch được _ngay bây giờ_, hãy tạm thời gán cứng (hard-code) giá trị `os.Stdout` vào.
 
-Thử chạy các bài kiểm thử và chúng sẽ thất bại vì `SpyBlindAlerter` không còn triển khai `BlindAlerter` nữa, sửa lỗi này bằng cách cập nhật header của hàm (chữ ký hàm) `ScheduleAlertAt`, khởi chạy các bài test và hệ thống khả năng cao vẫn sẽ xanh lên đèn.
+Tiếp theo, chạy các bản kiểm thử. Chúng sẽ thất bại vì `SpyBlindAlerter` không còn triển khai đúng giao diện `BlindAlerter` nữa. Hãy cập nhật chữ ký hàm `ScheduleAlertAt` của nó. Sau khi sửa, các bản kiểm thử sẽ vượt qua.
 
-Chẳng có ý đồ gì cho việc `TexasHoldem` biết được nơi gửi đi tin nhắn báo lỗi tiền blind (tiền mù) cả. Cập nhật struct `Game` để khi trò chơi chạy, nó xác định rõ xem _ở đâu_ tin nhắn nên được chuyển tới.
+Không có lý do gì để `TexasHoldem` phải biết đích đến của thông báo blind. Hãy cập nhật giao diện `Game` để khi trò chơi bắt đầu, nó nhận thêm thông tin về _nơi_ mà thông báo cần được gửi đến:
 
 ```go
 type Game interface {
@@ -597,19 +588,19 @@ type Game interface {
 }
 ```
 
-Biên dịch sẽ chỉ cho bạn có lỗi nào và đoạn sửa nó nằm ở đâu (không tốn nhiều sức lắm):
+Trình biên dịch sẽ chỉ ra các vị trí cần sửa. Các thay đổi không quá phức tạp:
 
-- Làm lại hàm `TexasHoldem` nó sẽ được sử dụng thích hợp cho `Game`.
-- Ở phía `CLI`, ngay khi ta chơi game, gán thêm thông số `out` cho object này (`cli.game.Start(numberOfPlayers, cli.out)`)
-- Ở đoạn code test cho tệp `TexasHoldem` tôi sử dụng đoạn mã như sau `game.Start(5, io.Discard)`  để sửa các lỗi gây ra khi build và cấu hình output cho thông báo được bỏ qua đi 
+- Cập nhật `TexasHoldem` để triển khai đúng giao diện `Game` mới.
+- Trong `CLI`, khi bắt đầu trò chơi, truyền thêm đích xuất `out`: `cli.game.Start(numberOfPlayers, cli.out)`.
+- Trong các bản kiểm thử của `TexasHoldem`, sử dụng `game.Start(5, io.Discard)` để bỏ qua đầu ra thông báo.
 
-Mọi thứ chạy không lỗi lầm gì? Thế chúng ta sẽ dùng hàm `Game` này ngay và luôn ở tệp `Server`.
+Nếu mọi thứ biên dịch thành công và các bản kiểm thử vượt qua, chúng ta đã sẵn sàng sử dụng `Game` trong `Server`.
 
 ## Viết bản kiểm thử trước tiên
 
-Ràng buộc về môi trường của `CLI` cũng như `Server` cũng chỉ có ngần ấy! Khác mỗi cách thông báo được gửi đi kiểu chi.
+Các yêu cầu của `CLI` và `Server` rất giống nhau. Điểm khác biệt duy nhất là cách thông báo được gửi đến người dùng.
 
-Lật qua lật lại các mã test của `CLI` để khơi nguồn cảm hứng nhắm mắt viết code
+Hãy tham khảo các bản kiểm thử của `CLI` để lấy cảm hứng:
 
 ```go
 t.Run("start game with 3 players and finish game with 'Chris' as winner", func(t *testing.T) {
@@ -626,7 +617,7 @@ t.Run("start game with 3 players and finish game with 'Chris' as winner", func(t
 })
 ```
 
-Chúng ta hoàn toàn khả dĩ dựa vào test này mà viết mã tương tự cho việc áp dụng chức năng đó vào đối tượng `GameSpy` đấy. Sửa đoạn test websocket cũ đinh ninh lại bằng nội dung bên dưới:
+Chúng ta hoàn toàn có thể viết mã tương tự cho `Server` bằng cách sử dụng `GameSpy`. Hãy cập nhật bản kiểm thử WebSocket như sau:
 
 ```go
 t.Run("start a game with 3 players and declare Ruth the winner", func(t *testing.T) {
@@ -647,13 +638,13 @@ t.Run("start a game with 3 players and declare Ruth the winner", func(t *testing
 })
 ```
 
-- Việc chúng ta tạo một gián điệp tên là spy `Game` để được chuyển dữ liệu sang `mustMakePlayerServer` đã được thảo luận ở trên (nhớ không quên cập nhập hàm helper dùng được chức năng này).
-- Sau đó chúng ta có thể gửi tin nhắn qua Websocket đến game.
-- Chúng ta xác nhận game được khởi tạo đúng theo kì vọng tại phần code assert ở cuối.
+- Chúng ta tạo một `GameSpy` và truyền nó vào `mustMakePlayerServer` (đừng quên cập nhật hàm hỗ trợ này để nhận thêm tham số `Game`).
+- Sau đó chúng ta gửi tin nhắn qua kết nối WebSocket cho trò chơi.
+- Cuối cùng, chúng ta kiểm tra rằng trò chơi đã được khởi tạo và kết thúc đúng như mong đợi.
 
-## Chạy thử mã test
+## Thử chạy bản kiểm thử
 
-Bạn sẽ gặp các lỗi lúc biên dịch qua ở phần `mustMakePlayerServer` trong vài tests khác. Khai một biến ẩn kiểu gán `dummyGame` vào xem xét gán cho nó vào các test đang treo không dịch lại được.
+Bạn sẽ gặp các lỗi biên dịch tại `mustMakePlayerServer` trong một số bản kiểm thử khác. Hãy khai báo một biến `dummyGame` và truyền vào các bản kiểm thử đang bị lỗi:
 
 ```go
 var (
@@ -661,7 +652,7 @@ var (
 )
 ```
 
-Rồi, sẽ đến lỗi lúc ta tọng cục giá trị của `Game` vào constructor tên là `NewPlayerServer` tuy nhiên nó không được support cái parameter ấy.
+Tiếp theo, bạn sẽ gặp lỗi biên dịch vì `NewPlayerServer` chưa nhận tham số `Game`:
 
 ```
 ./server_test.go:21:38: too many arguments in call to "github.com/quii/learn-go-with-tests/WebSockets/v2".NewPlayerServer
@@ -669,15 +660,15 @@ Rồi, sẽ đến lỗi lúc ta tọng cục giá trị của `Game` vào const
 	want ("github.com/quii/learn-go-with-tests/WebSockets/v2".PlayerStore)
 ```
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
+## Viết lượng mã nguồn tối thiểu để chạy bản kiểm thử và kiểm tra kết quả lỗi
 
-Add luôn argument vào chỗ này đi để qua test lỗi thứ n.
+Thêm tham số `Game` vào hàm `NewPlayerServer`:
 
 ```go
 func NewPlayerServer(store PlayerStore, game Game) (*PlayerServer, error)
 ```
 
-Chạy
+Chạy bản kiểm thử:
 
 ```
 === RUN   TestGame/start_a_game_with_3_players_and_declare_Ruth_the_winner
@@ -690,7 +681,7 @@ FAIL
 
 ## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-Vậy là cần bổ sung đối tượng `Game` này vào trường (field) của gói thuộc về struct mang tên `PlayerServer` giúp code vận hành theo những lệnh truy cập (request).
+Chúng ta cần thêm trường `Game` vào struct `PlayerServer` để có thể sử dụng nó khi xử lý các yêu cầu:
 
 ```go
 type PlayerServer struct {
@@ -701,9 +692,9 @@ type PlayerServer struct {
 }
 ```
 
-(Tiện thì rename nốt methods hiện đang trùng tên game thành `playGame` đi cho đỡ hoa mắt nhé)
+(Nhân tiện, hãy đổi tên phương thức `game` hiện tại thành `playGame` để tránh trùng tên với trường mới.)
 
-Sau đó cập nhật giá trị khởi tạo trong phương thức định nghĩa đối tượng của nó
+Sau đó cập nhật hàm khởi tạo:
 
 ```go
 func NewPlayerServer(store PlayerStore, game Game) (*PlayerServer, error) {
@@ -721,7 +712,7 @@ func NewPlayerServer(store PlayerStore, game Game) (*PlayerServer, error) {
 }
 ```
 
-Đã đến lúc dùng `Game` cùng `webSocket` rồi.
+Bây giờ chúng ta sẽ sử dụng `Game` trong hàm `webSocket`:
 
 ```go
 func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
@@ -736,11 +727,11 @@ func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Oki la! Những phương thức test không còn mắng tôi nữa.
+Bây giờ các bản kiểm thử sẽ vượt qua.
 
-Vẫn chưa thể đẩy ngay cái tin nhắn alert được, khoan hãng làm vậy, suy xét một tẹo này. Khi gọi hàm `game.Start`, thực sự là mình truyền vào cho nó hàm xóa dấu vết dữ liệu in ra thông qua `io.Discard`, dọn đường cho bất kỳ thông điệp nào tới đều tàng hình.
+Lưu ý rằng chúng ta vẫn chưa gửi thông báo blind đến người dùng. Khi gọi `game.Start`, chúng ta đang truyền `io.Discard`, nghĩa là mọi thông báo đều bị bỏ qua. Chúng ta sẽ xử lý vấn đề này sau.
 
-Cứ khởi động cái web server lên nghe ngóng tình hình, sau đó thì nên để cả file `main.go`. Nạp `Game` này vào để xài qua `PlayerServer` mới
+Trước tiên, hãy đảm bảo mọi thứ hoạt động từ đầu đến cuối. Cập nhật tệp `main.go` để truyền `Game` vào `PlayerServer`:
 
 ```go
 func main() {
@@ -768,13 +759,13 @@ func main() {
 }
 ```
 
-Tạm bỏ qua chuyện bạn chưa thấy nó báo cáo điểm mù blind tới giờ này. App _tỏ vẻ_ là vẫn tốt! Thành quả là nhồi đủ thứ để `Game` hoạt động nhịp nhàng ăn ý với `PlayerServer` cùng đống code backend tốn cơm khác, khi hiểu được gửi cái cục đó của nợ thế nào mà vẫn thấy vui vui vì những đống đổ rác không bị báo tràn bộ nhớ, code nó vẫn _work_ ổn.
+Tạm thời bạn sẽ chưa thấy thông báo blind trên trình duyệt, nhưng ứng dụng vẫn hoạt động tốt. Thành quả chúng ta đạt được là tích hợp `Game` vào `PlayerServer` cùng với toàn bộ mã nguồn phía backend. Mã nguồn vẫn biên dịch thành công và các bản kiểm thử vẫn vượt qua.
 
-Xử trước mớ bòng bong không đáng có kia sau này đã.
+Bây giờ hãy xử lý vấn đề còn lại.
 
 ## Tái cấu trúc
 
-Cách mà chúng ta đang triển khai WebSockets khá là cơ bản và cách báo kết quả mã code cũng khá trẻ con và ngu ngốc, để tránh lỗi vặt từ server nên ta gán thuộc tính đóng gói mảng thuộc tính như thế, sửa thì lúc khác bớt ngu cũng được. Tạm dẹp cái đống tủa tủa này và đi tiếp.
+Cách chúng ta đang sử dụng WebSocket hiện tại khá cơ bản và việc xử lý lỗi chưa đầy đủ. Hãy tạo một kiểu dữ liệu mới để đóng gói kết nối WebSocket, giúp mã nguồn máy chủ gọn gàng hơn:
 
 ```go
 type playerServerWS struct {
@@ -800,37 +791,37 @@ func (w *playerServerWS) WaitForMsg() string {
 }
 ```
 
-Mã nguồn trên máy chủ nay đã gọn gàng hẳn
+Giờ đây mã nguồn xử lý WebSocket trên máy chủ trở nên gọn gàng hơn nhiều:
 
 ```go
 func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
 	ws := newPlayerServerWS(w, r)
 	numberOfPlayersMsg := ws.WaitForMsg()
 	numberOfPlayers, _ := strconv.Atoi(numberOfPlayersMsg)
-	p.game.Start(numberOfPlayers, io.Discard) //todo: Đừng loại bỏ thông báo tiền cược mù (blind alerts)!
+	p.game.Start(numberOfPlayers, io.Discard) //todo: Don't discard the blinds messages!
 
 	winner := ws.WaitForMsg()
 	p.game.Finish(winner)
 }
 ```
 
-Một khi chúng ta tìm ra cách để không loại bỏ các thông báo tiền mù, công việc của chúng ta sẽ hoàn thành.
+Khi chúng ta tìm ra cách để không loại bỏ các thông báo blind, công việc của chúng ta sẽ hoàn thành.
 
-### _Đừng_ viết bản kiểm thử nhé!
+### _Đừng_ viết bản kiểm thử!
 
-Đôi khi, khi chúng ta không chắc chắn phải làm gì đó, cách tốt nhất là cứ thử nghiệm và vọc vạch một chút! Đảm bảo rằng công việc của bạn đã được commit trước, bởi vì khi chúng ta đã tìm ra một cách hợp lý thì chúng ta mới nên thực hiện qua bản kiểm thử theo đúng hướng (drive it through a test).
+Đôi khi, khi chúng ta chưa chắc chắn cách triển khai, cách tốt nhất là thử nghiệm trước. Hãy đảm bảo rằng công việc của bạn đã được commit, vì khi tìm ra cách tiếp cận hợp lý, chúng ta sẽ quay lại và triển khai đúng cách thông qua bản kiểm thử (drive it through a test).
 
-Dòng code đang có vấn đề của chúng ta là:
+Dòng mã đang cần xử lý là:
 
 ```go
 p.game.Start(numberOfPlayers, io.Discard) //todo: Don't discard the blinds messages!
 ```
 
-Chúng ta cần truyền vào một `io.Writer` để trò chơi có thể ghi thông báo cảnh báo mù (blind alerts).
+Chúng ta cần truyền vào một `io.Writer` để trò chơi có thể ghi thông báo blind vào đó.
 
-Chẳng phải sẽ rất tốt nếu chúng ta có thể truyền vào biến `playerServerWS` mà chúng ta viết lúc nãy sao? Nó được bọc để che đi WebSocket của chúng ta nên có _cảm giác_ như chúng ta có thể truyền nó cho đối tượng `Game` để gửi tin nhắn đến.
+Sẽ rất tốt nếu chúng ta có thể truyền `playerServerWS` vào đây. Kiểu dữ liệu này đóng gói kết nối WebSocket, vì vậy chúng ta _có cảm giác_ có thể truyền nó cho `Game` để gửi tin nhắn đến trình duyệt.
 
-Hãy thử xem:
+Hãy thử:
 
 ```go
 func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
@@ -843,14 +834,14 @@ func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Trình biên dịch phàn nàn:
+Trình biên dịch sẽ báo lỗi:
 
 ```
 ./server.go:71:14: cannot use ws (type *playerServerWS) as type io.Writer in argument to p.game.Start:
 	*playerServerWS does not implement io.Writer (missing Write method)
 ```
 
-Điều hiển nhiên có vẻ cần làm là khiến đối tượng `playerServerWS` có thể triển khai `io.Writer`. Để làm vậy, chúng ta sử dụng con trỏ trỏ tới `*websocket.Conn` bên dưới cùng hàm `WriteMessage` để gửi tin nhắn qua websocket:
+Giải pháp hiển nhiên là triển khai phương thức `Write` cho `playerServerWS`. Chúng ta sẽ sử dụng `*websocket.Conn` bên trong cùng hàm `WriteMessage` để gửi tin nhắn qua WebSocket:
 
 ```go
 func (w *playerServerWS) Write(p []byte) (n int, err error) {
@@ -864,27 +855,25 @@ func (w *playerServerWS) Write(p []byte) (n int, err error) {
 }
 ```
 
-Trông có vẻ mọi thứ quá dễ dàng! Chạy thử ứng dụng xem sao.
+Mọi thứ có vẻ rất đơn giản. Hãy chạy thử ứng dụng.
 
-Trước tiên hãy sửa lại `TexasHoldem` để khoảng thời gian gia tăng tiền mù ngắn hơn nhằm dễ theo dõi hành động:
+Trước tiên, hãy điều chỉnh `TexasHoldem` để khoảng thời gian tăng blind ngắn hơn, nhằm dễ quan sát:
 
 ```go
-blindIncrement := time.Duration(5+numberOfPlayers) * time.Second // (thay vì làm cả phút)
+blindIncrement := time.Duration(5+numberOfPlayers) * time.Second // (thay vì tính bằng phút)
 ```
 
-Đáng lẽ bạn phải thấy nó hoạt động mới đúng! Số tiền cược tự động tăng lên trên trình duyệt như thể có phép thuật vậy.
+Bạn sẽ thấy nó hoạt động. Giá trị blind tự động tăng lên trên trình duyệt.
 
-Bây giờ hãy đảo ngược phiên code lại (revert code) và nghĩ cách để test cái này xem nào. Để nhằm _thực thi_ tất cả mọi điều mà chúng ta đã làm - truyền dữ liệu thẳng tới `StartGame` như đối tượng `playerServerWS` thay cho kiểu biến mất dạng `io.Discard`, việc này có thể khiến bạn nghĩ rằng chúng ta phải do thám lệnh gọi trên chỉ để kiểm chứng nó có chạy được không.
+Bây giờ hãy hoàn tác (revert) thay đổi thử nghiệm vừa rồi và tìm cách kiểm thử đúng cách. Để _kiểm thử_ rằng chúng ta truyền `playerServerWS` vào `Start` thay vì `io.Discard`, bạn có thể nghĩ đến việc do thám (spy) lời gọi đó. Tuy nhiên, chúng ta nên ưu tiên kiểm thử dựa trên _hành vi thực tế_ thay vì chi tiết triển khai. Lý do là khi bạn tái cấu trúc (refactor) mã nguồn, các bản kiểm thử dựa trên chi tiết triển khai rất dễ bị hỏng dù hệ thống vẫn hoạt động đúng.
 
-Do thám một lời gọi là rất tốt để hỗ trợ ta đối soát các khâu bên trong bản triển khai của hàm nhưng ta nên thiên về việc xây dựn test bằng các luồng hoạt động _chính thống_ của ứng dụng lúc sử dụng thực tế vì khi bạn nhúng tay vào việc Refactor cấu trúc dự án thì mấy bài test kiểu spy calls này rất hay fail ngớ ngẩn do chúng thường check quá sâu các chi tiết trong luồng thực thi mà đáng ra bạn đang cần thay đổi.
-
-Bộ kiểm thử hiện tại của chúng ta thực hiện điều đó thông qua việc mở kết nối socket trò chơi đến ứng dụng đang chạy ở local và gửi một mảng tin nhắn yêu cầu ứng dụng xử lý những việc nhất định. Rõ ràng là ta cũng có khả năng test những bản tin trả về từ hệ thống server dựa theo đường đó.
+Bộ kiểm thử hiện tại của chúng ta đã kiểm thử theo hành vi: mở kết nối WebSocket đến ứng dụng đang chạy, gửi tin nhắn và kiểm tra kết quả. Chúng ta hoàn toàn có thể kiểm thử các tin nhắn trả về theo cách tương tự.
 
 ## Viết bản kiểm thử trước tiên
 
-Ta sẽ điều chỉnh lại bộ thử nghiệm hiện đang có.
+Chúng ta sẽ chỉnh sửa bộ kiểm thử hiện có.
 
-Hiện tại test của hàm `GameSpy` lúc gọi hàm `Start` không in băm ra tý tin nhắn hay output nào. Chúng ta nên cập nhật lại một tí thành hệ thống gửi đi một mẫu thư rác cài sẵn, để lúc server trả lại cho socket xem ta có check đc message ấy chuẩn chưa. Nó là thứ sẽ giúp chúng minh mình cấu hình chuẩn mọi thứ đồng thời cho ra output đúng với bản chất ứng dụng.
+Hiện tại `GameSpy` khi được gọi `Start` không gửi bất kỳ thông báo nào. Chúng ta cần cập nhật để nó ghi một tin nhắn mẫu vào đầu ra, sau đó kiểm tra xem tin nhắn đó có được nhận qua kết nối WebSocket hay không. Điều này chứng minh rằng chúng ta đã cấu hình đúng mọi thứ và đầu ra được gửi đến đúng nơi.
 
 ```go
 type GameSpy struct {
@@ -897,9 +886,9 @@ type GameSpy struct {
 }
 ```
 
-Hãy chèn trường dữ liệu kiểu byte là `BlindAlert` vô đây.
+Chúng ta thêm trường `BlindAlert` kiểu `[]byte`.
 
-Bổ sung lại logic trả hàm `Start` ở đối tượng `GameSpy` báo tin nhắn đóng hộp vào dữ liệu output `out`.
+Cập nhật phương thức `Start` của `GameSpy` để ghi tin nhắn đóng gói sẵn vào đầu ra:
 
 ```go
 func (g *GameSpy) Start(numberOfPlayers int, out io.Writer) {
@@ -909,9 +898,9 @@ func (g *GameSpy) Start(numberOfPlayers int, out io.Writer) {
 }
 ```
 
-Ý đồ của chuyện này nằm ở lúc chạy kiểm tra qua gói `PlayerServer`, quá trình gọi `Bắt đầu` màn chơi `Start` từ đầu cuối máy chủ nó sẽ ném tin nhắn xuyên suốt giao tiếp kết nối vào đường truyền của websocket theo kỳ vọng đặt sẵn.
+Ý tưởng ở đây là: khi `PlayerServer` gọi `Start`, tin nhắn sẽ được ghi vào kết nối WebSocket. Bản kiểm thử sẽ đọc tin nhắn từ kết nối WebSocket và xác minh rằng nó đúng như mong đợi.
 
-Bây giờ là đoạn chúng ta vá mã cho function về test:
+Bây giờ hãy cập nhật bản kiểm thử:
 
 ```go
 t.Run("start a game with 3 players, send some blind alerts down WS and declare Ruth the winner", func(t *testing.T) {
@@ -940,17 +929,16 @@ t.Run("start a game with 3 players, send some blind alerts down WS and declare R
 })
 ```
 
-- Một thuộc tính `wantedBlindAlert` vừa mới vào sân, cùng cấu hình nhồi tin `GameSpy` trả cái này ra stream `out` khi hàm khởi động `Start` có hiệu lực.
-- Để chờ đón tin vui nhắn qua cầu nối websocket, ta phải dùng lệnh bốc dỡ qua đối tượng socket read stream ngóng biến trả về là `ws.ReadMessage()` rồi lại mang ra đọ xem cái message từ ws đấy có đúng bản auth hay không (chứ đừng báo "Cảnh mù" linh tinh).
+- Chúng ta khai báo `wantedBlindAlert` và cấu hình `GameSpy` để ghi giá trị này vào luồng đầu ra khi `Start` được gọi.
+- Sau khi gửi tin nhắn qua WebSocket, chúng ta gọi `ws.ReadMessage()` để đọc tin nhắn trả về từ máy chủ và kiểm tra xem nội dung có khớp với thông báo blind mong đợi hay không.
 
 ## Thử chạy bản kiểm thử
 
-Bạn sẽ thấy test cứ bị treo. Sở dĩ có việc này là do cái lệnh `ws.ReadMessage()` có đặc điểm làm đóng băng code chờ một message trả lại mà message ấy lại éo bao giờ được tung ra cả. 
+Bạn sẽ thấy bản kiểm thử bị treo (hang). Nguyên nhân là `ws.ReadMessage()` sẽ chặn (block) chờ một tin nhắn, nhưng tin nhắn đó không bao giờ được gửi đến vì chúng ta vẫn đang truyền `io.Discard` thay vì kết nối WebSocket thực.
 
+## Viết lượng mã nguồn tối thiểu để chạy bản kiểm thử và kiểm tra kết quả lỗi
 
-## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
-
-Không được để test chạy kiểu đứng hình, vì thế hãy đem vào đây một kỹ thuật bẫy xử lý với kiểu code mà nó gây vượt thời gian ngóng chờ - time outs.
+Chúng ta không nên để bản kiểm thử bị treo mãi. Hãy tạo một hàm hỗ trợ xử lý thời gian chờ (timeout):
 
 ```go
 func within(t testing.TB, d time.Duration, assert func()) {
@@ -971,11 +959,11 @@ func within(t testing.TB, d time.Duration, assert func()) {
 }
 ```
 
-Cách mã `within` thiết kế ra: nhận một hàm `assert` truyền từ đối số gọi vào nó, sau đấy mới bốc hàm này xử lý trong một khối goroutine. Khi/Nếu quy trình này thực thi xong thì việc gởi tiếp hiệu lệnh kết thúc (struct không mang data) nhét tạm vào block chứa `done` ở dạng channel - tức luồng.
+Hàm `within` hoạt động như sau: nó nhận một hàm `assert` và chạy hàm đó trong một goroutine riêng. Khi hàm `assert` hoàn tất, nó sẽ gửi tín hiệu vào channel `done`.
 
-Song song trong quy trình đợi ở đó chúng ta sẽ gọi tới khái niệm `select` điều đó giúp nghe ngóng và đợi ở các hướng kênh - channel channel để lấy message ra. Nơi này là sân chơi thi gan đọ độ chây ì của hai lệnh gồm `assert` (từ goroutines) hay lệnh cảnh báo là `time.After` cái thứ có thể sút hiệu lệnh khi hạn timeout gõ chuông cảnh báo.
+Trong khi đó, chúng ta sử dụng `select` để chờ hai sự kiện: hoặc hàm `assert` hoàn tất (nhận tín hiệu từ channel `done`), hoặc thời gian chờ hết hạn (nhận tín hiệu từ `time.After`). Sự kiện nào xảy ra trước sẽ được xử lý.
 
-Sau chót, việc bọc assertion vào thành một tiểu hàm - function giúp cấu trúc đoạn test trong ngắn gọn súc tích hơn đấy.
+Tiếp theo, hãy đóng gói phần kiểm tra tin nhắn WebSocket vào một hàm hỗ trợ để bản kiểm thử gọn gàng hơn:
 
 ```go
 func assertWebsocketGotMsg(t *testing.T, ws *websocket.Conn, want string) {
@@ -986,7 +974,7 @@ func assertWebsocketGotMsg(t *testing.T, ws *websocket.Conn, want string) {
 }
 ```
 
-Trông bài kiểm tra rốt cuộc sẽ như thế nào nào:
+Bản kiểm thử cuối cùng sẽ như sau:
 
 ```go
 t.Run("start a game with 3 players, send some blind alerts down WS and declare Ruth the winner", func(t *testing.T) {
@@ -1011,7 +999,7 @@ t.Run("start a game with 3 players, send some blind alerts down WS and declare R
 })
 ```
 
-Và giờ hãy chích mồi lệnh run code:
+Chạy bản kiểm thử:
 
 ```
 === RUN   TestGame
@@ -1022,9 +1010,9 @@ Và giờ hãy chích mồi lệnh run code:
     	server_test.go:150: got "", want "Blind is 100"
 ```
 
-## Viết đủ code để test chạy thành công
+## Viết đủ mã nguồn để bản kiểm thử vượt qua
 
-Sau bao bộn bề thì cuối cùng cũng có thể can thiệp lại vào mã nguồn chạy hệ thống server của chúng ta để gửi thẳng cái `Kết nối WebSocket` của ứng dụng qua kênh server ở lúc game thiết lập:
+Cuối cùng, chúng ta có thể cập nhật mã nguồn máy chủ để truyền kết nối WebSocket vào `Start` thay vì `io.Discard`:
 
 ```go
 func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
@@ -1041,11 +1029,11 @@ func (p *PlayerServer) webSocket(w http.ResponseWriter, r *http.Request) {
 
 ## Tái cấu trúc
 
-Code trên máy chủ chỉ được thay đổi chút ét nên có lặn ở đây cũng không có nhiều việc phải khuân vác, ngoại trừ phần khai báo cho code test đang chình ình cái phương thức `time.Sleep` vì chúng ta bắt ép mọi công cụ đi ngủ để đội đợi cái hàm bất đồng bộ phía server kịp nhả xong kết quả.
+Mã nguồn máy chủ chỉ thay đổi rất ít, nên không có nhiều việc cần làm ở đây. Tuy nhiên, phần mã kiểm thử vẫn đang sử dụng `time.Sleep` để chờ các tác vụ bất đồng bộ hoàn tất, điều này không lý tưởng.
 
-Hàm sửa lỗi có thể refactor lại 2 phương thức là `assertGameStartedWith` and `assertFinishCalledWith` với việc hỗ trợ chúng việc retry liên tục hành động assertion trong thời lượng rất ngắn để tránh bị đánh fail khi chậm có output.
+Chúng ta có thể tái cấu trúc các hàm `assertGameStartedWith` và `assertFinishCalledWith` để chúng tự động thử lại (retry) phép kiểm tra trong một khoảng thời gian ngắn, thay vì phụ thuộc vào `time.Sleep`.
 
-Làm điều này với `assertFinishCalledWith` kiểu này nhé:
+Ví dụ với `assertFinishCalledWith`:
 
 ```go
 func assertFinishCalledWith(t testing.TB, game *GameSpy, winner string) {
@@ -1061,7 +1049,7 @@ func assertFinishCalledWith(t testing.TB, game *GameSpy, winner string) {
 }
 ```
 
-Đoạn định nghĩa khối `retryUntil` :
+Hàm `retryUntil` được định nghĩa như sau:
 
 ```go
 func retryUntil(d time.Duration, f func() bool) bool {
@@ -1077,21 +1065,19 @@ func retryUntil(d time.Duration, f func() bool) bool {
 
 ## Tổng kết
 
-Ứng dụng của chúng ta hiện nay là một dự án "sống" rồi đấy. Trò chơi có thể đi vào hành trình bài bạc poker qua web duyệt trên trình duyệt được luôn, và client được nhận các thông số gửi cọc mù khi qua giao thức gọi là the WebSockets. Càng mừng nữa là hồi cuối ván mọi record người nào "đớp" có thể lưu cứng (persisted) lấy nguồn từ code ta khai sinh cả mấy chương trước. Những cao thủ muốn so tài (hay do may nốt) giờ có luôn một endpoint tra bảng xếp hạng `/league` danh dá thế kia.
+Ứng dụng của chúng ta giờ đây đã hoàn thiện hơn. Người dùng có thể chơi poker qua trình duyệt web, và trình duyệt sẽ nhận được các thông báo blind thông qua WebSockets. Khi trò chơi kết thúc, kết quả người chiến thắng được lưu trữ (persisted) nhờ mã nguồn mà chúng ta đã xây dựng từ các chương trước. Người chơi cũng có thể xem bảng xếp hạng tại endpoint `/league`.
 
-Kể từ những đầu tư công sức vào TDD flow, dù làm vấp lắm đi nữa song chúng ta luôn tìm thấy đích tới thay vì lạc một phương trời phần mềm lởm khởm chết xó đâu đấy. Tha hồ "Iterating", tha hồ "Experimenting"!
+Nhờ kiên trì áp dụng quy trình TDD, chúng ta luôn có thể tiến về phía trước một cách tự tin dù gặp nhiều thách thức. Việc lặp đi lặp lại (iterating) và thử nghiệm (experimenting) giúp chúng ta tìm ra giải pháp tốt.
 
-Chương kết thúc khép lại chặng được theo đuổi TDD bằng buổi review về sự lựa chọn về đường theo thiết kế code và gói nó thật ngăn nắp nhé.
-
-Có một vài việc ta có được tại chương này như sau:
+Chương này kết thúc với một vài điểm tổng kết về các quyết định thiết kế và những gì chúng ta đã học được.
 
 ### WebSockets
 
-- Đây là phương án đơn giản nhưng trúng đích vô việc truyền và nhận các luồng chuỗi dữ liệu nhét giữa clients (nhiều máy) với (một) servers để hệ thống khỏi rơi vào hoàn cảnh client lại liên tục làm gián đoạn việc hỏi "server ơi gửi gì chửa?". Bản cài phía hai bên nghe chừng rất tối giản.
-- Khá bình dân với mảng testing, tuy nhiên phải hết sức dè chừng vào cái thói quen test mảng code chạy không hẹn (asynchronous/ bất đồng bộ).
+- Đây là cách đơn giản và hiệu quả để thiết lập giao tiếp hai chiều giữa máy khách (client) và máy chủ (server). Máy khách không cần liên tục gửi yêu cầu đến máy chủ để kiểm tra cập nhật mới. Cách triển khai ở cả hai phía đều khá gọn nhẹ.
+- Việc kiểm thử WebSockets không quá phức tạp, tuy nhiên cần đặc biệt chú ý đến tính bất đồng bộ (asynchronous) của mã nguồn.
 
-### Kỹ nghệ giữ lấy đoạn code trong bài kiểm tra dẫu code lấp lửng hay chờ vĩnh viễn
+### Xử lý mã nguồn bị treo hoặc chờ vô hạn trong bản kiểm thử
 
-- Bịa ngay hàm chắp vá (helper) cho lệnh kiểm tra để cấu kiện tính retry cho code test lúc bị timeout.
-- Có thẻ móc `go routines` của anh bạn để xử việc bất đồng bộ của assert khỏi lo code bơi tắc đường với hệ thống và rồi gọng lẩy tin báo là tao xong hay fail ra mẻ rổ của Go là cái list `channels` 
-- Mấy thanh niên Go build trong package một bộ hẹn thời gian tuyệt phẩm tên `time` giúp nả đạn vào channels báo tín hiệu có thay đổi hay hết thời gian (timeout).
+- Tạo các hàm hỗ trợ (helper) cho bản kiểm thử với cơ chế thử lại (retry) và thời gian chờ (timeout).
+- Sử dụng goroutine để chạy phần kiểm tra bất đồng bộ, tránh làm chặn luồng chính của bản kiểm thử. Sau đó sử dụng channel để nhận tín hiệu hoàn tất.
+- Go cung cấp sẵn gói `time` với các hàm hẹn giờ hữu ích, cho phép gửi tín hiệu qua channel khi hết thời gian chờ (timeout).

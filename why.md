@@ -8,7 +8,7 @@ Nếu bạn thích đọc hơn, đây là phiên bản bằng chữ.
 
 Sự hứa hẹn của phần mềm ở khả năng thay đổi của nó. Đó là lý do nó được gọi là _soft_ware - dễ uốn nắn hơn so với phần cứng (hardware). Một đội ngũ kỹ sư giỏi có thể trở thành tài sản quý giá của công ty, xây dựng các hệ thống có thể phát triển theo nhu cầu kinh doanh để tiếp tục tạo ra giá trị ấy.
 
-Vậy tại sao chúng ta lại làm điều này tệ đến vậy? Có bao nhiêu dự án mà bạn biết đã thất bại hoàn toàn? Hoặc trở thành "di sản" (lecacy) rồi phải viết lại từ đầu (và đôi khi bản viết lại cũng thất bại!).
+Vậy tại sao chúng ta lại làm điều này tệ đến vậy? Có bao nhiêu dự án mà bạn biết đã thất bại hoàn toàn? Hoặc trở thành "di sản" (legacy) rồi phải viết lại từ đầu (và đôi khi bản viết lại cũng thất bại!).
 
 Một hệ thống phần mềm "thất bại" như thế nào? Chẳng phải chúng ta có thể thay đổi nó cho đến khi đúng lúc sao? Đó là những gì chúng ta được hứa hẹn!
 

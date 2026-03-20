@@ -28,7 +28,7 @@ func TestWallet(t *testing.T) {
 }
 ```
 
-Trong [ví dụ trước](./structs-methods-and-interfaces.md) chúng ta truy cập các trường trực tiếp bằng tên trường, nhưng trong _ví trực tuyến bảo mật cao_ của chúng ta, chúng ta không muốn lộ state nội bộ ra bên ngoài. Chúng ta muốn kiểm soát truy cập qua methods.
+Trong [ví dụ trước](./structs-methods-and-interfaces.md) chúng ta truy cập các trường trực tiếp bằng tên trường, nhưng trong _ví điện tử siêu bảo mật_ của chúng ta, chúng ta không muốn lộ state nội bộ ra bên ngoài. Chúng ta muốn kiểm soát truy cập qua methods.
 
 ## Thử chạy test
 

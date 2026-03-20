@@ -33,7 +33,7 @@ func TestRomanNumerals(t *testing.T) {
 }
 ```
 
-Nếu bạn đã đọc đến đây của cuốn sách, hy vọng bạn cảm thấy điều này thật nhàm chán và quen thuộc. Đó là một dấu hiệu tốt.
+Nếu bạn đã đọc đến phần này của cuốn sách, hy vọng bạn cảm thấy điều này thật nhàm chán và quen thuộc. Đó là một dấu hiệu tốt.
 
 ## Thử chạy test
 
