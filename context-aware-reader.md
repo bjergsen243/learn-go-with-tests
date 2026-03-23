@@ -294,7 +294,7 @@ Bây giờ tất cả các bài kiểm thử sẽ vượt qua. Bạn sẽ nhận
 ## Tổng kết
 
 - Các interface nhỏ là tốt và dễ dàng kết hợp (compose).
-- Khi bạn đang cố gắng bổ sung một thứ (ví dụ `io.Reader`) bằng một thứ khác, bạn thường muốn tìm đến [mẫu ủy nhiệm (delegation pattern)](https://en.wikipedia.org/wiki/Delegation_pattern).
+- Khi muốn mở rộng khả năng của một thứ (ví dụ `io.Reader`), hãy xem xét [delegation pattern](https://en.wikipedia.org/wiki/Delegation_pattern).
 
 > Trong kỹ thuật phần mềm, mẫu ủy nhiệm là một mẫu thiết kế hướng đối tượng cho phép kết hợp đối tượng để đạt được khả năng tái sử dụng mã tương tự như kế thừa.
 

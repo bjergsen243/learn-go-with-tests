@@ -111,7 +111,7 @@ Ngoài ra, người dùng có thể xem [tài liệu tại pkg.go.dev](https://p
 - Đi vào bên trong `cmd/webserver` của chúng ta và thực hiện `go run main.go`
   - Truy cập `http://localhost:5000/league` và bạn sẽ thấy nó vẫn hoạt động
 
-### Khung xương di động (Walking skeleton)
+### Walking skeleton
 
 Trước khi bắt tay vào viết các bản kiểm thử, hãy thêm một ứng dụng mới mà dự án của chúng ta sẽ xây dựng. Tạo một thư mục khác bên trong `cmd` gọi là `cli` (giao diện dòng lệnh) và thêm một `main.go` với nội dung sau:
 

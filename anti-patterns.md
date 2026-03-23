@@ -105,7 +105,7 @@ Các tín hiệu ở đây là gì? _Hãy lắng nghe_, các bài kiểm thử p
 
 #### Giao diện bị rò rỉ (Leaky interfaces)
 
-Nếu bạn đã khai báo một `interface` có nhiều phương thức, điều đó chỉ ra một sự trừu tượng bị rò rỉ (leaky abstraction). Hãy suy nghĩ về cách bạn có thể định nghĩa sự cộng tác đó với một tập hợp các phương thức hợp nhất hơn, lý tưởng nhất là chỉ một phương thức.
+Nếu bạn khai báo một `interface` có nhiều phương thức, đó là dấu hiệu của leaky abstraction. Hãy nghĩ xem có thể gom lại thành ít phương thức hơn không — lý tưởng là chỉ một.
 
 #### Ô nhiễm giao diện (Interface pollution)
 

@@ -321,7 +321,7 @@ func TestRegisterUser(t *testing.T) {
 }
 ```
 
-Giờ đây khi handler của chúng ta không còn bị bó buộc vào một triển khai lưu trữ cụ thể, việc viết một `MockUserService` để giúp chúng ta viết các bài unit test đơn giản, nhanh chóng nhằm kiểm tra các trách nhiệm cụ thể mà nó có là một việc hết sức trivial.
+Giờ handler không còn gắn chặt với một triển khai lưu trữ cụ thể, việc viết `MockUserService` để test nhanh các trách nhiệm cụ thể trở nên rất đơn giản.
 
 ### Thế còn mã cơ sở dữ liệu thì sao? Bạn đang gian lận!
 

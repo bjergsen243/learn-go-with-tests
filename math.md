@@ -785,7 +785,7 @@ Và đây là [mã nguồn trông như thế nào](https://github.com/quii/learn
 
 ### Refactor
 
-Mã này bốc mùi. Chà, nó không hẳn là *quá tệ*, nhưng tôi không hài lòng về nó:
+Code này có vấn đề. Không hẳn *quá tệ*, nhưng tôi không hài lòng:
 
 1. Toàn bộ hàm `SecondHand` này gắn chặt với việc tạo ra SVG... mà không hề đề cập đến SVG hay thực sự tạo ra một SVG nào...
 2. ... đồng thời tôi cũng không kiểm thử bất kỳ mã SVG nào của mình.
@@ -814,7 +814,7 @@ Nhưng liệu đây có thực sự là một sự cải tiến?
 
 Nó không chỉ vẫn vượt qua nếu tôi không tạo ra một SVG hợp lệ (vì nó chỉ kiểm thử xem một chuỗi có xuất hiện trong output hay không), mà nó còn thất bại nếu tôi thực hiện một thay đổi nhỏ nhất, không quan trọng đối với chuỗi đó - ví dụ: nếu tôi thêm một khoảng trắng dư thừa giữa các thuộc tính.
 
-"Mùi" (smell) lớn nhất ở đây là tôi đang kiểm thử một cấu trúc dữ liệu - XML - bằng cách nhìn vào biểu diễn của nó dưới dạng một chuỗi ký tự. Đây *không bao giờ* là một ý tưởng hay vì nó tạo ra những vấn đề giống như tôi đã nêu ở trên: một bản kiểm thử vừa quá mong manh vừa không đủ nhạy bén. Một bản kiểm thử đang kiểm thử sai thứ!
+Code smell lớn nhất ở đây là việc test một cấu trúc dữ liệu (XML) bằng cách so sánh chuỗi ký tự. Đây *không bao giờ* là ý tưởng hay vì nó tạo ra test vừa mong manh vừa không đủ nhạy — đang test sai thứ!
 
 Vì vậy, giải pháp duy nhất là kiểm thử output *dưới dạng XML*. Và để làm được điều đó, chúng ta cần phân tích (parse) nó.
 
