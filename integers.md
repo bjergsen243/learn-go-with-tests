@@ -58,7 +58,7 @@ Lỗi này nghĩa là hàm `Add` chưa được định nghĩa
 ## Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
 Chỉ viết đủ code để trình biên dịch không báo lỗi – _không hơn không kém_.
-Điều này giúp đảm bảo rằng bài kiểm thử sẽ thất bại với lý do chính xác mà chúng ta mong đợi.
+Điều này giúp đảm bảo rằng bài test sẽ thất bại với lý do chính xác mà chúng ta mong đợi.
 
 ```go
 package integers
@@ -80,7 +80,7 @@ Bạn có thể tham khảo thêm về vấn đề này trong [wiki chính thứ
 
 ## Viết đủ code để test chạy thành công
 
-Theo đúng quy trình TDD, bây giờ chúng ta chỉ nên viết lượng mã _tối thiểu cần thiết_ để test _chạy thành công_. Một lập trình viên thực dụng (pragmatic developer) có thể viết như sau:
+Theo đúng quy trình TDD, bây giờ chúng ta chỉ nên viết lượng code _tối thiểu cần thiết_ để test _chạy thành công_. Một lập trình viên thực dụng có thể viết như sau:
 
 ```go
 func Add(x, y int) int {
@@ -110,7 +110,7 @@ Không có nhiều điều cần cải thiện trong đoạn code ở đây.
 
 Trước đó, chúng ta đã thấy rằng khi đặt tên cho giá trị trả về, nó sẽ xuất hiện trong tài liệu và hầu hết các trình soạn thảo của lập trình viên.
 
-Điều này rất hữu ích vì nó giúp mã dễ sử dụng hơn. Tốt nhất là người dùng có thể hiểu cách sử dụng hàm chỉ bằng cách nhìn vào kiểu dữ liệu trả về và tài liệu đi kèm.
+Điều này rất hữu ích vì nó giúp code dễ sử dụng hơn. Tốt nhất là người dùng có thể hiểu cách sử dụng hàm chỉ bằng cách nhìn vào kiểu dữ liệu trả về và tài liệu đi kèm.
 
 Bạn có thể thêm tài liệu cho hàm bằng cách viết chú thích phía trên nó. Những chú thích này sẽ xuất hiện trong Go Doc, giống như khi bạn xem tài liệu của thư viện tiêu chuẩn.
 
@@ -125,11 +125,11 @@ func Add(x, y int) int {
 
 Nếu muốn làm tốt hơn nữa, bạn có thể tạo các [Test Ví Dụ](https://blog.golang.org/examples). Bạn sẽ thấy nhiều ví dụ như vậy trong tài liệu của thư viện chuẩn.
 
-Thường thì các code ví dụ nằm bên ngoài mã thực tế, chẳng hạn trong file README, dễ bị lỗi thời và không còn chính xác vì chúng không được kiểm tra thường xuyên.
+Thường thì các code ví dụ nằm bên ngoài code thực tế, chẳng hạn trong file README, dễ bị lỗi thời và không còn chính xác vì chúng không được kiểm tra thường xuyên.
 
-Các hàm ví dụ trong Go được biên dịch mỗi khi chạy bài kiểm thử. Vì vậy, bạn có thể chắc chắn rằng ví dụ trong tài liệu luôn phản ánh đúng hành vi hiện tại của mã nguồn
+Các hàm ví dụ trong Go được biên dịch mỗi khi chạy test. Vì vậy, bạn có thể chắc chắn rằng ví dụ trong tài liệu luôn phản ánh đúng hành vi hiện tại của code
 
-Các hàm ví dụ phải bắt đầu bằng từ khóa `Example` (giống như hàm kiểm thử bắt đầu bằng `Test`) và được đặt trong các file `_test.go` của package.
+Các hàm ví dụ phải bắt đầu bằng từ khóa `Example` (giống như hàm test bắt đầu bằng `Test`) và được đặt trong các file `_test.go` của package.
 
 Hãy thêm hàm `ExampleAdd` vào file `adder_test.go`.
 
@@ -143,9 +143,9 @@ func ExampleAdd() {
 
 (Nếu trình soạn thảo của bạn không tự động nhập các gói cần thiết, bước biên dịch sẽ thất bại vì thiếu `import "fmt"` trong `adder_test.go`. Bạn nên tìm hiểu cách cấu hình trình soạn thảo để tự động xử lý các lỗi kiểu này.)
 
-Thêm đoạn code này sẽ giúp ví dụ xuất hiện trong tài liệu, làm cho code của bạn dễ tiếp cận hơn. Nếu sau này mã thay đổi khiến ví dụ không còn hợp lệ, quá trình biên dịch sẽ thất bại, giúp bạn phát hiện lỗi sớm.
+Thêm đoạn code này sẽ giúp ví dụ xuất hiện trong tài liệu, làm cho code của bạn dễ tiếp cận hơn. Nếu sau này code thay đổi khiến ví dụ không còn hợp lệ, quá trình biên dịch sẽ thất bại, giúp bạn phát hiện lỗi sớm.
 
-Khi chạy bộ kiểm thử của gói, bạn sẽ thấy hàm `ExampleAdd` được thực thi mà không cần bổ sung bất kỳ thiết lập nào.
+Khi chạy test suite của package, bạn sẽ thấy hàm `ExampleAdd` được thực thi mà không cần thiết lập gì thêm.
 
 ```bash
 $ go test -v
@@ -155,15 +155,15 @@ $ go test -v
 --- PASS: ExampleAdd (0.00s)
 ```
 
-Lưu ý định dạng đặc biệt của chú thích `// Output: 6`. Khi có chú thích này, ví dụ không chỉ được biên dịch mà còn được thực thi trong quá trình kiểm thử. Hãy thử xóa dòng `// Output: 6`, sau đó chạy `go test`, bạn sẽ thấy `ExampleAdd` không còn được chạy nữa.
+Lưu ý định dạng đặc biệt của chú thích `// Output: 6`. Khi có chú thích này, ví dụ không chỉ được biên dịch mà còn được thực thi trong quá trình test. Hãy thử xóa dòng `// Output: 6`, sau đó chạy `go test`, bạn sẽ thấy `ExampleAdd` không còn được chạy nữa.
 
-Các ví dụ không có chú thích đầu ra vẫn hữu ích để minh họa cách sử dụng mã, đặc biệt đối với các trường hợp không thể kiểm thử đơn vị, chẳng hạn như truy cập mạng. Tuy nhiên, chúng vẫn đảm bảo mã có thể biên dịch được.
+Các ví dụ không có chú thích đầu ra vẫn hữu ích để minh họa cách sử dụng code, đặc biệt đối với các trường hợp không thể unit test, chẳng hạn như truy cập mạng. Tuy nhiên, chúng vẫn đảm bảo code có thể biên dịch được.
 
 Để xem tài liệu ví dụ, bạn có thể sử dụng {pkgsite}. Điều hướng đến thư mục dự án, sau đó chạy `pkgsite -open .`. Trình duyệt sẽ mở trang `http://localhost:8080`, nơi bạn có thể xem danh sách tất cả các gói trong thư viện chuẩn của Go cũng như các gói bên thứ ba mà bạn đã cài đặt.
 
 Tại đây, bạn sẽ tìm thấy tài liệu cho gói của mình. Điều hướng đến `github.com/quii/learn-go-with-tests`, vào phần `Integers`, chọn `func Add`, rồi mở rộng mục `Example`. Bạn sẽ thấy ví dụ mà bạn đã thêm cho `sum := Add(1, 5)`.
 
-Nếu bạn công khai mã nguồn cùng các ví dụ, tài liệu của bạn cũng sẽ xuất hiện trên [pkg.go.dev](https://pkg.go.dev/). Ví dụ, [đây](https://pkg.go.dev/github.com/quii/learn-go-with-tests/integers/v2) là API cuối cùng của chương này. Trang web này giúp bạn tìm kiếm tài liệu của các gói trong thư viện chuẩn và các gói bên thứ ba dễ dàng hơn.
+Nếu bạn công khai code cùng các ví dụ, tài liệu của bạn cũng sẽ xuất hiện trên [pkg.go.dev](https://pkg.go.dev/). Ví dụ, [đây](https://pkg.go.dev/github.com/quii/learn-go-with-tests/integers/v2) là API cuối cùng của chương này. Trang web này giúp bạn tìm kiếm tài liệu của các package trong thư viện chuẩn và các package bên thứ ba dễ dàng hơn.
 
 ## Tổng kết
 
@@ -171,5 +171,5 @@ Những gì chúng ta đã học được:
 
 *   Thực hành thêm về quy trình TDD
 *   Làm việc với số nguyên và phép cộng
-*   Viết tài liệu rõ ràng hơn để người dùng có thể nhanh chóng hiểu cách sử dụng mã của chúng ta
-*   Cách viết ví dụ minh họa cho mã, đồng thời đảm bảo chúng luôn được kiểm tra cùng với bộ kiểm thử
+*   Viết tài liệu rõ ràng hơn để người dùng có thể nhanh chóng hiểu cách sử dụng code
+*   Cách viết ví dụ minh họa cho code, đồng thời đảm bảo chúng luôn được kiểm tra cùng với test suite

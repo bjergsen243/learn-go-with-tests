@@ -2,9 +2,9 @@
 
 Tại nơi làm việc, chúng tôi cần tính năng graceful shutdown cho các dịch vụ. Graceful shutdown đảm bảo hệ thống hoàn thành công việc đang dở trước khi tắt — giống như kết thúc cuộc gọi lịch sự trước khi chuyển sang cuộc họp tiếp theo, thay vì dập máy giữa chừng.
 
-Chương này sẽ giới thiệu về graceful shutdown trong bối cảnh của một máy chủ HTTP, và cách viết các acceptance test để giúp bạn tự tin vào hành vi của mã nguồn.
+Chương này sẽ giới thiệu về graceful shutdown trong bối cảnh của một máy chủ HTTP, và cách viết các acceptance test để giúp bạn tự tin vào hành vi của code.
 
-Sau khi đọc xong chương này, bạn sẽ biết cách chia sẻ các package đi kèm với những bài test tốt, giảm bớt nỗ lực bảo trì và tăng độ tin cậy vào chất lượng công việc của bạn.
+Sau khi đọc xong chương này, bạn sẽ biết cách chia sẻ các package đi kèm với những bài test tốt, giảm công sức bảo trì và tăng độ tin cậy vào chất lượng công việc của bạn.
 
 ## Vừa đủ thông tin về Kubernetes
 
@@ -68,17 +68,17 @@ func main() {
 }
 ```
 
-Chi tiết thiết kế bên trong đoạn mã này không phải trọng tâm của chương này, nhưng tôi cũng nên dành chút thời gian xem qua phần mã nguồn phía trên.
+Chi tiết thiết kế bên trong đoạn code này không phải trọng tâm của chương này, nhưng tôi cũng nên dành chút thời gian xem qua phần code phía trên.
 
-## Tests và vòng lặp phản hồi (Feedback loops)
+## Tests và vòng lặp phản hồi
 
 Khi viết package `gracefulshutdown`, chúng tôi có các unit test để kiểm chứng thiết kế. Tuy nhiên, chúng chỉ hỗ trợ phần nào cho việc refactor. Thành thực mà nói, chúng tôi vẫn chưa đủ tự tin rằng mọi thứ sẽ **thực sự** hoạt động đúng.
 
-Chúng tôi tạo thêm một thư mục `cmd` chứa chương trình thử nghiệm sử dụng mã mà chúng tôi viết. Việc test phải thực hiện thủ công (manual): bật chương trình lên, gửi các HTTP request tới endpoint, gửi tín hiệu `SIGTERM`, rồi kiểm tra kết quả.
+Chúng tôi tạo thêm một thư mục `cmd` chứa chương trình thử nghiệm sử dụng code mà chúng tôi viết. Việc test phải thực hiện thủ công: bật chương trình lên, gửi các HTTP request tới endpoint, gửi tín hiệu `SIGTERM`, rồi kiểm tra kết quả.
 
 **Là một kỹ sư, bạn nên cảm thấy không thoải mái với việc test thủ công.** Cách này không mở rộng được, thiếu chính xác, và lãng phí thời gian. Nếu bạn muốn chia sẻ code cho người khác sử dụng với yêu cầu bảo trì thấp nhất và dễ thay đổi nhất, thì test thủ công là không đủ.
 
-## Acceptance tests (Kiểm thử chấp nhận)
+## Acceptance tests
 
 Nếu bạn đã đọc các chương trước trong cuốn sách này, chắc hẳn bạn đã quen với việc viết unit test. Unit test là công cụ mạnh mẽ giúp bạn refactor mà không sợ phá vỡ chức năng. Chúng giúp thiết kế module tốt hơn, ngăn ngừa lỗi phát sinh theo thời gian, và cho phản hồi nhanh.
 
@@ -86,17 +86,17 @@ Tuy nhiên, unit test chỉ kiểm tra được các phần nhỏ của phần m
 
 ### Acceptance test là gì?
 
-Acceptance test là một loại kiểm thử hộp đen (black-box test). Đôi khi chúng được gọi là kiểm thử chức năng (functional test). Chúng kiểm tra hệ thống giống như cách một người dùng thực sự sẽ sử dụng hệ thống.
+Acceptance test là một loại black-box test. Đôi khi chúng được gọi là functional test. Chúng kiểm tra hệ thống giống như cách một người dùng thực sự sẽ sử dụng hệ thống.
 
-Thuật ngữ "hộp đen" có nghĩa là mã test không biết cấu trúc bên trong hệ thống. Test chỉ tương tác với hệ thống thông qua các giao diện công khai (public interface) và đánh giá dựa trên hành vi quan sát được. Điều này cũng có nghĩa là bạn chỉ có thể test hệ thống như một tổng thể.
+Thuật ngữ "black-box" có nghĩa là code test không biết cấu trúc bên trong hệ thống. Test chỉ tương tác với hệ thống thông qua public interface và đánh giá dựa trên hành vi quan sát được. Điều này cũng có nghĩa là bạn chỉ có thể test hệ thống như một tổng thể.
 
-Đây là một ưu điểm, bởi vì khi test, chúng ta kiểm tra hệ thống giống hệt cách người dùng trải nghiệm. Test không "đi đường tắt" để bài test pass mà không thực sự kiểm chứng đúng. Nếu bạn đã quen với nguyên tắc không test trực tiếp code nội bộ của package - tức là file test nên nằm trong `package mypkg_test` thay vì `package mypkg` - thì bạn sẽ hiểu ý tưởng này.
+Đây là một ưu điểm, bởi vì khi test, chúng ta kiểm tra hệ thống giống hệt cách người dùng trải nghiệm. Test không "đi đường tắt" để pass mà không thực sự kiểm chứng đúng. Nếu bạn đã quen với nguyên tắc không test trực tiếp code nội bộ của package - tức là file test nên nằm trong `package mypkg_test` thay vì `package mypkg` - thì bạn sẽ hiểu ý tưởng này.
 
 ### Lợi ích của acceptance test
 
 - Nếu tất cả test pass, bạn có thể khẳng định hệ thống đang hoạt động đúng như mong đợi.
 - Cho phản hồi nhanh hơn rất nhiều so với test thủ công.
-- Nếu được viết tốt, acceptance test còn đóng vai trò như tài liệu chính xác và luôn được cập nhật. Điều này loại bỏ nguy cơ hệ thống hoạt động một kiểu, trong khi tài liệu lại mô tả một kiểu khác.
+- Nếu được viết tốt, acceptance test còn đóng vai trò như tài liệu sống - chính xác và luôn được cập nhật. Điều này loại bỏ nguy cơ hệ thống hoạt động một kiểu, trong khi tài liệu lại mô tả một kiểu khác.
 - Không có mock. Test chạy trên hệ thống thật.
 
 ### Nhược điểm của acceptance test so với unit test
@@ -104,9 +104,9 @@ Thuật ngữ "hộp đen" có nghĩa là mã test không biết cấu trúc bê
 - Viết phức tạp hơn.
 - Chạy chậm hơn.
 - Phụ thuộc nhiều vào kiến trúc và thiết kế hệ thống.
-- Khi test thất bại, khó xác định nguyên nhân gốc rễ (root cause). Việc debug tốn nhiều công sức hơn.
-- Acceptance test có thể pass trong khi chất lượng nội bộ của hệ thống (internal quality) vẫn kém, vì test không kiểm tra cấu trúc bên trong.
-- Do bản chất hộp đen, khó tái tạo mọi tình huống để test.
+- Khi test fail, khó xác định root cause. Việc debug tốn nhiều công sức hơn.
+- Acceptance test có thể pass trong khi internal quality của hệ thống vẫn kém, vì test không kiểm tra cấu trúc bên trong.
+- Do bản chất black-box, khó tái tạo mọi tình huống để test.
 
 Vì lý do này, sẽ là sai lầm nếu chỉ dựa vào acceptance test. Chúng không thay thế được unit test. Một hệ thống với quá nhiều acceptance test sẽ gặp vấn đề về chi phí bảo trì và lead time.
 
@@ -114,7 +114,7 @@ Vì lý do này, sẽ là sai lầm nếu chỉ dựa vào acceptance test. Chú
 
 Lead time là khoảng thời gian từ lúc merge code vào branch chính cho đến khi code được triển khai lên production. Con số này có thể dao động từ vài phút đến vài tuần, tùy thuộc vào tổ chức. Tại `$WORK`, chúng tôi luôn hướng tới các chỉ số DORA và cố gắng giữ lead time ở mức khoảng 10 phút.
 
-Cần duy trì một chiến lược test cân bằng, đảm bảo chất lượng nhưng không ảnh hưởng đến lead time. Đây là lý do khái niệm [Hình tháp kiểm thử (Test Pyramid)](https://martinfowler.com/articles/practical-test-pyramid.html) ra đời.
+Cần duy trì một chiến lược test cân bằng, đảm bảo chất lượng nhưng không ảnh hưởng đến lead time. Đây là lý do khái niệm [Test Pyramid](https://martinfowler.com/articles/practical-test-pyramid.html) ra đời.
 
 ## Cách viết một acceptance test cơ bản
 
@@ -267,13 +267,13 @@ Hàm `LaunchTestProgram` có nhiệm vụ:
 - Trả về hàm `cleanup` để dọn dẹp (kill process và xóa file binary) sau khi test xong
 - Trả về hàm `sendInterrupt` để gửi tín hiệu `SIGTERM` tới chương trình đang chạy
 
-Thú thật, đoạn mã này không phải đẹp nhất, nhưng hãy tập trung vào hàm được export là `LaunchTestProgram`. Các hàm bên trong chỉ là boilerplate.
+Thú thật, đoạn code này không phải đẹp nhất, nhưng hãy tập trung vào hàm được export là `LaunchTestProgram`. Các hàm bên trong chỉ là boilerplate.
 
-Như đã đề cập, acceptance test có xu hướng phức tạp hơn để thiết lập. Tuy nhiên, đoạn code thiết lập này giúp cho mã test trở nên rõ ràng và dễ đọc hơn rất nhiều. Thông thường với acceptance test, một khi bạn đã viết xong phần thiết lập, bạn không cần phải quan tâm đến nó nữa.
+Như đã đề cập, acceptance test có xu hướng phức tạp hơn để thiết lập. Tuy nhiên, đoạn code thiết lập này giúp cho code test trở nên rõ ràng và dễ đọc hơn rất nhiều. Thông thường với acceptance test, một khi bạn đã viết xong phần thiết lập, bạn không cần phải quan tâm đến nó nữa.
 
 ### Acceptance test
 
-Chúng tôi muốn có hai bài test cho hai chương trình: một chương trình sử dụng graceful shutdown và một chương trình không sử dụng. Qua đó, chúng ta có thể thấy rõ sự khác biệt trong hành vi. Nhờ `LaunchTestProgram` đã đóng gói phần thiết lập, việc viết hai bài test này trở nên dễ dàng và có thể tái sử dụng các helper function.
+Chúng tôi muốn có hai bài test cho hai chương trình: một chương trình có graceful shutdown và một chương trình không có. Qua đó, chúng ta có thể thấy rõ sự khác biệt trong hành vi. Nhờ `LaunchTestProgram` đã đóng gói phần thiết lập, việc viết hai bài test này trở nên dễ dàng và có thể tái sử dụng các helper function.
 
 Dưới đây là bài test cho máy chủ _có_ graceful shutdown. Bạn có thể [xem bài test cho máy chủ không có graceful shutdown trên GitHub](https://github.com/quii/go-graceful-shutdown/blob/main/acceptancetests/withoutgracefulshutdown/main_test.go).
 
@@ -315,7 +315,7 @@ func TestGracefulShutdown(t *testing.T) {
 }
 ```
 
-Nhờ việc đóng gói (encapsulate) phần thiết lập, bài test trở nên rõ ràng và dễ hiểu. Nó mô tả chính xác hành vi mà chúng ta muốn kiểm tra.
+Nhờ việc encapsulate phần thiết lập, bài test trở nên rõ ràng và dễ hiểu. Nó mô tả chính xác hành vi mà chúng ta muốn kiểm tra.
 
 `assert.CanGet` và `assert.CantGet` là các helper function tôi viết để giữ cho code DRY (Don't Repeat Yourself), vì chúng được sử dụng lại trong nhiều bài test.
 
@@ -344,13 +344,13 @@ func CanGet(t testing.TB, url string) {
 
 Hàm này gửi một HTTP GET request tới URL trong một goroutine, và kiểm tra xem request có thành công mà không có lỗi hay không. `CantGet` thì làm ngược lại. [Bạn có thể xem chi tiết trên GitHub](https://github.com/quii/go-graceful-shutdown/blob/main/assert/assert.go#L61).
 
-Xin nhắc lại, Go cung cấp đầy đủ mọi thứ bạn cần để viết acceptance test ngay từ thư viện chuẩn (out of the box). Bạn _không cần_ một framework đặc biệt nào để viết acceptance test.
+Xin nhắc lại, Go cung cấp đầy đủ mọi thứ bạn cần để viết acceptance test ngay từ standard library. Bạn _không cần_ một framework đặc biệt nào để viết acceptance test.
 
 ### Đầu tư ít, thu lại nhiều
 
 Với những bài test này, người đọc có thể chạy thử và tự tin rằng code _thực sự_ hoạt động. Điều này củng cố niềm tin vào package.
 
-Là tác giả, điều này giúp tôi có **phản hồi nhanh (fast feedback)** và **sự tự tin cao** rằng code hoạt động đúng trong thực tế.
+Là tác giả, điều này giúp tôi có **fast feedback** và **sự tự tin cao** rằng code hoạt động đúng trong thực tế.
 
 ```shell
 go test -count=1 ./...
@@ -365,7 +365,7 @@ ok  	github.com/quii/go-graceful-shutdown/acceptancetests/withoutgracefulshutdow
 
 Trong bài viết này, tôi đã giới thiệu về acceptance test. Acceptance test không thay thế unit test, mà bổ sung cho unit test để tạo nên một lớp bảo vệ toàn diện hơn.
 
-*Cách* viết acceptance test phụ thuộc vào loại hệ thống bạn đang xây dựng, nhưng các nguyên tắc cốt lõi luôn giống nhau. Hãy coi hệ thống như một hộp đen (black box). Nếu bạn xây dựng một trang web, bài test nên mô phỏng hành vi của người dùng thực - click link, điền form - sử dụng công cụ trình duyệt headless như [Selenium](https://www.selenium.dev/). Nếu bạn xây dựng RESTful API, hãy gửi HTTP request thông qua một client.
+*Cách* viết acceptance test phụ thuộc vào loại hệ thống bạn đang xây dựng, nhưng các nguyên tắc cốt lõi luôn giống nhau. Hãy coi hệ thống như một black box. Nếu bạn xây dựng một trang web, bài test nên mô phỏng hành vi của người dùng thực - click link, điền form - sử dụng headless browser như [Selenium](https://www.selenium.dev/). Nếu bạn xây dựng RESTful API, hãy gửi HTTP request thông qua một client.
 
 ### Mở rộng cho hệ thống phức tạp hơn
 
@@ -373,7 +373,7 @@ Ví dụ trong bài viết này khá đơn giản - chỉ là một máy chủ H
 
 ### Hướng đi tiếp theo
 
-Trong bài viết này, chúng ta viết acceptance test cho code đã có sẵn. Tuy nhiên, trong cuốn sách [Growing Object-Oriented Software](http://www.growing-object-oriented-software.com), tác giả khuyến khích sử dụng acceptance test như một "ngôi sao phương Bắc" (north star) - tức là viết acceptance test trước để định hướng cho quá trình phát triển theo phương pháp TDD.
+Trong bài viết này, chúng ta viết acceptance test cho code đã có sẵn. Tuy nhiên, trong cuốn sách [Growing Object-Oriented Software](http://www.growing-object-oriented-software.com), tác giả khuyến khích sử dụng acceptance test như một "north star" - tức là viết acceptance test trước để định hướng cho quá trình phát triển theo phương pháp TDD.
 
 Hệ thống càng phức tạp, thời gian và công sức để viết và duy trì acceptance test càng tăng. Nhiều đội kỹ sư đã gặp khó khăn vì chi phí bảo trì acceptance test quá cao.
 
@@ -383,8 +383,8 @@ Trong các chương tiếp theo, chúng ta sẽ tìm hiểu cách sử dụng ac
 
 Nếu bạn định chia sẻ package cho cộng đồng, hãy cung cấp ví dụ minh họa cách sử dụng, kèm theo acceptance test để người dùng có thể tự kiểm chứng rằng code hoạt động đúng.
 
-Tương tự như [Testable Examples](https://go.dev/blog/examples), việc đầu tư một chút vào trải nghiệm người dùng (developer experience) sẽ giúp xây dựng uy tín và giảm bớt công việc bảo trì về sau.
+Tương tự như [Testable Examples](https://go.dev/blog/examples), việc đầu tư một chút vào developer experience sẽ giúp xây dựng uy tín và giảm bớt công việc bảo trì về sau.
 
 ## Tuyển dụng tại `$WORK`
 
-Nếu bạn quan tâm đến việc làm việc cùng các kỹ sư đam mê code, tại London hoặc Porto, và thích nội dung của cuốn sách này - [hãy liên hệ với tôi trên Twitter (nay là X)](https://twitter.com/quii). Rất có thể chúng tôi sẽ hợp tác cùng nhau!
+Nếu bạn quan tâm đến việc làm việc cùng các kỹ sư đam mê code, tại London hoặc Porto, và thích nội dung của cuốn sách này - [hãy liên hệ với tôi trên Twitter](https://twitter.com/quii). Rất có thể chúng tôi sẽ hợp tác cùng nhau!

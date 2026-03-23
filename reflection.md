@@ -31,9 +31,9 @@ Vì vậy, `walk(x interface{}, fn func(string))` sẽ chấp nhận bất kỳ 
 
 Tóm lại, chỉ sử dụng reflection nếu bạn thực sự cần.
 
-Nếu bạn muốn có các hàm đa hình (polymorphic functions), hãy cân nhắc xem liệu bạn có thể thiết kế nó dựa trên một interface (khác với `interface{}`, điều này hơi gây bối rối) để người dùng có thể sử dụng hàm của bạn với nhiều kiểu dữ liệu nếu họ triển khai các phương thức cần thiết để hàm của bạn hoạt động.
+Nếu bạn muốn có polymorphic functions, hãy cân nhắc xem liệu bạn có thể thiết kế nó dựa trên một interface (khác với `interface{}`, điều này hơi gây bối rối) để người dùng có thể sử dụng hàm của bạn với nhiều kiểu dữ liệu nếu họ triển khai các phương thức cần thiết để hàm của bạn hoạt động.
 
-Hàm của chúng ta sẽ cần có khả năng hoạt động với nhiều thứ khác nhau. Như mọi khi, chúng ta sẽ thực hiện theo cách lặp đi lặp lại, viết các test cho từng thứ mới mà chúng ta muốn hỗ trợ và tái cấu trúc trên đường đi cho đến khi hoàn thành.
+Hàm của chúng ta sẽ cần có khả năng hoạt động với nhiều thứ khác nhau. Như mọi khi, chúng ta sẽ thực hiện theo cách lặp đi lặp lại, viết các test cho từng thứ mới mà chúng ta muốn hỗ trợ và refactor trên đường đi cho đến khi hoàn thành.
 
 ## Viết test trước tiên
 
@@ -129,7 +129,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-Đoạn mã này *rất không an toàn và rất ngây thơ*, nhưng hãy nhớ: mục tiêu của chúng ta khi đang ở trạng thái "đỏ" (các bản kiểm thử thất bại) là viết lượng mã nhỏ nhất có thể. Sau đó, chúng ta sẽ viết thêm các bản kiểm thử để giải quyết các mối lo ngại của mình.
+Đoạn mã này *rất không an toàn và rất ngây thơ*, nhưng hãy nhớ: mục tiêu của chúng ta khi đang ở trạng thái "đỏ" (các test thất bại) là viết lượng mã nhỏ nhất có thể. Sau đó, chúng ta sẽ viết thêm các test để giải quyết các mối lo ngại của mình.
 
 Chúng ta cần sử dụng reflection để xem xét `x` và thử nhìn vào các thuộc tính của nó.
 
@@ -144,9 +144,9 @@ Sau đó, chúng ta đưa ra một số giả định rất lạc quan về giá
 
 Mã của chúng ta đang vượt qua trường hợp đơn giản nhưng chúng ta biết rằng mã của mình còn nhiều thiếu sót.
 
-Chúng ta sẽ viết một số bản kiểm thử nơi chúng ta truyền vào các giá trị khác nhau và kiểm tra mảng chuỗi mà `fn` được gọi.
+Chúng ta sẽ viết một số test nơi chúng ta truyền vào các giá trị khác nhau và kiểm tra mảng chuỗi mà `fn` được gọi.
 
-Chúng ta nên tái cấu trúc bản kiểm thử của mình thành một table-driven test (kiểm thử dựa trên bảng) để dễ dàng tiếp tục kiểm thử các kịch bản mới.
+Chúng ta nên refactor test của mình thành một table-driven test để dễ dàng tiếp tục kiểm thử các kịch bản mới.
 
 ```go
 func TestWalk(t *testing.T) {
@@ -222,9 +222,9 @@ func walk(x interface{}, fn func(input string)) {
 
 ## Refactor
 
-Có vẻ như không có bước tái cấu trúc rõ ràng nào ở đây giúp cải thiện mã nguồn, vì vậy chúng ta hãy tiếp tục.
+Có vẻ như không có bước refactor rõ ràng nào ở đây giúp cải thiện code, vì vậy chúng ta hãy tiếp tục.
 
-Thiếu sót tiếp theo trong `walk` là nó giả định mọi trường đều là một `string`. Hãy viết một bản kiểm thử cho kịch bản này.
+Thiếu sót tiếp theo trong `walk` là nó giả định mọi trường đều là một `string`. Hãy viết một test cho kịch bản này.
 
 ## Viết test trước tiên
 
@@ -271,13 +271,13 @@ Chúng ta có thể thực hiện điều đó bằng cách kiểm tra [`Kind`](
 
 ## Refactor
 
-Một lần nữa, có vẻ như mã nguồn đã đủ hợp lý cho thời điểm hiện tại.
+Một lần nữa, có vẻ như code đã đủ hợp lý cho thời điểm hiện tại.
 
 Kịch bản tiếp theo là điều gì sẽ xảy ra nếu nó không phải là một `struct` "phẳng"? Nói cách khác, điều gì xảy ra nếu chúng ta có một `struct` với một số trường lồng nhau?
 
 ## Viết test trước tiên
 
-Chúng ta đã sử dụng cú pháp struct ẩn danh để khai báo các kiểu dữ liệu cho bản kiểm thử của mình, vì vậy chúng ta có thể tiếp tục làm như vậy:
+Chúng ta đã sử dụng cú pháp struct ẩn danh để khai báo các kiểu dữ liệu cho test của mình, vì vậy chúng ta có thể tiếp tục làm như vậy:
 
 ```
 {
@@ -298,7 +298,7 @@ Chúng ta đã sử dụng cú pháp struct ẩn danh để khai báo các kiể
 
 Nhưng chúng ta có thể thấy rằng khi bạn có các struct ẩn danh bên trong, cú pháp sẽ trở nên hơi lộn xộn. [Đã có một đề xuất để làm cho cú pháp này đẹp hơn](https://github.com/golang/go/issues/12854).
 
-Hãy tái cấu trúc điều này bằng cách tạo một kiểu dữ liệu cụ thể cho kịch bản này và tham chiếu nó trong test. Có một chút gián tiếp ở chỗ một phần mã cho test của chúng ta nằm bên ngoài test, nhưng người đọc vẫn có thể suy ra cấu trúc của `struct` bằng cách nhìn vào phần khởi tạo.
+Hãy refactor điều này bằng cách tạo một kiểu dữ liệu cụ thể cho kịch bản này và tham chiếu nó trong test. Có một chút gián tiếp ở chỗ một phần mã cho test của chúng ta nằm bên ngoài test, nhưng người đọc vẫn có thể suy ra cấu trúc của `struct` bằng cách nhìn vào phần khởi tạo.
 
 Thêm các khai báo kiểu sau vào đâu đó trong file test của bạn:
 
@@ -378,7 +378,7 @@ func walk(x interface{}, fn func(input string)) {
 }
 ```
 
-Khi bạn thực hiện so sánh trên cùng một giá trị nhiều hơn một lần, _nói chung_ việc tái cấu trúc thành `switch` sẽ cải thiện khả năng đọc và làm cho mã nguồn của bạn dễ mở rộng hơn.
+Khi bạn thực hiện so sánh trên cùng một giá trị nhiều hơn một lần, _nói chung_ việc refactor thành `switch` sẽ cải thiện khả năng đọc và làm cho code của bạn dễ mở rộng hơn.
 
 Điều gì xảy ra nếu giá trị của struct được truyền vào là một con trỏ (pointer)?
 
@@ -461,7 +461,7 @@ func getValue(x interface{}) reflect.Value {
 }
 ```
 
-Điều này thực sự làm tăng thêm một chút mã nguồn nhưng tôi cảm thấy cấp độ trừu tượng đã hợp lý hơn.
+Điều này thực sự làm tăng thêm một chút code nhưng tôi cảm thấy cấp độ trừu tượng đã hợp lý hơn.
 
 - Lấy `reflect.Value` của `x` để tôi có thể kiểm tra nó, tôi không quan tâm bằng cách nào.
 - Lặp qua các trường, thực hiện bất cứ điều gì cần làm tùy thuộc vào kiểu của nó.
@@ -521,7 +521,7 @@ func walk(x interface{}, fn func(input string)) {
 
 ## Refactor
 
-Đoạn mã này hoạt động nhưng trông hơi tệ. Đừng lo lắng, chúng ta có mã đang hoạt động được hỗ trợ bởi các bản kiểm thử nên chúng ta có thể tự do chỉnh sửa theo ý muốn.
+Đoạn mã này hoạt động nhưng trông hơi tệ. Đừng lo lắng, chúng ta có mã đang hoạt động được hỗ trợ bởi các test nên chúng ta có thể tự do chỉnh sửa theo ý muốn.
 
 Nếu bạn suy nghĩ hơi trừu tượng một chút, chúng ta muốn gọi `walk` trên cả:
 
@@ -700,11 +700,11 @@ Tuy nhiên, theo thiết kế của Go, bạn không thể lấy các giá trị
 
 ## Refactor
 
-Bạn cảm thấy thế nào ngay lúc này? Có vẻ như đó là một sự trừu tượng hay vào thời điểm đó nhưng bây giờ mã nguồn cảm thấy hơi lộn xộn.
+Bạn cảm thấy thế nào ngay lúc này? Có vẻ như đó là một sự trừu tượng hay vào thời điểm đó nhưng bây giờ code cảm thấy hơi lộn xộn.
 
 *Điều này không sao cả!* Tái cấu trúc là một hành trình và đôi khi chúng ta sẽ mắc sai lầm. Điểm quan trọng của TDD là nó cho chúng ta sự tự do để thử những điều này.
 
-Bằng cách thực hiện các bước nhỏ được hỗ trợ bởi các bản kiểm thử, đây hoàn toàn không phải là một tình huống không thể vãn hồi. Hãy đưa nó trở lại trạng thái trước khi tái cấu trúc.
+Bằng cách thực hiện các bước nhỏ được hỗ trợ bởi các test, đây hoàn toàn không phải là một tình huống không thể vãn hồi. Hãy đưa nó trở lại trạng thái trước khi refactor.
 
 ```go
 func walk(x interface{}, fn func(input string)) {
@@ -739,7 +739,7 @@ Chúng ta đã đưa vào hàm `walkValue` để áp dụng nguyên tắc DRY ch
 
 Hãy nhớ rằng các map trong Go không đảm bảo thứ tự. Vì vậy, các test của bạn đôi khi sẽ thất bại vì chúng ta khẳng định rằng các lời gọi đến `fn` được thực hiện theo một thứ tự cụ thể.
 
-Để khắc phục điều này, chúng ta cần chuyển phần xác nhận với map sang một bản kiểm thử mới nơi chúng ta không quan tâm đến thứ tự.
+Để khắc phục điều này, chúng ta cần chuyển phần xác nhận với map sang một test mới nơi chúng ta không quan tâm đến thứ tự.
 
 ```go
 t.Run("with maps", func(t *testing.T) {
@@ -775,7 +775,7 @@ func assertContains(t testing.TB, haystack []string, needle string) {
 }
 ```
 
-Vì chúng ta đã trích xuất các map vào một bản kiểm thử mới, chúng ta không thấy thông báo lỗi. Hãy cố tình làm hỏng bản kiểm thử `with maps` ở đây để bạn có thể kiểm tra thông báo lỗi, sau đó sửa lại để tất cả các test vượt qua.
+Vì chúng ta đã trích xuất các map vào một test mới, chúng ta không thấy thông báo lỗi. Hãy cố tình làm hỏng test `with maps` ở đây để bạn có thể kiểm tra thông báo lỗi, sau đó sửa lại để tất cả các test vượt qua.
 
 Kiểu dữ liệu tiếp theo chúng ta muốn xử lý là `chan`.
 
@@ -926,6 +926,6 @@ func walk(x interface{}, fn func(input string)) {
 
 - Đã giới thiệu một số khái niệm từ package `reflect`.
 - Đã sử dụng đệ quy (recursion) để duyệt qua các cấu trúc dữ liệu tùy ý.
-- Đã thực hiện một bước tái cấu trúc mà khi nhìn lại thấy không ổn nhưng không quá bối rối vì điều đó. Bằng cách làm việc lặp đi lặp lại với các bản kiểm thử, đó không phải là vấn đề quá lớn.
+- Đã thực hiện một bước refactor mà khi nhìn lại thấy không ổn nhưng không quá bối rối vì điều đó. Bằng cách làm việc lặp đi lặp lại với các test, đó không phải là vấn đề quá lớn.
 - Chương này chỉ đề cập đến một khía cạnh nhỏ của reflection. [The Go blog có một bài viết tuyệt vời đề cập đến nhiều chi tiết hơn](https://blog.golang.org/laws-of-reflection).
 - Bây giờ bạn đã biết về reflection, hãy cố gắng hết sức để tránh sử dụng nó.

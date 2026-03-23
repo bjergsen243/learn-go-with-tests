@@ -4,7 +4,7 @@
 
 Để thực hiện một hành động lặp lại trong Go, bạn sẽ cần sử dụng `for`. Trong Go không có các từ khóa như `while`, `do`, `until`, bạn chỉ có thể dùng `for` và điều này thực sự hữu ích!
 
-Hãy viết một bài kiểm thử cho một hàm lặp lại một ký tự 5 lần.
+Hãy viết một bài test cho một hàm lặp lại một ký tự 5 lần.
 
 Không có gì mới ở đây, vì vậy hãy thử tự viết nó để thực hành.
 
@@ -103,11 +103,11 @@ func BenchmarkRepeat(b *testing.B) {
 }
 ```
 
-Bạn sẽ thấy mã benchmark rất giống với một bài test.
+Bạn sẽ thấy code benchmark rất giống với một bài test.
 
 `testing.B` cung cấp quyền truy cập vào `b.N`, một giá trị được framework quyết định.
 
-Khi mã benchmark chạy, nó sẽ lặp `b.N` lần và đo thời gian thực hiện.
+Khi benchmark chạy, nó sẽ lặp `b.N` lần và đo thời gian thực hiện.
 
 Số lần chạy không quan trọng với bạn, vì Go sẽ tự động xác định giá trị phù hợp để đưa ra kết quả chính xác.
 
@@ -132,9 +132,9 @@ PASS
 
 ## Bài tập thực hành
 
--   Chỉnh sửa bài kiểm thử để người dùng có thể chỉ định số lần lặp lại ký tự, sau đó sửa mã để đáp ứng yêu cầu.
+-   Chỉnh sửa bài test để người dùng có thể chỉ định số lần lặp lại ký tự, sau đó sửa code để đáp ứng yêu cầu.
 -   Viết `ExampleRepeat` để tài liệu hóa hàm của bạn.
--   Xem qua gói [strings](https://golang.org/pkg/strings). Tìm các hàm hữu ích và thử nghiệm với chúng bằng cách viết các bài kiểm thử như chúng ta đã làm. Đầu tư thời gian tìm hiểu thư viện tiêu chuẩn sẽ rất có ích về lâu dài.
+-   Xem qua package [strings](https://golang.org/pkg/strings). Tìm các hàm hữu ích và thử nghiệm với chúng bằng cách viết test như chúng ta đã làm. Đầu tư thời gian tìm hiểu thư viện chuẩn sẽ rất có ích về lâu dài.
 
 ## Tổng kết
 

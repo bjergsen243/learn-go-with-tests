@@ -14,7 +14,7 @@ Nếu bạn chưa tự tin viết hướng dẫn của riêng mình, bạn vẫn
 
 - TDD dạy chúng ta làm việc theo từng bước nhỏ và nhận phản hồi sớm. Tôi khuyến khích bạn làm điều tương tự khi đóng góp
     - Hãy mở PR với bài test đầu tiên và phần triển khai của bạn, sau đó thảo luận về cách tiếp cận để tôi có thể đưa ra phản hồi và điều chỉnh nếu cần.
-- Dù đây là một dự án mã nguồn mở, tôi vẫn có quan điểm rõ ràng về nội dung. Càng trao đổi sớm, bạn càng có thể đi đúng hướng.
+- Dù đây là một dự án open source, tôi vẫn có quan điểm rõ ràng về nội dung. Càng trao đổi sớm, bạn càng có thể đi đúng hướng.
 
 ## Hướng dẫn phong cách viết
 

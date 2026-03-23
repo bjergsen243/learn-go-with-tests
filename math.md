@@ -8,7 +8,7 @@ Dù máy tính hiện đại có sức mạnh thực hiện những phép tính 
 
 Bạn muốn tạo một file SVG của một chiếc đồng hồ. Không phải đồng hồ kỹ thuật số - không, cái đó thì quá dễ - mà là một chiếc đồng hồ *kim* (analogue), có các kim chỉ giờ. Bạn không cần gì quá cầu kỳ, chỉ cần một hàm nhận vào một `Time` từ package `time` và xuất ra một SVG của đồng hồ với đầy đủ các kim - giờ, phút và giây - chỉ đúng hướng. Điều đó có thể khó đến mức nào?
 
-Đầu tiên, chúng ta cần một SVG của đồng hồ để thử nghiệm. SVG là một định dạng hình ảnh tuyệt vời để thao tác bằng mã nguồn vì chúng được viết dưới dạng một chuỗi các hình khối, được mô tả bằng XML. Chiếc đồng hồ này:
+Đầu tiên, chúng ta cần một SVG của đồng hồ để thử nghiệm. SVG là một định dạng hình ảnh tuyệt vời để thao tác bằng code vì chúng được viết dưới dạng một chuỗi các hình khối, được mô tả bằng XML. Chiếc đồng hồ này:
 
 ![an svg of a clock](math/example_clock.svg)
 
@@ -42,7 +42,7 @@ Bạn muốn tạo một file SVG của một chiếc đồng hồ. Không phả
 
 Nó là một vòng tròn với ba đường kẻ, mỗi đường kẻ bắt đầu từ tâm vòng tròn (x=150, y=150) và kết thúc ở một khoảng cách nào đó.
 
-Vậy những gì chúng ta sẽ làm là tái cấu trúc lại nội dung trên, nhưng thay đổi các đường kẻ sao cho chúng chỉ đúng hướng với một thời gian cụ thể.
+Vậy những gì chúng ta sẽ làm là refactor lại nội dung trên, nhưng thay đổi các đường kẻ sao cho chúng chỉ đúng hướng với một thời gian cụ thể.
 
 ## Một Acceptance Test
 
@@ -77,11 +77,11 @@ Vì vậy, chúng ta sẽ thống nhất rằng:
 
 Một điều cần lưu ý về SVG: điểm gốc - điểm (0,0) - nằm ở góc *trên cùng bên trái*, không phải *dưới cùng bên trái* như chúng ta thường mong đợi. Việc ghi nhớ điều này rất quan trọng khi chúng ta tính toán các giá trị để đưa vào các đường kẻ của mình.
 
-Cuối cùng, tôi chưa quyết định *cách* xây dựng SVG - chúng ta có thể sử dụng một template từ package [`text/template`][texttemplate], hoặc chúng ta có thể chỉ gửi các byte vào một `bytes.Buffer` hoặc một writer. Nhưng chúng ta biết mình sẽ cần những con số đó, vì vậy hãy tập trung vào việc kiểm thử thứ gì đó tạo ra chúng.
+Cuối cùng, tôi chưa quyết định *cách* xây dựng SVG - chúng ta có thể sử dụng một template từ package [`text/template`][texttemplate], hoặc chúng ta có thể chỉ gửi các byte vào một `bytes.Buffer` hoặc một writer. Nhưng chúng ta biết mình sẽ cần những con số đó, vì vậy hãy tập trung vào việc test thứ gì đó tạo ra chúng.
 
 ### Viết test trước tiên
 
-Bản kiểm thử đầu tiên của tôi trông như thế này:
+Test đầu tiên của tôi trông như thế này:
 
 ```go
 package clockface_test
@@ -120,7 +120,7 @@ Vậy là cần một `Point` nơi đầu kim giây sẽ chỉ tới, và một 
 
 ### Viết lượng code tối thiểu để chạy test và kiểm tra kết quả lỗi
 
-Hãy triển khai các kiểu dữ liệu đó để mã nguồn có thể biên dịch:
+Hãy triển khai các kiểu dữ liệu đó để code có thể biên dịch:
 
 ```go
 package clockface
@@ -171,7 +171,7 @@ ok  	    clockface	0.006s
 
 ### Refactor
 
-Chưa cần phải tái cấu trúc - hầu như chưa có mã nguồn nào đáng kể!
+Chưa cần phải refactor - hầu như chưa có code nào đáng kể!
 
 ### Lặp lại cho các yêu cầu mới
 
@@ -238,19 +238,19 @@ May mắn thay, package `math` của Go có cả hai hàm này, nhưng có một
 
 Nó muốn góc phải theo đơn vị radian. Vậy radian là gì? Thay vì định nghĩa một vòng quay hoàn chỉnh của vòng tròn được tạo thành từ 360 độ, chúng ta định nghĩa một vòng quay hoàn chỉnh là 2π radian. Có những lý do chính đáng để làm điều này mà chúng ta sẽ không đi sâu vào.[^2]
 
-Bây giờ chúng ta đã đọc xong, học xong và suy nghĩ xong, chúng ta có thể viết bản kiểm thử tiếp theo.
+Bây giờ chúng ta đã đọc xong, học xong và suy nghĩ xong, chúng ta có thể viết test tiếp theo.
 
 ### Viết test trước tiên
 
-Tất cả những kiến thức toán học này thật khó và gây bối rối. Tôi không tự tin rằng mình hiểu chuyện gì đang xảy ra - vì vậy hãy viết một bản kiểm thử! Chúng ta không cần giải quyết toàn bộ vấn đề trong một lần - hãy bắt đầu bằng việc tính toán góc chính xác, theo radian, của kim giây tại một thời điểm cụ thể.
+Tất cả những kiến thức toán học này thật khó và gây bối rối. Tôi không tự tin rằng mình hiểu chuyện gì đang xảy ra - vì vậy hãy viết một test! Chúng ta không cần giải quyết toàn bộ vấn đề trong một lần - hãy bắt đầu bằng việc tính toán góc chính xác, theo radian, của kim giây tại một thời điểm cụ thể.
 
-Tôi sẽ *tạm đóng* (comment out) bản acceptance test mà mình đang làm trong khi thực hiện các bản kiểm thử này - tôi không muốn bị phân tâm bởi bản kiểm thử đó trong khi đang cố làm cho bản này vượt qua.
+Tôi sẽ *tạm đóng* bản acceptance test mà mình đang làm trong khi thực hiện các test này - tôi không muốn bị phân tâm bởi test đó trong khi đang cố làm cho bản này vượt qua.
 
 ### Nhắc lại về các package
 
-Hiện tại, các acceptance tests của chúng ta nằm trong package `clockface_test`. Các bản kiểm thử của chúng ta có thể nằm ngoài package `clockface` - miễn là tên của chúng kết thúc bằng `_test.go` thì chúng có thể được chạy.
+Hiện tại, các acceptance tests của chúng ta nằm trong package `clockface_test`. Các test của chúng ta có thể nằm ngoài package `clockface` - miễn là tên của chúng kết thúc bằng `_test.go` thì chúng có thể được chạy.
 
-Tôi sẽ viết các bản kiểm thử radian này *bên trong* package `clockface`; chúng có thể không bao giờ được xuất (export), và chúng có thể bị xóa (hoặc di dời) khi tôi đã hiểu rõ hơn về những gì đang xảy ra. Tôi sẽ đổi tên file acceptance test thành `clockface_acceptance_test.go`, để tôi có thể tạo một file *mới* gọi là `clockface_test` để kiểm thử kim giây theo radian.
+Tôi sẽ viết các test radian này *bên trong* package `clockface`; chúng có thể không bao giờ được export, và chúng có thể bị xóa (hoặc di dời) khi tôi đã hiểu rõ hơn về những gì đang xảy ra. Tôi sẽ đổi tên file acceptance test thành `clockface_acceptance_test.go`, để tôi có thể tạo một file *mới* gọi là `clockface_test` để test kim giây theo radian.
 
 ```go
 package clockface
@@ -272,7 +272,7 @@ func TestSecondsInRadians(t *testing.T) {
 }
 ```
 
-Ở đây chúng ta đang kiểm thử rằng 30 giây rưỡi nên đặt kim giây ở vị trí nửa vòng tròn. Và đây là lần đầu tiên chúng ta sử dụng package `math`! Nếu một vòng tròn hoàn chỉnh là 2π radian, chúng ta biết rằng nửa vòng tròn nên là π radian. `math.Pi` cung cấp cho chúng ta giá trị của π.
+Ở đây chúng ta đang test rằng 30 giây rưỡi nên đặt kim giây ở vị trí nửa vòng tròn. Và đây là lần đầu tiên chúng ta sử dụng package `math`! Nếu một vòng tròn hoàn chỉnh là 2π radian, chúng ta biết rằng nửa vòng tròn nên là π radian. `math.Pi` cung cấp cho chúng ta giá trị của π.
 
 ### Thử chạy test
 
@@ -307,11 +307,11 @@ ok  	clockface	0.011s
 
 ### Refactor
 
-Chưa cần tái cấu trúc gì cả.
+Chưa cần refactor gì cả.
 
 ### Lặp lại cho các yêu cầu mới
 
-Bây giờ chúng ta có thể mở rộng cuộc kiểm thử để bao gồm một vài kịch bản khác. Tôi sẽ đi nhanh một chút và trình bày một số mã kiểm thử đã được tái cấu trúc - hy vọng bạn có thể hiểu rõ cách tôi đạt được kết quả này.
+Bây giờ chúng ta có thể mở rộng test để bao gồm một vài kịch bản khác. Tôi sẽ đi nhanh một chút và trình bày một số code test đã được refactor - hy vọng bạn có thể hiểu rõ cách tôi đạt được kết quả này.
 
 ```go
 func TestSecondsInRadians(t *testing.T) {
@@ -336,7 +336,7 @@ func TestSecondsInRadians(t *testing.T) {
 }
 ```
 
-Tôi đã thêm một vài hàm trợ giúp (helper functions) để việc viết bản kiểm thử dựa trên bảng này bớt nhàm chán hơn. `testName` chuyển đổi thời gian sang định dạng đồng hồ số (HH:MM:SS), và `simpleTime` tạo một `time.Time` chỉ sử dụng các phần mà chúng ta thực sự quan tâm (giờ, phút và giây).[^1] Đây là chúng:
+Tôi đã thêm một vài helper functions để việc viết test dựa trên bảng này bớt nhàm chán hơn. `testName` chuyển đổi thời gian sang định dạng đồng hồ số (HH:MM:SS), và `simpleTime` tạo một `time.Time` chỉ sử dụng các phần mà chúng ta thực sự quan tâm (giờ, phút và giây).[^1] Đây là chúng:
 
 ```go
 func simpleTime(hours, minutes, seconds int) time.Time {
@@ -348,9 +348,9 @@ func testName(t time.Time) string {
 }
 ```
 
-Hai hàm này sẽ giúp việc viết các bản kiểm thử này (và các bản kiểm thử trong tương lai) dễ dàng hơn một chút để viết và bảo trì.
+Hai hàm này sẽ giúp việc viết các test này (và các test trong tương lai) dễ dàng hơn một chút để viết và bảo trì.
 
-Điều này cho chúng ta một số output kiểm thử khá đẹp:
+Điều này cho chúng ta một số output test khá đẹp:
 
 ```
 clockface_test.go:24: Wanted 0 radians, but got 3.141592653589793
@@ -366,7 +366,7 @@ func secondsInRadians(t time.Time) float64 {
 }
 ```
 
-Một giây là (2π / 60) radian... triệt tiêu con số 2 và chúng ta có π/30 radian. Nhân con số đó với số giây (dưới dạng `float64`) và bây giờ tất cả các bản kiểm thử sẽ vượt qua...
+Một giây là (2π / 60) radian... triệt tiêu con số 2 và chúng ta có π/30 radian. Nhân con số đó với số giây (dưới dạng `float64`) và bây giờ tất cả các test sẽ vượt qua...
 
 ```
 clockface_test.go:24: Wanted 3.141592653589793 radians, but got 3.1415926535897936
@@ -565,7 +565,7 @@ Cũng hãy nhớ rằng chúng ta muốn đo góc từ hướng 12 giờ (vốn 
 
 ![unit circle ray defined from by angle from y axis](math/images/unit_circle_12_oclock.png)
 
-Bây giờ chúng ta cần phương trình tạo ra X và Y. Hãy viết nó vào trong mã nguồn:
+Bây giờ chúng ta cần phương trình tạo ra X và Y. Hãy viết nó vào trong code:
 
 ```go
 func secondHandPoint(t time.Time) Point {
@@ -585,7 +585,7 @@ clockface_test.go:43: Wanted {0 -1} Point, but got {1.2246467991473515e-16 -1}
 clockface_test.go:43: Wanted {-1 0} Point, but got {-1 -1.8369701987210272e-16}
 ```
 
-Đợi đã, lại nữa sao? Có vẻ như chúng ta lại bị nguyền rủa bởi các số dấu phẩy động một lần nữa - cả hai con số không mong đợi đó đều cực kỳ nhỏ (infinitesimal) - tận vị trí thập phân thứ 16. Vì vậy, một lần nữa chúng ta có thể chọn tăng độ chính xác, hoặc chúng ta chấp nhận chúng xấp xỉ bằng nhau và tiếp tục cuộc sống.
+Đợi đã, lại nữa sao? Có vẻ như chúng ta lại bị nguyền rủa bởi các số dấu phẩy động một lần nữa - cả hai con số không mong đợi đó đều cực kỳ nhỏ - tận vị trí thập phân thứ 16. Vì vậy, một lần nữa chúng ta có thể chọn tăng độ chính xác, hoặc chúng ta chấp nhận chúng xấp xỉ bằng nhau và tiếp tục cuộc sống.
 
 Một tùy chọn để tăng độ chính xác của các góc này là sử dụng kiểu số hữu tỷ `Rat` từ package `math/big`. Nhưng với mục tiêu là vẽ một file SVG chứ không phải đáp phi thuyền xuống mặt trăng, tôi nghĩ chúng ta có thể chung sống với một chút sai số.
 
@@ -633,7 +633,7 @@ ok  	clockface	0.007s
 
 Tôi vẫn khá hài lòng với điều này.
 
-Đầy là [hình dạng mã nguồn lúc này](https://github.com/quii/learn-go-with-tests/tree/main/math/v4/clockface).
+Đầy là [hình dạng code lúc này](https://github.com/quii/learn-go-with-tests/tree/main/math/v4/clockface).
 
 ### Lặp lại cho các yêu cầu mới
 
@@ -689,7 +689,7 @@ ok  	clockface	0.007s
 
 ### Refactor
 
-Có một vài con số "ma thuật" (magic numbers) ở đây nên được tách ra làm hằng số, vì vậy hãy làm điều đó:
+Có một vài con số "magic numbers" ở đây nên được tách ra làm hằng số, vì vậy hãy làm điều đó:
 
 ```go
 const secondHandLength = 90
@@ -763,7 +763,7 @@ const bezel = `<circle cx="150" cy="150" r="100" style="fill:#fff;stroke:#000;st
 const svgEnd = `</svg>`
 ```
 
-Trời ạ, tôi không hề cố gắng giành bất kỳ giải thưởng nào cho mã nguồn đẹp đẽ với mớ hỗn độn *này* - nhưng nó hoàn thành công việc. Nó đang ghi một SVG ra `os.Stdout` - từng chuỗi một.
+Trời ạ, tôi không hề cố gắng giành bất kỳ giải thưởng nào cho code đẹp đẽ với mớ hỗn độn *này* - nhưng nó hoàn thành công việc. Nó đang ghi một SVG ra `os.Stdout` - từng chuỗi một.
 
 Nếu chúng ta build nó:
 
@@ -781,18 +781,18 @@ Chúng ta sẽ thấy một cái gì đó như:
 
 ![a clock with only a second hand](math/v6/clockface/clockface/clock.svg)
 
-Và đây là [mã nguồn trông như thế nào](https://github.com/quii/learn-go-with-tests/tree/main/math/v6/clockface).
+Và đây là [code trông như thế nào](https://github.com/quii/learn-go-with-tests/tree/main/math/v6/clockface).
 
 ### Refactor
 
 Code này có vấn đề. Không hẳn *quá tệ*, nhưng tôi không hài lòng:
 
 1. Toàn bộ hàm `SecondHand` này gắn chặt với việc tạo ra SVG... mà không hề đề cập đến SVG hay thực sự tạo ra một SVG nào...
-2. ... đồng thời tôi cũng không kiểm thử bất kỳ mã SVG nào của mình.
+2. ... đồng thời tôi cũng không test bất kỳ code SVG nào của mình.
 
-Vâng, tôi đoán mình đã phá hỏng thứ gì đó. Cảm giác này thật sai trái. Hãy thử khắc phục bằng một bản kiểm thử tập trung vào SVG hơn.
+Vâng, tôi đoán mình đã phá hỏng thứ gì đó. Cảm giác này thật sai trái. Hãy thử khắc phục bằng một test tập trung vào SVG hơn.
 
-Chúng ta có những lựa chọn nào? Chà, chúng ta có thể thử kiểm thử xem các ký tự xuất ra từ `SVGWriter` có chứa những thứ trông giống như thẻ SVG mà chúng ta mong đợi cho một thời điểm cụ thể hay không. Ví dụ:
+Chúng ta có những lựa chọn nào? Chà, chúng ta có thể thử test xem các ký tự xuất ra từ `SVGWriter` có chứa những thứ trông giống như thẻ SVG mà chúng ta mong đợi cho một thời điểm cụ thể hay không. Ví dụ:
 
 ```go
 func TestSVGWriterAtMidnight(t *testing.T) {
@@ -812,17 +812,17 @@ func TestSVGWriterAtMidnight(t *testing.T) {
 
 Nhưng liệu đây có thực sự là một sự cải tiến?
 
-Nó không chỉ vẫn vượt qua nếu tôi không tạo ra một SVG hợp lệ (vì nó chỉ kiểm thử xem một chuỗi có xuất hiện trong output hay không), mà nó còn thất bại nếu tôi thực hiện một thay đổi nhỏ nhất, không quan trọng đối với chuỗi đó - ví dụ: nếu tôi thêm một khoảng trắng dư thừa giữa các thuộc tính.
+Nó không chỉ vẫn vượt qua nếu tôi không tạo ra một SVG hợp lệ (vì nó chỉ test xem một chuỗi có xuất hiện trong output hay không), mà nó còn thất bại nếu tôi thực hiện một thay đổi nhỏ nhất, không quan trọng đối với chuỗi đó - ví dụ: nếu tôi thêm một khoảng trắng dư thừa giữa các thuộc tính.
 
 Code smell lớn nhất ở đây là việc test một cấu trúc dữ liệu (XML) bằng cách so sánh chuỗi ký tự. Đây *không bao giờ* là ý tưởng hay vì nó tạo ra test vừa mong manh vừa không đủ nhạy — đang test sai thứ!
 
-Vì vậy, giải pháp duy nhất là kiểm thử output *dưới dạng XML*. Và để làm được điều đó, chúng ta cần phân tích (parse) nó.
+Vì vậy, giải pháp duy nhất là test output *dưới dạng XML*. Và để làm được điều đó, chúng ta cần parse nó.
 
 ## Phân tích XML
 
 [`encoding/xml`][xml] là package của Go có thể xử lý tất cả những thứ liên quan đến phân tích XML đơn giản.
 
-Hàm [`xml.Unmarshal`](https://pkg.go.dev/encoding/xml#Unmarshal) nhận vào một `[]byte` dữ liệu XML, và một con trỏ tới một struct để nó được giải mã (unmarshal) vào đó.
+Hàm [`xml.Unmarshal`](https://pkg.go.dev/encoding/xml#Unmarshal) nhận vào một `[]byte` dữ liệu XML, và một con trỏ tới một struct để nó được unmarshal vào đó.
 
 Vì vậy, chúng ta sẽ cần một struct để giải mã XML của mình vào. Chúng ta có thể dành thời gian để tìm ra tên chính xác cho tất cả các node và thuộc tính, và cách viết cấu trúc chính xác, nhưng may mắn thay, ai đó đã viết [`zek`](https://github.com/miku/zek) - một chương trình sẽ tự động hóa tất cả công việc nặng nhọc đó cho chúng ta. Thậm chí còn tuyệt hơn, có một phiên bản trực tuyến tại [https://xml-to-go.github.io/](https://xml-to-go.github.io/). Chỉ cần dán nội dung SVG từ đầu file vào một ô và - bùm - kết quả hiện ra:
 
@@ -853,7 +853,7 @@ type Svg struct {
 }
 ```
 
-Chúng ta có thể thực hiện các điều chỉnh đối với struct này nếu cần (như thay đổi tên struct thành `SVG`) nhưng nó chắc chắn đủ tốt để bắt đầu. Hãy dán struct này vào file `clockface_acceptance_test` và viết một bản kiểm thử với nó:
+Chúng ta có thể thực hiện các điều chỉnh đối với struct này nếu cần (như thay đổi tên struct thành `SVG`) nhưng nó chắc chắn đủ tốt để bắt đầu. Hãy dán struct này vào file `clockface_acceptance_test` và viết một test với nó:
 
 ```go
 func TestSVGWriterAtMidnight(t *testing.T) {
@@ -878,7 +878,7 @@ func TestSVGWriterAtMidnight(t *testing.T) {
 }
 ```
 
-Chúng ta ghi output của `clockface.SVGWriter` vào một `bytes.Buffer` và sau đó `Unmarshal` nó vào một `Svg`. Tiếp theo, chúng ta xem xét từng `Line` trong `Svg` để xem liệu có bất kỳ dòng nào có giá trị `X2` và `Y2` như mong đợi hay không. Nếu tìm thấy sự trùng khớp, chúng ta thoát sớm (vượt qua bản kiểm thử); nếu không, chúng ta thất bại với một thông báo (hy vọng là) đầy đủ thông tin.
+Chúng ta ghi output của `clockface.SVGWriter` vào một `bytes.Buffer` và sau đó `Unmarshal` nó vào một `Svg`. Tiếp theo, chúng ta xem xét từng `Line` trong `Svg` để xem liệu có bất kỳ dòng nào có giá trị `X2` và `Y2` như mong đợi hay không. Nếu tìm thấy sự trùng khớp, chúng ta thoát sớm (vượt qua test); nếu không, chúng ta thất bại với một thông báo (hy vọng là) đầy đủ thông tin.
 
 ```sh
 ./clockface_acceptance_test.go:41:2: undefined: clockface.SVGWriter
@@ -948,7 +948,7 @@ clockface_acceptance_test.go:56: Expected to find the second hand with x2 of 150
 	fmt.Fprintf(w, `<line x1="150" y1="150" x2="%.3f" y2="%.3f" style="fill:none;stroke:#f00;stroke-width:3px;"/>`, p.X, p.Y)
 ```
 
-Và sau khi chúng ta cập nhật các mong đợi trong bản kiểm thử:
+Và sau khi chúng ta cập nhật các mong đợi trong test:
 
 ```go
 	x2 := "150.000"
@@ -982,17 +982,17 @@ func main() {
 
 Đây là [những gì mọi thứ trông như bây giờ](https://github.com/quii/learn-go-with-tests/tree/main/math/v7b/clockface).
 
-Và chúng ta có thể viết một bản kiểm thử cho một thời điểm khác theo cùng một mẫu, nhưng chưa phải bây giờ...
+Và chúng ta có thể viết một test cho một thời điểm khác theo cùng một mẫu, nhưng chưa phải bây giờ...
 
 ### Refactor
 
 Có ba điều cần chú ý:
 
-1. Chúng ta chưa thực sự kiểm thử tất cả thông tin cần thiết để đảm bảo nó hiện diện - ví dụ, thế còn các giá trị `x1` thì sao?
+1. Chúng ta chưa thực việc test tất cả thông tin cần thiết để đảm bảo nó hiện diện - ví dụ, thế còn các giá trị `x1` thì sao?
 2. Ngoài ra, các thuộc tính cho `x1`, v.v. đâu thực sự là `strings` đúng không? Chúng là những con số!
 3. Tôi có thực sự quan tâm đến `style` của kim đồng hồ không? Hay, tương tự, cái node `Text` trống rỗng được tạo ra bởi `zek`?
 
-Chúng ta có thể làm tốt hơn. Hãy thực hiện một vài điều chỉnh đối với struct `Svg`, và các bản kiểm thử, để làm cho mọi thứ sắc nét hơn.
+Chúng ta có thể làm tốt hơn. Hãy thực hiện một vài điều chỉnh đối với struct `Svg`, và các test, để làm cho mọi thứ sắc nét hơn.
 
 ```go
 type SVG struct {
@@ -1052,7 +1052,7 @@ func TestSVGWriterAtMidnight(t *testing.T) {
 }
 ```
 
-Cuối cùng, chúng ta có thể học hỏi từ các bảng của unit test, và chúng ta có thể viết một hàm trợ giúp `containsLine(line Line, lines []Line) bool` để thực sự làm cho các bản kiểm thử này tỏa sáng:
+Cuối cùng, chúng ta có thể học hỏi từ các bảng của unit test, và chúng ta có thể viết một hàm trợ giúp `containsLine(line Line, lines []Line) bool` để thực sự làm cho các test này tỏa sáng:
 
 ```go
 func TestSVGWriterSecondHand(t *testing.T) {
@@ -1137,7 +1137,7 @@ func TestSVGWriterMinuteHand(t *testing.T) {
 clockface_acceptance_test.go:87: Expected to find the minute hand line {X1:150 Y1:150 X2:150 Y2:70}, in the SVG lines [{X1:150 Y1:150 X2:150 Y2:60}]
 ```
 
-Chúng ta nên bắt đầu xây dựng các kim đồng hồ khác, tương tự như cách chúng ta đã tạo ra các bản kiểm thử cho kim giây, chúng ta có thể lặp lại để tạo ra tập hợp các bản kiểm thử sau. Một lần nữa chúng ta sẽ tạm đóng acceptance test của mình trong khi làm cho nó hoạt động:
+Chúng ta nên bắt đầu xây dựng các kim đồng hồ khác, tương tự như cách chúng ta đã tạo ra các test cho kim giây, chúng ta có thể lặp lại để tạo ra tập hợp các test sau. Một lần nữa chúng ta sẽ tạm đóng acceptance test của mình trong khi làm cho nó hoạt động:
 
 ```go
 func TestMinutesInRadians(t *testing.T) {
@@ -1246,13 +1246,13 @@ Thật đẹp đẽ và dễ dàng. Đây là [những gì mọi thứ trông nh
 
 ### Lặp lại cho các yêu cầu mới
 
-Tôi có nên thêm nhiều kịch bản hơn vào cuộc kiểm thử `minutesInRadians` không? Hiện tại chỉ có hai. Tôi cần bao nhiêu kịch bản trước khi chuyển sang kiểm thử hàm `minuteHandPoint`?
+Tôi có nên thêm nhiều kịch bản hơn vào test `minutesInRadians` không? Hiện tại chỉ có hai. Tôi cần bao nhiêu kịch bản trước khi chuyển sang test hàm `minuteHandPoint`?
 
 Một trong những câu nói về TDD yêu thích của tôi, thường được gán cho Kent Beck,[^3] là:
 
-> Hãy viết các bản kiểm thử cho đến khi nỗi sợ hãi chuyển thành sự nhàm chán.
+> Hãy viết các test cho đến khi nỗi sợ hãi chuyển thành sự nhàm chán.
 
-Và, thành thật mà nói, tôi đang cảm thấy nhàm chán khi kiểm thử cái hàm đó. Tôi tự tin mình biết nó hoạt động thế nào. Vì vậy hãy chuyển sang cái tiếp theo.
+Và, thành thật mà nói, tôi đang cảm thấy nhàm chán khi test cái hàm đó. Tôi tự tin mình biết nó hoạt động thế nào. Vì vậy hãy chuyển sang cái tiếp theo.
 
 ### Viết test trước tiên
 
@@ -1357,7 +1357,7 @@ ok  	clockface	0.009s
 
 ### Refactor
 
-Chúng ta chắc chắn đã có một chút sự lặp lại trong `minuteHandPoint` và `secondHandPoint` - tôi biết điều đó vì chúng ta vừa sao chép và dán cái này để tạo ra cái kia. Hãy làm cho nó khô ráo (DRY) hơn bằng một hàm:
+Chúng ta chắc chắn đã có một chút sự lặp lại trong `minuteHandPoint` và `secondHandPoint` - tôi biết điều đó vì chúng ta vừa sao chép và dán cái này để tạo ra cái kia. Hãy làm cho nó DRY hơn bằng một hàm:
 
 ```go
 func angleToPoint(angle float64) Point {
@@ -1495,7 +1495,7 @@ func TestSVGWriterHourHand(t *testing.T) {
 clockface_acceptance_test.go:113: Expected to find the hour hand line {X1:150 Y1:150 X2:150 Y2:200}, in the SVG lines [{X1:150 Y1:150 X2:150 Y2:60} {X1:150 Y1:150 X2:150 Y2:70}]
 ```
 
-Một lần nữa, hãy tạm đóng bản này cho đến khi chúng ta có một số độ bao phủ với các bản kiểm thử cấp độ thấp hơn:
+Một lần nữa, hãy tạm đóng bản này cho đến khi chúng ta có một số độ bao phủ với các test cấp độ thấp hơn:
 
 ### Viết test trước tiên
 
@@ -1674,7 +1674,7 @@ clockface_test.go:104: Wanted 0.013089969389957472 radians, but got 0.0130899693
 
 Phép toán dấu phẩy động lại xuất hiện.
 
-Hãy cập nhật bản kiểm thử để sử dụng `roughlyEqualFloat64` cho việc so sánh các góc.
+Hãy cập nhật test để sử dụng `roughlyEqualFloat64` cho việc so sánh các góc.
 
 ```go
 func TestHoursInRadians(t *testing.T) {
@@ -1706,7 +1706,7 @@ ok  	clockface	0.007s
 
 ### Refactor
 
-Nếu chúng ta định sử dụng `roughlyEqualFloat64` trong *một* bản kiểm thử radian, chúng ta có lẽ nên sử dụng nó cho *tất cả* chúng. Đó là một lần tái cấu trúc đơn giản và đẹp đẽ, nó sẽ để lại mọi thứ [trông như thế này](https://github.com/quii/learn-go-with-tests/tree/main/math/v10/clockface).
+Nếu chúng ta định sử dụng `roughlyEqualFloat64` trong *một* test radian, chúng ta có lẽ nên sử dụng nó cho *tất cả* chúng. Đó là một lần refactor đơn giản và đẹp đẽ, nó sẽ để lại mọi thứ [trông như thế này](https://github.com/quii/learn-go-with-tests/tree/main/math/v10/clockface).
 
 ## Điểm đầu kim giờ
 
@@ -1735,19 +1735,19 @@ func TestHourHandPoint(t *testing.T) {
 }
 ```
 
-Đợi đã, tôi chuẩn bị viết *hai* kịch bản kiểm thử *cùng lúc* ư? Chẳng phải điều này là *TDD tồi* sao?
+Đợi đã, tôi chuẩn bị viết *hai* kịch test *cùng lúc* ư? Chẳng phải điều này là *TDD tồi* sao?
 
 ### Về sự cố chấp trong TDD
 
-Phát triển hướng kiểm thử (TDD) không phải là một tôn giáo. Một số người có thể hành động như vậy - thường là những người không thực hiện TDD nhưng thích phàn nàn trên Twitter hay Dev.to rằng nó chỉ dành cho những kẻ cuồng tín và họ đang "thực tế" (being pragmatic) khi không viết test. Nhưng nó không phải là một tôn giáo. Nó là một công cụ.
+TDD không phải là một tôn giáo. Một số người có thể hành động như vậy - thường là những người không thực hiện TDD nhưng thích phàn nàn trên Twitter hay Dev.to rằng nó chỉ dành cho những kẻ cuồng tín và họ đang "pragmatic" khi không viết test. Nhưng nó không phải là một tôn giáo. Nó là một công cụ.
 
-Tôi *biết* hai bản kiểm thử tiếp theo sẽ là gì - tôi đã kiểm thử hai kim đồng hồ kia theo đúng cách này - và tôi đã biết quá trình triển khai của mình sẽ như thế nào - tôi đã viết một hàm cho trường hợp tổng quát để chuyển đổi một góc thành một điểm trong lần lặp lại cho kim phút.
+Tôi *biết* hai test tiếp theo sẽ là gì - tôi đã test hai kim đồng hồ kia theo đúng cách này - và tôi đã biết quá trình triển khai của mình sẽ như thế nào - tôi đã viết một hàm cho trường hợp tổng quát để chuyển đổi một góc thành một điểm trong lần lặp lại cho kim phút.
 
-Tôi sẽ không thực hiện các nghi lễ TDD chỉ vì cho có lệ. TDD là một kỹ thuật giúp tôi hiểu mã nguồn mình đang viết - và mã nguồn mình sẽ viết - tốt hơn. TDD cho tôi phản hồi, kiến thức và sự sáng suốt. Nhưng nếu tôi đã có kiến thức đó rồi, thì tôi sẽ không lặp lại các nghi lễ đó một cách vô nghĩa. Cả sự kiểm thử hay TDD đều không phải là mục đích cuối cùng.
+Tôi sẽ không thực hiện các nghi lễ TDD chỉ vì cho có lệ. TDD là một kỹ thuật giúp tôi hiểu code mình đang viết - và code mình sẽ viết - tốt hơn. TDD cho tôi phản hồi, kiến thức và sự sáng suốt. Nhưng nếu tôi đã có kiến thức đó rồi, thì tôi sẽ không lặp lại các nghi lễ đó một cách vô nghĩa. Cả việc test hay TDD đều không phải là mục đích cuối cùng.
 
 Sự tự tin của tôi đã tăng lên, vì vậy tôi cảm thấy mình có thể bước những bước dài hơn. Tôi sẽ "nhảy cóc" một vài bước, bởi vì tôi biết mình đang ở đâu, tôi biết mình đang đi đâu và tôi đã từng đi trên con đường này trước đây.
 
-Nhưng cũng lưu ý: tôi không bỏ qua hoàn toàn việc viết các bản kiểm thử - tôi vẫn viết chúng trước tiên. Chỉ là chúng xuất hiện theo các mẩu ít chi tiết hơn.
+Nhưng cũng lưu ý: tôi không bỏ qua hoàn toàn việc viết các test - tôi vẫn viết chúng trước tiên. Chỉ là chúng xuất hiện theo các mẩu ít chi tiết hơn.
 
 ### Thử chạy test
 
@@ -1763,7 +1763,7 @@ func hourHandPoint(t time.Time) Point {
 }
 ```
 
-Như tôi đã nói, tôi biết mình đang ở đâu và biết mình đang đi đâu. Tại sao phải giả vờ khác đi? Các bản kiểm thử sẽ sớm cho tôi biết nếu tôi sai.
+Như tôi đã nói, tôi biết mình đang ở đâu và biết mình đang đi đâu. Tại sao phải giả vờ khác đi? Các test sẽ sớm cho tôi biết nếu tôi sai.
 
 ```
 PASS
@@ -1852,7 +1852,7 @@ Hãy cùng kiểm tra lại bằng cách biên dịch và chạy chương trình
 
 ### Refactor
 
-Nhìn vào `clockface.go`, có một vài "số ma thuật" đang trôi nổi xung quanh. Tất cả chúng đều dựa trên số giờ/phút/giây có trong nửa vòng quanh mặt đồng hồ. Hãy tái cấu trúc để làm rõ ý nghĩa của chúng.
+Nhìn vào `clockface.go`, có một vài "số ma thuật" đang trôi nổi xung quanh. Tất cả chúng đều dựa trên số giờ/phút/giây có trong nửa vòng quanh mặt đồng hồ. Hãy refactor để làm rõ ý nghĩa của chúng.
 
 ```go
 const (
@@ -1865,7 +1865,7 @@ const (
 )
 ```
 
-Tại sao phải làm như vậy? Chà, nó làm rõ ý nghĩa của từng con số trong phương trình. Khi chúng ta - *nếu* chúng ta - xem lại mã nguồn này, những cái tên này sẽ giúp chúng ta hiểu chuyện gì đang xảy ra.
+Tại sao phải làm như vậy? Chà, nó làm rõ ý nghĩa của từng con số trong phương trình. Khi chúng ta - *nếu* chúng ta - xem lại code này, những cái tên này sẽ giúp chúng ta hiểu chuyện gì đang xảy ra.
 
 Hơn nữa, nếu chúng ta muốn tạo ra một số chiếc đồng hồ thực sự KỲ QUẶC - ví dụ như những chiếc có kim giờ quay 4 tiếng một vòng, kim giây 20 giây một vòng - những hằng số này có thể dễ dàng trở thành các tham số. Chúng ta đang mở rộng cánh cửa đó (ngay cả khi chúng ta không bao giờ bước qua).
 
@@ -1877,7 +1877,7 @@ Chúng ta có cần làm gì khác không?
 
 ### Một chương trình... và một thư viện
 
-Nhưng mã nguồn chúng ta viết *đã* giải quyết một tập hợp các vấn đề tổng quát hơn liên quan đến việc vẽ mặt đồng hồ. Bởi vì chúng ta đã sử dụng các bản kiểm thử để suy nghĩ về từng phần nhỏ của vấn đề một cách độc lập, và bởi vì chúng ta đã hệ thống hóa sự độc lập đó bằng các hàm, chúng ta đã xây dựng được một tập hợp API nhỏ khá hợp lý cho việc tính toán mặt đồng hồ.
+Nhưng code chúng ta viết *đã* giải quyết một tập hợp các vấn đề tổng quát hơn liên quan đến việc vẽ mặt đồng hồ. Bởi vì chúng ta đã sử dụng các test để suy nghĩ về từng phần nhỏ của vấn đề một cách độc lập, và bởi vì chúng ta đã hệ thống hóa sự độc lập đó bằng các hàm, chúng ta đã xây dựng được một tập hợp API nhỏ khá hợp lý cho việc tính toán mặt đồng hồ.
 
 Chúng ta có thể làm việc trên dự án này và biến nó thành một thứ gì đó tổng quát hơn - một thư viện để tính toán các góc và/hoặc vector mặt đồng hồ.
 
@@ -1886,23 +1886,23 @@ Thực tế, việc cung cấp thư viện cùng với chương trình là một
 > Các thư viện (APIs) nên đi kèm với các chương trình, và ngược lại. Một API mà bạn phải viết mã C để sử dụng, cái mà không thể được gọi dễ dàng từ dòng lệnh, là khó học và khó sử dụng hơn. Và ngược lại, thật là một nỗi đau tột cùng khi có những interface mà hình thức công khai duy nhất được ghi chép là một chương trình, khiến bạn không thể gọi chúng dễ dàng từ một chương trình C.
 >			-- Henry Spencer, trong sách _The Art of Unix Programming_
 
-Trong [phiên bản cuối cùng của chương trình này](https://github.com/quii/learn-go-with-tests/tree/main/math/vFinal/clockface), tôi đã biến các hàm không xuất (unexported functions) bên trong `clockface` thành một API công khai cho thư viện, với các hàm để tính toán góc và vector đơn vị cho từng kim đồng hồ. Tôi cũng đã tách phần tạo SVG thành package của riêng nó, `svg`, cái mà sau đó được chương trình `clockface` sử dụng trực tiếp. Đương nhiên là tôi đã ghi lại tài liệu cho từng hàm và package.
+Trong [phiên bản cuối cùng của chương trình này](https://github.com/quii/learn-go-with-tests/tree/main/math/vFinal/clockface), tôi đã biến các unexported functions bên trong `clockface` thành một API công khai cho thư viện, với các hàm để tính toán góc và vector đơn vị cho từng kim đồng hồ. Tôi cũng đã tách phần tạo SVG thành package của riêng nó, `svg`, cái mà sau đó được chương trình `clockface` sử dụng trực tiếp. Đương nhiên là tôi đã ghi lại tài liệu cho từng hàm và package.
 
 Nói về SVG...
 
-### Bản kiểm thử có giá trị nhất
+### Test có giá trị nhất
 
-Tôi chắc chắn bạn đã nhận ra rằng phần mã nguồn phức tạp nhất để xử lý SVG hoàn toàn không nằm trong mã nguồn ứng dụng; nó nằm trong mã nguồn kiểm thử. Điều này có khiến chúng ta thấy không thoải mái không? Chẳng lẽ chúng ta không nên làm điều gì đó như:
+Tôi chắc chắn bạn đã nhận ra rằng phần code phức tạp nhất để xử lý SVG hoàn toàn không nằm trong code ứng dụng; nó nằm trong code test. Điều này có khiến chúng ta thấy không thoải mái không? Chẳng lẽ chúng ta không nên làm điều gì đó như:
 
 - sử dụng một template từ `text/template`?
 - sử dụng một thư viện XML (giống như chúng ta đang làm trong test)?
 - sử dụng một thư viện SVG?
 
-Chúng ta có thể tái cấu trúc mã nguồn để thực hiện bất kỳ điều nào trong số này, và chúng ta có thể làm vậy bởi vì không quan trọng *cách thức* chúng ta tạo ra SVG, điều quan trọng là *cái gì* chúng ta tạo ra - *một file SVG*. Do đó, phần hệ thống của chúng ta cần biết nhiều nhất về SVG - cần phải nghiêm ngặt nhất về những gì cấu thành một SVG - chính là bản kiểm thử cho output SVG: nó cần có đủ ngữ cảnh và kiến thức về SVG để chúng ta tự tin rằng mình đang xuất ra một file SVG. Cái *cái gì* của một SVG sống trong các bản kiểm thử của chúng ta; cái *cách thức* nằm trong mã nguồn.
+Chúng ta có thể refactor code để thực hiện bất kỳ điều nào trong số này, và chúng ta có thể làm vậy bởi vì không quan trọng *cách thức* chúng ta tạo ra SVG, điều quan trọng là *cái gì* chúng ta tạo ra - *một file SVG*. Do đó, phần hệ thống của chúng ta cần biết nhiều nhất về SVG - cần phải nghiêm ngặt nhất về những gì cấu thành một SVG - chính là test cho output SVG: nó cần có đủ ngữ cảnh và kiến thức về SVG để chúng ta tự tin rằng mình đang xuất ra một file SVG. Cái *cái gì* của một SVG sống trong các test của chúng ta; cái *cách thức* nằm trong code.
 
-Chúng ta có thể cảm thấy kỳ quặc khi dành ra nhiều thời gian và công sức cho các bản kiểm thử SVG đó - import một thư viện XML, phân tích XML, tái cấu trúc các struct - nhưng mã nguồn kiểm thử đó là một phần giá trị của codebase - có lẽ còn giá trị hơn cả mã nguồn ứng dụng hiện tại. Nó sẽ giúp đảm bảo rằng output luôn là một SVG hợp lệ, bất kể chúng ta chọn sử dụng cái gì để tạo ra nó.
+Chúng ta có thể cảm thấy kỳ quặc khi dành ra nhiều thời gian và công sức cho các test SVG đó - import một thư viện XML, phân tích XML, refactor các struct - nhưng code test đó là một phần giá trị của codebase - có lẽ còn giá trị hơn cả code ứng dụng hiện tại. Nó sẽ giúp đảm bảo rằng output luôn là một SVG hợp lệ, bất kể chúng ta chọn sử dụng cái gì để tạo ra nó.
 
-Kiểm thử không phải là những thứ hạng hai - chúng không phải là mã nguồn "vứt đi". Những bản kiểm thử tốt sẽ tồn tại lâu hơn nhiều so với phiên bản mã nguồn mà chúng đang kiểm thử. Bạn không bao giờ nên cảm thấy mình đang dành "quá nhiều thời gian" để viết các bản kiểm thử. Đó là một khoản đầu tư.
+Kiểm thử không phải là những thứ hạng hai - chúng không phải là code "vứt đi". Những test tốt sẽ tồn tại lâu hơn nhiều so với phiên bản code mà chúng đang test. Bạn không bao giờ nên cảm thấy mình đang dành "quá nhiều thời gian" để viết các test. Đó là một khoản đầu tư.
 
 [^1]: Việc này dễ hơn nhiều so với việc viết tay tên dưới dạng một chuỗi rồi phải giữ cho nó đồng bộ với thời gian thực tế. Tin tôi đi, bạn sẽ không muốn làm điều đó đâu...
 

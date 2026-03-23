@@ -298,7 +298,7 @@ func TestSumAll(t *testing.T) {
 
 Chúng ta đang cố so sánh một `slice` với một `string`. Điều này không có nghĩa gì, nhưng test vẫn biên dịch được! Vì vậy, dù `reflect.DeepEqual` là cách tiện lợi để so sánh slices, bạn cần cẩn thận khi dùng nó.
 
-(Từ Go 1.21, package chuẩn [slices](https://pkg.go.dev/slices#pkg-overview) cung cấp hàm [slices.Equal](https://pkg.go.dev/slices#Equal) để so sánh nông (shallow compare) trên slices, không cần lo về kiểu như trường hợp trên. Lưu ý hàm này yêu cầu các phần tử phải [comparable](https://pkg.go.dev/builtin#comparable), do đó không áp dụng được cho slices chứa phần tử không so sánh được như 2D slices.)
+(Từ Go 1.21, package chuẩn [slices](https://pkg.go.dev/slices#pkg-overview) cung cấp hàm [slices.Equal](https://pkg.go.dev/slices#Equal) để shallow compare trên slices, không cần lo về kiểu như trường hợp trên. Lưu ý hàm này yêu cầu các phần tử phải [comparable](https://pkg.go.dev/builtin#comparable), do đó không áp dụng được cho slices chứa phần tử không so sánh được như 2D slices.)
 
 Đổi test lại và chạy. Bạn sẽ thấy kết quả kiểu như:
 
@@ -348,7 +348,7 @@ func SumAll(numbersToSum ...[]int) []int {
 
 Trong cách triển khai này, chúng ta ít lo hơn về dung lượng. Chúng ta bắt đầu với slice rỗng `sums` và append kết quả của `Sum` vào khi lặp qua varargs.
 
-Yêu cầu tiếp theo là đổi `SumAll` thành `SumAllTails`, tính tổng của "tails" (phần đuôi) của mỗi slice. Phần đuôi của một tập hợp là tất cả các phần tử ngoại trừ phần tử đầu tiên \(the "head"\).
+Yêu cầu tiếp theo là đổi `SumAll` thành `SumAllTails`, tính tổng của "tails" của mỗi slice. Tail của một tập hợp là tất cả các phần tử ngoại trừ phần tử đầu tiên \(the "head"\).
 
 ## Viết test trước tiên
 
