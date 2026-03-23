@@ -1,4 +1,4 @@
-# Chữ số La Mã (Roman Numerals)
+# Chữ số La Mã
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/roman-numerals)**
 
@@ -16,7 +16,7 @@ Nghe có vẻ dễ nhưng có một vài quy tắc thú vị. `V` nghĩa là nă
 
 `MCMLXXXIV` là 1984. Trông thật phức tạp và khó có thể tưởng tượng làm thế nào chúng ta có thể viết mã để giải quyết điều này ngay từ đầu.
 
-Như cuốn sách này nhấn mạnh, một kỹ năng then chốt đối với các nhà phát triển phần mềm là cố gắng xác định các "lát cắt mỏng theo chiều dọc" (thin vertical slices) của các chức năng *có ích* và sau đó **lặp lại** (iterating). Quy trình TDD giúp tạo điều kiện cho việc phát triển lặp.
+Như cuốn sách này nhấn mạnh, kỹ năng quan trọng của lập trình viên là xác định các "thin vertical slice" — lát cắt mỏng của chức năng *có ích* — và **phát triển lặp**. TDD hỗ trợ rất tốt cho cách tiếp cận này.
 
 Vì vậy, thay vì 1984, hãy bắt đầu với 1.
 

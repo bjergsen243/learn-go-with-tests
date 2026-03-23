@@ -1,4 +1,4 @@
-# Đọc file (Reading files)
+# Đọc file
 
 - **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/reading-files)**
 - [Đây là video tôi đang giải quyết bài toán và trả lời các câu hỏi từ Twitch stream](https://www.youtube.com/watch?v=nXts4dEJnkU)
@@ -31,27 +31,27 @@ type Post struct {
 }
 ```
 
-## Phát triển theo hướng kiểm thử, lặp lại (Iterative, TDD)
+## Phát triển lặp với TDD
 
-Chúng ta sẽ thực hiện theo phương pháp lặp lại, luôn thực hiện các bước đơn giản, an toàn hướng tới mục tiêu của mình.
+Chúng ta sẽ làm theo phương pháp lặp — luôn đi từng bước nhỏ, an toàn hướng tới mục tiêu.
 
-Điều này đòi hỏi chúng ta phải chia nhỏ công việc, nhưng chúng ta nên cẩn thận để không rơi vào cái bẫy thực hiện phương pháp ["từ dưới lên" (bottom up)](https://en.wikipedia.org/wiki/Top-down_and_bottom-up_design).
+Cần chia nhỏ công việc, nhưng cẩn thận không rơi vào bẫy tiếp cận ["từ dưới lên"](https://en.wikipedia.org/wiki/Top-down_and_bottom-up_design).
 
-Chúng ta không nên tin vào trí tưởng tượng quá mức của mình khi bắt đầu công việc. Chúng ta có thể bị cám dỗ tạo ra một loại trừu tượng nào đó mà chỉ được kiểm chứng sau khi chúng ta gắn kết mọi thứ lại với nhau, chẳng hạn như một loại `BlogPostFileParser` nào đó.
+Đừng tin vào trí tưởng tượng quá sớm. Bạn có thể bị cám dỗ tạo một abstraction kiểu `BlogPostFileParser` mà chỉ kiểm chứng được khi gắn mọi thứ lại với nhau.
 
-Điều này *không* mang tính lặp lại và đang bỏ lỡ các vòng lặp phản hồi chặt chẽ mà TDD mang lại cho chúng ta.
+Cách đó *không* mang tính lặp lại và bỏ lỡ vòng phản hồi nhanh mà TDD mang lại.
 
 Kent Beck nói:
 
 > Sự lạc quan là một mối nguy hiểm nghề nghiệp của lập trình viên. Phản hồi chính là phương pháp điều trị.
 
-Thay vào đó, cách tiếp cận của chúng ta nên cố gắng đạt được việc mang lại giá trị *thực* cho người tiêu dùng càng nhanh càng tốt (thường được gọi là "happy path"). Một khi chúng ta đã mang lại một phần nhỏ giá trị cho người tiêu dùng từ đầu đến cuối (end-to-end), việc lặp lại tiếp theo cho các yêu cầu còn lại thường sẽ đơn giản.
+Thay vào đó, hãy cố mang lại giá trị *thực* cho người dùng càng nhanh càng tốt (happy path). Khi đã có giá trị end-to-end, việc bổ sung các yêu cầu còn lại thường đơn giản hơn nhiều.
 
 ## Suy nghĩ về loại test mà chúng ta muốn thấy
 
 Hãy tự nhắc nhở bản thân về tư duy và mục tiêu của chúng ta khi bắt đầu:
 
-- **Viết bản kiểm thử mà chúng ta muốn thấy**. Hãy nghĩ về cách chúng ta muốn sử dụng mã nguồn mà mình chuẩn bị viết từ quan điểm của người tiêu dùng.
+- **Viết test mà chúng ta muốn thấy**. Hãy nghĩ từ góc độ người dùng code — họ sẽ sử dụng nó như thế nào?
 - Tập trung vào *cái gì* và *tại sao*, nhưng đừng bị phân tâm bởi *làm thế nào*.
 
 Package của chúng ta cần cung cấp một hàm có thể trỏ vào một thư mục và trả về cho chúng ta một số bài đăng.

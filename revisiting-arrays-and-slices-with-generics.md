@@ -1,8 +1,8 @@
-# Xem lại mảng và lát cắt với generics
+# Xem lại array và slice với generics
 
-**[Mã nguồn của chương này là sự tiếp nối từ chương Mảng và lát cắt, tìm thấy tại đây](https://github.com/quii/learn-go-with-tests/tree/main/arrays)**
+**[Mã nguồn của chương này tiếp nối từ chương Array và Slice, xem tại đây](https://github.com/quii/learn-go-with-tests/tree/main/arrays)**
 
-Hãy xem lại cả `SumAll` và `SumAllTails` mà chúng ta đã viết trong chương [mảng và lát cắt](arrays-and-slices.md). Nếu bạn không có phiên bản của mình, vui lòng sao chép mã nguồn từ chương [mảng và lát cắt](arrays-and-slices.md) cùng với các bản kiểm thử.
+Hãy xem lại `SumAll` và `SumAllTails` mà chúng ta đã viết trong chương [array và slice](arrays-and-slices.md). Nếu chưa có, hãy sao chép mã nguồn và test từ chương đó.
 
 ```go
 // Sum tính tổng của một lát cắt số.
@@ -36,29 +36,29 @@ Bạn có thấy một mẫu hình lặp lại không?
 - Lặp qua tập hợp, áp dụng một loại thao tác (hoặc hàm) nào đó cho kết quả và mục tiếp theo trong lát cắt, thiết lập một giá trị mới cho kết quả.
 - Trả về kết quả.
 
-Ý tưởng này thường được thảo luận trong các cộng đồng lập trình chức năng (functional programming), thường được gọi là 'reduce' hoặc [fold](https://en.wikipedia.org/wiki/Fold_(higher-order_function)).
+Ý tưởng này thường được thảo luận trong cộng đồng lập trình hàm (functional programming), thường gọi là 'reduce' hoặc [fold](https://en.wikipedia.org/wiki/Fold_(higher-order_function)).
 
-> Trong lập trình chức năng, fold (còn được gọi là reduce, accumulate, aggregate, compress, hoặc inject) đề cập đến một họ các hàm bậc cao (higher-order functions) phân tích một cấu trúc dữ liệu đệ quy và thông qua việc sử dụng một thao tác kết hợp nhất định, kết hợp lại kết quả của việc xử lý đệ quy các thành phần cấu tạo của nó, xây dựng nên một giá trị trả về. Thông thường, một fold được cung cấp một hàm kết hợp, một nút trên cùng của một cấu trúc dữ liệu và có thể là một số giá trị mặc định được sử dụng trong các điều kiện nhất định. Sau đó, fold tiến hành kết hợp các phần tử của phân cấp cấu trúc dữ liệu, sử dụng hàm theo một cách có hệ thống.
+> Trong lập trình hàm, fold (hay reduce, accumulate, aggregate, compress, inject) là một họ hàm bậc cao phân tích cấu trúc dữ liệu đệ quy, kết hợp các phần tử thành một giá trị trả về thông qua một phép toán kết hợp. Fold nhận vào một hàm kết hợp, điểm bắt đầu của cấu trúc dữ liệu, và có thể một giá trị khởi tạo mặc định.
 
-Go luôn có các hàm bậc cao, và kể từ phiên bản 1.18, nó cũng có [generics](./generics.md), vì vậy hiện nay chúng ta có thể định nghĩa một số hàm này đã được thảo luận rộng rãi trong lĩnh vực của chúng ta. Không có lý do gì để trốn tránh, đây là một sự trừu tượng hóa rất phổ biến bên ngoài hệ sinh thái Go và việc hiểu nó sẽ mang lại lợi ích.
+Go vốn đã có hàm bậc cao, và từ phiên bản 1.18 còn có thêm [generics](./generics.md). Giờ đây chúng ta có thể định nghĩa các hàm phổ biến này. Đây là một abstraction rất thông dụng ngoài hệ sinh thái Go, và hiểu nó sẽ rất có ích.
 
 Bây giờ, tôi biết một số bạn có lẽ đang cảm thấy e ngại về điều này.
 
 > Go vốn dĩ nên đơn giản
 
-**Đừng nhầm lẫn giữa sự dễ dàng với sự đơn giản**. Việc sử dụng các vòng lặp và sao chép-dán mã nguồn là dễ dàng, nhưng nó không nhất thiết là đơn giản. Để biết thêm về đơn giản so với dễ dàng, hãy xem bài nói chuyện kiệt tác của Rich Hickey - [Simple Made Easy](https://www.youtube.com/watch?v=SxdOUGdseq4).
+**Đừng nhầm "dễ" với "đơn giản"**. Dùng vòng lặp và copy-paste code thì dễ, nhưng chưa chắc đã đơn giản. Xem bài nói chuyện của Rich Hickey - [Simple Made Easy](https://www.youtube.com/watch?v=SxdOUGdseq4) để hiểu rõ hơn.
 
-**Đừng nhầm lẫn giữa sự xa lạ với sự phức tạp**. Fold/reduce ban đầu nghe có vẻ đáng sợ và mang tính khoa học máy tính nhưng thực chất nó chỉ là một sự trừu tượng hóa cho một thao tác rất phổ biến: Lấy một tập hợp và kết hợp nó thành một mục duy nhất. Khi bạn lùi lại một bước, bạn sẽ nhận ra mình có lẽ thực hiện việc này *rất nhiều*.
+**Đừng nhầm "lạ" với "phức tạp"**. Fold/reduce nghe có vẻ hàn lâm, nhưng thực chất chỉ là một abstraction cho thao tác rất phổ biến: lấy một tập hợp và gộp lại thành một giá trị duy nhất. Nghĩ lại, bạn sẽ thấy mình làm việc này *rất nhiều*.
 
 ## Tái cấu trúc bằng generic
 
-Một sai lầm mà mọi người thường mắc phải với các tính năng ngôn ngữ mới sáng loáng là họ bắt đầu sử dụng chúng mà không có một trường hợp sử dụng cụ thể. Họ dựa vào phỏng đoán và sự võ đoán để dẫn dắt nỗ lực của mình.
+Sai lầm phổ biến với tính năng ngôn ngữ mới là dùng ngay mà chưa có use case cụ thể, chỉ dựa vào phỏng đoán.
 
-May mắn thay, chúng ta đã viết các hàm "hữu ích" của mình và có các bản kiểm thử bao quanh chúng, vì vậy bây giờ chúng ta tự do thử nghiệm các ý tưởng trong giai đoạn tái cấu trúc của TDD và biết rằng bất cứ điều gì chúng ta đang thử đều có sự xác nhận giá trị của nó thông qua các bản kiểm thử đơn vị của chúng ta.
+May mắn là chúng ta đã viết các hàm và có test bao quanh, nên giờ có thể thoải mái thử nghiệm trong bước refactor của TDD — mọi thay đổi đều được test kiểm chứng.
 
-Sử dụng generics như một công cụ để đơn giản hóa mã nguồn thông qua bước tái cấu trúc có nhiều khả năng dẫn dắt bạn đến những cải tiến hữu ích, thay vì những sự trừu tượng hóa vội vàng.
+Dùng generics để đơn giản hóa code trong bước refactor sẽ dẫn đến cải tiến hữu ích, thay vì abstraction vội vàng.
 
-Chúng ta an tâm để thử nghiệm mọi thứ, chạy lại các bản kiểm thử, nếu chúng ta thích thay đổi đó, chúng ta có thể commit. Nếu không, chỉ cần hoàn tác thay đổi. Sự tự do thử nghiệm này là một trong những giá trị thực sự to lớn của TDD.
+Cứ thử nghiệm, chạy lại test. Nếu thích kết quả thì commit, không thì revert. Sự tự do này là một trong những giá trị lớn nhất của TDD.
 
 Bạn nên làm quen với cú pháp generics [từ chương trước](generics.md), hãy thử viết hàm `Reduce` của riêng bạn và sử dụng nó bên trong `Sum` và `SumAllTails`.
 

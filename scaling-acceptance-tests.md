@@ -1,10 +1,10 @@
-# Mở rộng Acceptance Tests (Scaling acceptance tests) - và lướt qua gRPC
+# Mở rộng Acceptance Tests — và giới thiệu gRPC
 
 Chương này là phần tiếp theo của chương [Giới thiệu về Acceptance Tests](https://quii.gitbook.io/learn-go-with-tests/testing-fundamentals/intro-to-acceptance-tests). Bạn có thể tìm thấy [mã nguồn hoàn chỉnh cho chương này trên GitHub](https://github.com/quii/go-specs-greet).
 
-Acceptance tests (kiểm thử chấp nhận) cực kỳ quan trọng. Chúng tác động trực tiếp đến khả năng bạn tự tin phát triển hệ thống theo thời gian với chi phí bảo trì hợp lý.
+Acceptance test cực kỳ quan trọng. Chúng ảnh hưởng trực tiếp đến khả năng phát triển hệ thống lâu dài với chi phí bảo trì hợp lý.
 
-Chúng cũng là công cụ tuyệt vời để làm việc với mã nguồn cũ (legacy code). Khi phải đối mặt với một codebase thiếu test, hãy cưỡng lại mong muốn refactor ngay lập tức. Thay vào đó, hãy viết một vài acceptance tests để tạo mạng lưới an toàn (safety net), giúp bạn thay đổi cấu trúc bên trong mà không ảnh hưởng đến hành vi bên ngoài của hệ thống. Acceptance tests không quan tâm đến chất lượng nội bộ của code, nên chúng rất phù hợp trong những tình huống như vậy.
+Chúng cũng rất hữu ích khi làm việc với legacy code. Khi gặp codebase thiếu test, đừng vội refactor. Thay vào đó, viết vài acceptance test làm mạng lưới an toàn — giúp bạn thay đổi cấu trúc bên trong mà không ảnh hưởng hành vi bên ngoài. Acceptance test không quan tâm đến code bên trong, nên rất phù hợp cho tình huống này.
 
 Sau khi đọc xong chương này, bạn sẽ hiểu rằng acceptance tests không chỉ hữu ích cho việc xác minh tính đúng đắn, mà còn có thể hướng dẫn quá trình phát triển bằng cách giúp chúng ta thay đổi hệ thống một cách có chủ đích và có phương pháp, giảm bớt công sức lãng phí.
 
@@ -21,9 +21,9 @@ Cảm hứng cho chương này đến từ nhiều năm kinh nghiệm làm việ
 
 Cuối cùng, tôi và [Riya Dattani](https://twitter.com/dattaniriya) đã thảo luận về chủ đề này trong bối cảnh BDD (Behavior Driven Development - Phát triển Hướng Hành vi) qua buổi nói chuyện [Acceptance tests, BDD and Go](https://www.youtube.com/watch?v=ZMWJCk_0WrY).
 
-## Tóm tắt (Recap)
+## Tóm tắt
 
-Chúng ta đang nói về kiểm thử hộp đen (black-box testing) nhằm xác minh hệ thống hoạt động đúng như mong đợi từ góc nhìn bên ngoài, dưới **góc nhìn nghiệp vụ** (business perspective). Các bài test này không được phép truy cập vào chi tiết bên trong của hệ thống. Chúng chỉ quan tâm đến việc hệ thống làm **gì** (what), chứ không phải **bằng cách nào** (how).
+Chúng ta đang nói về black-box testing — xác minh hệ thống hoạt động đúng từ **góc nhìn nghiệp vụ**. Các test này không truy cập vào chi tiết bên trong. Chúng chỉ quan tâm hệ thống làm **gì**, không phải **bằng cách nào**.
 
 ## Phân tích các acceptance tests bị hỏng cấu trúc
 

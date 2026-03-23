@@ -1,4 +1,4 @@
-# Concurrency (Lập trình đồng thời)
+# Concurrency
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/concurrency)**
 
@@ -24,9 +24,9 @@ Nó trả về một map của mỗi URL được kiểm tra với một giá tr
 
 Bạn cũng phải truyền vào một `WebsiteChecker`, nó nhận một URL duy nhất và trả về một boolean. Điều này được hàm sử dụng để kiểm tra tất cả các trang web.
 
-Việc sử dụng [dependency injection][DI] đã cho phép họ kiểm thử hàm mà không cần thực hiện các cuộc gọi HTTP thực sự, làm cho nó đáng tin cậy và nhanh chóng.
+Nhờ [dependency injection][DI], họ có thể test hàm mà không cần gọi HTTP thực sự — nhanh và đáng tin cậy hơn.
 
-Đây là bản kiểm thử họ đã viết:
+Đây là test họ đã viết:
 
 ```go
 package concurrency

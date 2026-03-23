@@ -1,12 +1,12 @@
-# Số nguyên (Integers)
+# Số nguyên
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/integers)**
 
 Số nguyên trong Go hoạt động đúng như bạn mong đợi. Bây giờ, hãy thử viết một hàm `Add` để kiểm tra cách chúng hoạt động.
 
-Trước tiên, tạo một tệp kiểm thử có tên `adder_test.go` và thêm đoạn mã sau.
+Trước tiên, tạo file test `adder_test.go` và thêm đoạn code sau.
 
-**Lưu ý:** Mọi tệp Go trong cùng một thư mục phải thuộc cùng một `package`, vì vậy hãy đảm bảo tổ chức mã nguồn một cách hợp lý. Nếu bạn chưa rõ về cách sắp xếp, [bài viết này](https://dave.cheney.net/2014/12/01/five-suggestions-for-setting-up-a-go-project) sẽ giúp bạn hiểu rõ hơn.
+**Lưu ý:** Mọi file Go trong cùng một thư mục phải thuộc cùng một `package`. Hãy tổ chức code hợp lý. Nếu chưa rõ, [bài viết này](https://dave.cheney.net/2014/12/01/five-suggestions-for-setting-up-a-go-project) sẽ giúp bạn.
 
 Khi đó, cấu trúc thư mục của bạn có thể trông như thế này:
 
@@ -41,9 +41,9 @@ func TestAdder(t *testing.T) {
 }
 ```
 
-Bạn sẽ thấy rằng chúng ta đang sử dụng `%d `thay vì `%q` trong chuỗi định dạng. Lý do là `%d` dùng để hiển thị số nguyên, trong khi `%q` dành cho chuỗi.
+Ở đây chúng ta dùng `%d` thay vì `%q` trong chuỗi định dạng — `%d` dùng cho số nguyên, còn `%q` dùng cho chuỗi.
 
-Ngoài ra, lần này chúng ta không còn sử dụng package `main` nữa, mà thay vào đó đã định nghĩa một package có tên là `integers`. Đúng như tên gọi, package này sẽ chứa các hàm làm việc với số nguyên, chẳng hạn như `Add`.
+Lần này chúng ta không dùng package `main` nữa, mà định nghĩa package `integers`. Đúng như tên gọi, package này chứa các hàm làm việc với số nguyên, như `Add`.
 
 ## Chạy thử test
 
@@ -74,9 +74,7 @@ Bây giờ hãy chạy lại test, chúng ta sẽ thấy kết quả báo lỗi 
 
 `adder_test.go:10: expected '4' but got '0'`
 
-(Lỗi này có nghĩa là chúng ta mong đợi kết quả là 4, nhưng lại nhận được 0.)
-
-Ngoài ra, trong [phần trước](hello-world.md#one...last...refactor?), chúng ta đã học về _giá trị trả về có tên_ (named return value), nhưng ở đây lại không sử dụng nó. Thông thường, named return value nên được dùng khi ý nghĩa của giá trị trả về không rõ ràng trong ngữ cảnh. Nhưng trong trường hợp này, hàm `Add` đã rất rõ ràng là để cộng hai số, nên không cần thiết phải dùng named return value.
+Trong [phần trước](hello-world.md#one...last...refactor?), chúng ta đã học về _named return value_, nhưng ở đây không sử dụng. Named return value nên dùng khi ý nghĩa giá trị trả về không rõ ràng. Ở đây, hàm `Add` đã rõ ràng là cộng hai số, nên không cần.
 
 Bạn có thể tham khảo thêm về vấn đề này trong [wiki chính thức của Go](https://go.dev/wiki/CodeReviewComments#named-result-parameters).
 
@@ -90,11 +88,11 @@ func Add(x, y int) int {
 }
 ```
 
-Bạn có thể nghĩ rằng TDD thật vô nghĩa khi chúng ta chỉ viết đúng đủ để bài kiểm thử vượt qua mà không thực sự giải quyết vấn đề.
+Bạn có thể nghĩ TDD thật vô nghĩa khi chỉ viết đủ để test pass mà không giải quyết vấn đề thực sự.
 
-Chúng ta có thể viết thêm một test với những số khác để buộc nó thất bại, nhưng điều đó giống như một [trò đuổi bắt vô tận](https://en.m.wikipedia.org/wiki/Cat_and_mouse).
+Chúng ta có thể viết thêm test với số khác để buộc nó fail, nhưng điều đó giống [trò mèo vờn chuột](https://en.m.wikipedia.org/wiki/Cat_and_mouse).
 
-Sau này, khi bạn đã quen với cú pháp của Go, chúng ta sẽ tìm hiểu về _“Kiểm thử dựa trên tính chất”_ (Property-Based Testing), một kỹ thuật giúp phát hiện lỗi mà không cần chơi trò mèo vờn chuột với các bài kiểm thử.
+Sau này, khi quen với Go, chúng ta sẽ tìm hiểu _Property-Based Testing_ — kỹ thuật giúp phát hiện lỗi mà không cần chơi trò đuổi bắt với test.
 
 Còn bây giờ, hãy sửa lỗi đúng cách!
 

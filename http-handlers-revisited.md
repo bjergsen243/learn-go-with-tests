@@ -1,16 +1,16 @@
-# Xem lại các HTTP Handler (HTTP Handlers Revisited)
+# Xem lại HTTP Handler
 
 **[Bạn có thể tìm thấy toàn bộ mã nguồn tại đây](https://github.com/quii/learn-go-with-tests/tree/main/q-and-a/http-handlers-revisited)**
 
 Cuốn sách này đã có một chương về [kiểm thử một HTTP handler](http-server.md), nhưng chương này sẽ thảo luận rộng hơn về cách thiết kế chúng sao cho dễ kiểm thử.
 
-Chúng ta sẽ xem xét một ví dụ thực tế và cách chúng ta có thể cải thiện thiết kế của nó bằng cách áp dụng các nguyên tắc như nguyên tắc đơn nhiệm (Single Responsibility Principle - SRP) và phân tách các mối quan tâm (Separation of Concerns). Những nguyên tắc này có thể được hiện thực hóa bằng cách sử dụng [giao diện (interfaces)](structs-methods-and-interfaces.md) và [tiêm phụ thuộc (dependency injection)](dependency-injection.md). Bằng cách này, chúng ta sẽ thấy rằng việc kiểm thử các handler thực chất khá đơn giản.
+Chúng ta sẽ xem một ví dụ thực tế và cách cải thiện thiết kế bằng các nguyên tắc như Single Responsibility Principle (SRP) và Separation of Concerns. Các nguyên tắc này được hiện thực hóa thông qua [interface](structs-methods-and-interfaces.md) và [dependency injection](dependency-injection.md). Nhờ đó, việc test handler thực chất khá đơn giản.
 
 ![Minh họa một câu hỏi phổ biến trong cộng đồng Go](amazing-art.png)
 
 Kiểm thử các HTTP handler dường như là một câu hỏi lặp đi lặp lại trong cộng đồng Go, và tôi nghĩ nó chỉ ra một vấn đề rộng hơn là mọi người đang hiểu sai cách thiết kế chúng.
 
-Thường thì những khó khăn của mọi người trong việc kiểm thử bắt nguồn từ thiết kế mã nguồn của họ chứ không phải từ việc viết các bài kiểm thử. Như tôi đã nhấn mạnh rất nhiều lần trong cuốn sách này:
+Thường thì khó khăn trong việc test bắt nguồn từ thiết kế code, không phải từ bản thân test. Như tôi đã nhấn mạnh nhiều lần trong cuốn sách này:
 
 > Nếu các bài kiểm thử khiến bạn thấy đau đớn, hãy lắng nghe tín hiệu đó và suy nghĩ về thiết kế mã nguồn của bạn.
 

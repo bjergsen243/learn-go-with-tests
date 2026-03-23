@@ -1,14 +1,14 @@
-# Context-aware readers (Những bộ đọc nhận biết ngữ cảnh)
+# Context-aware Reader
 
 **[Bạn có thể tìm thấy toàn bộ mã nguồn tại đây](https://github.com/quii/learn-go-with-tests/tree/main/q-and-a/context-aware-reader)**
 
-Chương này trình bày cách phát triển theo phương pháp TDD một `io.Reader` nhận biết ngữ cảnh (context aware), dựa trên bài viết của Mat Ryer và David Hernandez trên [The Pace Dev Blog](https://pace.dev/blog/2020/02/03/context-aware-ioreader-for-golang-by-mat-ryer).
+Chương này hướng dẫn cách dùng TDD để xây dựng một `io.Reader` có khả năng nhận biết context, dựa trên bài viết của Mat Ryer và David Hernandez trên [The Pace Dev Blog](https://pace.dev/blog/2020/02/03/context-aware-ioreader-for-golang-by-mat-ryer).
 
 ## Context aware reader là gì?
 
 Trước hết, hãy cùng tóm lược nhanh về `io.Reader`.
 
-Nếu bạn đã đọc các chương khác trong cuốn sách này, bạn sẽ bắt gặp `io.Reader` khi chúng ta mở tệp, mã hóa JSON và nhiều tác vụ phổ biến khác. Đó là một sự trừu tượng đơn giản cho việc đọc dữ liệu từ _một thứ gì đó_.
+Nếu đã đọc các chương trước, bạn đã gặp `io.Reader` khi mở file, encode JSON và nhiều tác vụ khác. Đây là một abstraction đơn giản cho việc đọc dữ liệu từ _một nguồn nào đó_.
 
 ```go
 type Reader interface {
@@ -16,15 +16,15 @@ type Reader interface {
 }
 ```
 
-Bằng cách sử dụng `io.Reader`, bạn có thể tận dụng khả năng tái sử dụng rất lớn từ thư viện chuẩn, vì đây là một sự trừu tượng được sử dụng cực kỳ phổ biến (cùng với đối tác của nó là `io.Writer`).
+Dùng `io.Reader` giúp bạn tận dụng rất nhiều code có sẵn trong thư viện chuẩn, vì đây là abstraction cực kỳ phổ biến (cùng với `io.Writer`).
 
-### Nhận biết ngữ cảnh (Context aware)?
+### Context-aware nghĩa là gì?
 
-[Trong chương trước](context.md), chúng ta đã thảo luận về cách sử dụng `context` để cung cấp khả năng hủy bỏ (cancellation). Điều này đặc biệt hữu ích nếu bạn đang thực hiện các tác vụ có thể tốn kém tài nguyên tính toán và bạn muốn có thể dừng chúng lại.
+[Trong chương trước](context.md), chúng ta đã tìm hiểu cách dùng `context` để hủy bỏ (cancel) các tác vụ. Điều này hữu ích khi bạn có tác vụ tốn tài nguyên và muốn dừng giữa chừng.
 
-Khi sử dụng một `io.Reader`, bạn không có sự đảm bảo nào về tốc độ, nó có thể mất 1 nano giây hoặc hàng trăm giờ. Bạn có thể thấy việc có thể hủy các loại tác vụ này trong ứng dụng của mình là hữu ích và đó là điều Mat và David đã viết.
+Với `io.Reader`, bạn không biết trước tốc độ đọc — có thể mất 1 nano giây hoặc hàng trăm giờ. Khả năng hủy tác vụ đọc rất hữu ích, và đó là điều Mat và David đã giải quyết.
 
-Họ đã kết hợp hai sự trừu tượng đơn giản (`context.Context` và `io.Reader`) để giải quyết vấn đề này.
+Họ kết hợp hai abstraction đơn giản (`context.Context` và `io.Reader`) để xử lý vấn đề này.
 
 Hãy thử áp dụng TDD cho một số chức năng để chúng ta có thể bao bọc một `io.Reader` sao cho nó có thể bị hủy bỏ.
 

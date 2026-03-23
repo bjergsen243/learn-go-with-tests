@@ -20,9 +20,9 @@ Tuy nhiên, khi dự án phát triển, những loại test doubles này *có th
 
 ### Khái quát về test doubles
 
-Thật dễ để tỏ vẻ chán nản khi những người như tôi cứ hay xét nét về cách gọi tên của test doubles, nhưng các loại test doubles mang tính đặc thù giúp chúng ta thảo luận về chủ đề này và đưa ra những quyết định cân nhắc một cách tường minh hơn.
+Có thể bạn thấy nhàm chán khi phân biệt tên gọi các loại test doubles, nhưng việc phân loại rõ ràng giúp chúng ta thảo luận chính xác hơn và đưa ra quyết định tốt hơn.
 
-**Test doubles** là danh từ chung cho các cách khác nhau mà bạn có thể cấu trúc các dependencies nhằm kiểm soát một **chủ thể đang được kiểm thử** (**subject under test** - viết tắt là **SUT**), tức là thứ mà bạn đang kiểm tra. Việc dùng Test doubles thường ưu việt hơn là dùng các dependencies thật vì nó có thể giúp tránh được các rắc rối như:
+**Test doubles** là thuật ngữ chung cho các cách thay thế dependencies để kiểm soát **chủ thể được kiểm thử** (**subject under test** - **SUT**). Dùng test doubles thường tốt hơn dùng dependencies thật vì giúp tránh các vấn đề như:
 
 - Cần có internet để sử dụng một API
 - Tránh độ trễ và các vấn đề về hiệu suất khác

@@ -1,4 +1,4 @@
-# Reflection (Phản chiếu)
+# Reflection
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/reflection)**
 
@@ -14,11 +14,11 @@ Từ [The Go Blog: Reflection](https://blog.golang.org/laws-of-reflection)
 
 ## `interface{}` là gì?
 
-Chúng ta đã tận hưởng tính an toàn kiểu (type-safety) mà Go mang lại thông qua các hàm làm việc với các kiểu dữ liệu đã biết, chẳng hạn như `string`, `int` và các kiểu dữ liệu của riêng chúng ta như `BankAccount`.
+Chúng ta đã tận hưởng type-safety của Go khi làm việc với các kiểu đã biết như `string`, `int` hay `BankAccount`.
 
-Điều này có nghĩa là chúng ta có sẵn tài liệu miễn phí và compiler sẽ phàn nàn nếu bạn cố gắng truyền sai kiểu dữ liệu vào một hàm.
+Nhờ đó, chúng ta có tài liệu sẵn và compiler sẽ báo lỗi nếu truyền sai kiểu vào hàm.
 
-Tuy nhiên, bạn có thể gặp phải những tình huống muốn viết một hàm mà bạn không biết kiểu dữ liệu tại thời điểm biên dịch (compile time).
+Tuy nhiên, đôi khi bạn cần viết hàm mà không biết trước kiểu dữ liệu tại compile time.
 
 Go cho phép chúng ta vượt qua điều này với kiểu `interface{}`, bạn có thể coi nó là *bất kỳ* kiểu dữ liệu nào (thực tế, trong Go `any` là một [bí danh](https://cs.opensource.google/go/go/+/master:src/builtin/builtin.go;drc=master;l=95) cho `interface{}`).
 
@@ -26,8 +26,8 @@ Vì vậy, `walk(x interface{}, fn func(string))` sẽ chấp nhận bất kỳ 
 
 ### Vậy tại sao không sử dụng `interface{}` cho mọi thứ để có các hàm thực sự linh hoạt?
 
-- Với tư cách là người dùng của một hàm nhận `interface{}`, bạn mất đi tính an toàn kiểu. Điều gì sẽ xảy ra nếu bạn định truyền `Herd.species` kiểu `string` vào một hàm nhưng thay vào đó lại truyền `Herd.count` vốn là kiểu `int`? Compiler sẽ không thể thông báo cho bạn về lỗi này. Bạn cũng không biết mình *được phép* truyền cái gì vào hàm. Biết rằng một hàm nhận một `UserService` chẳng hạn là rất hữu ích.
-- Với tư cách là người viết một hàm như vậy, bạn phải có khả năng kiểm tra *bất cứ thứ gì* đã được truyền cho mình và cố gắng tìm hiểu xem kiểu dữ liệu đó là gì và bạn có thể làm gì với nó. Điều này được thực hiện bằng cách sử dụng _reflection_. Điều này có thể khá vụng về, khó đọc và nói chung là kém hiệu quả hơn (vì bạn phải thực hiện các kiểm tra tại thời điểm chạy - runtime).
+- Người dùng hàm nhận `interface{}` mất đi type-safety. Nếu bạn định truyền `Herd.species` (kiểu `string`) nhưng lại truyền nhầm `Herd.count` (kiểu `int`)? Compiler không báo lỗi. Bạn cũng không biết mình được truyền gì vào. Biết hàm nhận `UserService` chẳng hạn sẽ rõ ràng hơn nhiều.
+- Người viết hàm phải kiểm tra *bất cứ thứ gì* được truyền vào và xác định kiểu dữ liệu. Việc này dùng _reflection_ — khá rườm rà, khó đọc và kém hiệu quả hơn vì phải kiểm tra tại runtime.
 
 Tóm lại, chỉ sử dụng reflection nếu bạn thực sự cần.
 

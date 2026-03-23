@@ -1,16 +1,16 @@
 # Bước Refactoring, danh sách kiểm tra khởi đầu
 
-Refactoring (tái cấu trúc code) là một kỹ năng mà khi được thực hành đủ nhiều, sẽ trở thành bản năng thứ hai và trở nên khá dễ dàng trong hầu hết các trường hợp.
+Refactoring là một kỹ năng mà khi thực hành đủ nhiều, sẽ trở thành bản năng tự nhiên và khá dễ dàng trong hầu hết các trường hợp.
 
-Hoạt động này thường bị nhầm lẫn với những sự thay đổi lớn về mặt thiết kế, nhưng thực ra chúng hoàn toàn tách biệt. Việc phân định rạch ròi giữa refactoring và các loại hoạt động lập trình khác là rất hữu ích, vì nó cho phép tôi làm việc với sự rõ ràng và kỷ luật.
+Nhiều người nhầm lẫn refactoring với việc thay đổi lớn về thiết kế, nhưng thực ra chúng hoàn toàn khác nhau. Phân biệt rõ ràng giữa refactoring và các hoạt động lập trình khác giúp bạn làm việc có kỷ luật và mạch lạc hơn.
 
 ## Refactoring so với các hoạt động khác
 
-Refactoring đơn thuần là cải thiện chất lượng mã code hiện có và <u>không làm thay đổi hành vi (behaviour)</u>; do đó, các bài test không cần thiết phải thay đổi.
+Refactoring đơn giản là cải thiện chất lượng code hiện có mà <u>không làm thay đổi hành vi</u>. Do đó, các bài test không cần phải thay đổi.
 
-Đây là lý do tại sao nó lại là bước thứ 3 trong chu trình TDD. Khi bạn đã thêm một hành vi và một bài test để chứng thực cho nó, quá trình refactoring tiếp theo đây phải là một hoạt động không đòi hỏi bất kỳ sự thay đổi nào đối với code bài test. **Bạn đang làm một việc gì đó khác với "refactoring"** nếu bạn đang thay đổi code rồi sau đó bắt buộc phải sửa lại cả bài test cùng một lúc.
+Đây là lý do refactoring là bước thứ 3 trong chu trình TDD. Khi bạn đã thêm một hành vi mới và viết test để kiểm chứng, bước refactoring tiếp theo không được đòi hỏi thay đổi code test. **Nếu bạn phải sửa cả test khi refactor, thì bạn đang làm việc khác chứ không phải refactoring.**
 
-Nhiều thao tác refactoring vô cùng hữu ích lại rất dễ học và thực hiện (IDE của bạn hầu như tự động hóa rất nhiều trong số đó) nhưng, theo thời gian, chúng tạo ra ảnh hưởng vô cùng to lớn đến chất lượng hệ thống của chúng ta.
+Nhiều thao tác refactoring rất dễ học và thực hiện (IDE thường tự động hóa phần lớn), nhưng theo thời gian, chúng tạo ra tác động rất lớn đến chất lượng hệ thống.
 
 ### Các hoạt động khác, ví dụ như thiết kế "lớn"
 
@@ -40,29 +40,29 @@ Bạn có thể cảm thấy danh sách tham số của nó quá dài và muốn
 func (b BirthdayGreeter) WishHappyBirthday(person Person)
 ```
 
-Chà, giờ thì bạn đang bước vào quá trình **thiết kế (designing)** rồi đấy, và bạn phải đảm bảo mình đi từng bước cẩn trọng. Nếu bạn không làm điều này một cách có kỷ luật, bạn có thể tạo ra một đống lộn xộn cho code của mình, bài test phía sau nó, *và* có lẽ là cả những thứ phụ thuộc vào nó nữa - hãy nhớ rằng, không chỉ có mỗi bài test của bạn đang sử dụng `WishHappyBirthday`. Hy vọng rằng nó vẫn đang được sử dụng trơn tru bởi mã nguồn "thực sự" nữa!
+Lúc này bạn đang bước vào quá trình **thiết kế**, và cần đi từng bước cẩn thận. Nếu không có kỷ luật, bạn có thể gây rối cho code, test, *và* cả những phần phụ thuộc vào nó — hãy nhớ rằng không chỉ test mà cả code chính thức cũng đang gọi `WishHappyBirthday`.
 
-**Bạn vẫn có khả năng điều hướng sự thay đổi này thông qua phương thức viết test trước (test first)**. Bạn có thể chẻ sợi tóc làm tư chỉ để biện luận xem thứ này có phải là quy trình đổi thay "hành vi" không, nhưng rõ ràng là bạn đang muốn method của mình cư xử theo một lối khác.
+**Bạn vẫn có thể thực hiện thay đổi này theo hướng viết test trước.** Có thể tranh luận về việc đây có phải là thay đổi "hành vi" hay không, nhưng rõ ràng bạn đang muốn method hoạt động khác đi.
 
-Do đây là một sự thay đổi về hành vi, hãy áp dụng quy trình TDD ở đây. Một lợi ích của TDD là nó cung cấp cho bạn một luồng kiểm soát đơn giản, an toàn, và có thể lặp đi lặp lại để thúc đẩy sự thay đổi hành vi trong hệ thống; tại sao lại từ bỏ nó trong những tình huống này chỉ vì nó mang lại *cảm giác* khác biệt?
+Vì đây là thay đổi hành vi, hãy áp dụng TDD. TDD mang lại một quy trình đơn giản, an toàn và lặp lại được để thay đổi hành vi hệ thống. Tại sao lại bỏ qua nó chỉ vì nó *cảm giác* khác?
 
-Trong trường hợp này, bạn sẽ thay đổi các tests hiện có để chúng tiến tới sử dụng kiểu type mới. Các bước tiến vòng lặp ngắt quãng quy mô nhỏ bé mà bạn thường quen thuộc mỗi khi xài TDD nhằm giảm thiểu độ rủi ro cũng như củng cố kỷ luật và tính rõ ràng sẽ giúp ích rất nhiều cho bạn trong những tình huống như thế này.
+Trong trường hợp này, bạn sẽ sửa các test hiện có để sử dụng type mới. Các bước nhỏ, lặp lại quen thuộc trong TDD — giúp giảm rủi ro và giữ kỷ luật — sẽ rất hữu ích ở đây.
 
-Nhiều khả năng bạn sẽ có sẵn nhiều bài test đang triệu gọi hàm `WishHappyBirthday`; trong những tình huống này, tôi khuyên bạn nên đóng comment tất cả lại và chỉ trừ lại một test duy nhất, điều khiển cho sự thay đổi diễn ra, và sau đó tiếp tục tháo gỡ lại các tests còn lại theo sự phù hợp.
+Có thể bạn có nhiều test đang gọi `WishHappyBirthday`. Trong trường hợp này, hãy comment tất cả trừ một test, thực hiện thay đổi cho test đó, rồi mở lại và cập nhật từng test còn lại.
 
 ### Thiết kế hệ thống lớn (Big design)
 
-Việc thiết kế có thể đòi hỏi những thay đổi đáng kể hơn và những cuộc hội thoại mở rộng toàn diện hơn, và thông thường nó luôn mang trên mình một mức độ tính chủ quan. Thay đổi cấu trúc thiết kế ở nhiều thành phần trong hệ thống của bạn thường là một quá trình tốn thời gian hơn refactoring; dẫu vậy, bạn vẫn nên nỗ lực giảm thiểu rủi ro bằng việc suy tính tư duy xem làm thế nào để thực thi quá trình ấy bằng vô vàn các bước đi nhỏ.
+Thiết kế có thể đòi hỏi những thay đổi lớn hơn và nhiều thảo luận hơn, thường mang tính chủ quan. Thay đổi cấu trúc nhiều thành phần trong hệ thống thường tốn thời gian hơn refactoring. Tuy nhiên, bạn vẫn nên cố gắng giảm rủi ro bằng cách chia nhỏ quá trình thành nhiều bước.
 
-### Mất tầm nhìn tổng thể do quá chú tâm chi tiết (Seeing the wood for the trees)
+### Nhìn rừng chứ không chỉ nhìn cây
 
-> [Nếu một cá nhân không thể **nhìn thấy khu rừng vì bị che khuất bởi bạt ngàn cây cối** trong văn hóa Anh Quốc, điều đó có nghĩa là họ đang trở nên quá gắn chặt vào một tiểu tiết vụn vặt nào đó và vì vậy không thể nhận thức được đặc điểm quan trọng đối với tổng thể toàn cục vấn đề.](https://www.collinsdictionary.com/dictionary/english/cant-see-the-wood-for-the-trees)
+> [Thành ngữ "can't see the wood for the trees" nghĩa là quá tập trung vào chi tiết nhỏ mà quên mất bức tranh tổng thể.](https://www.collinsdictionary.com/dictionary/english/cant-see-the-wood-for-the-trees)
 
-Việc đàm luận về các vấn đề thiết kế "vĩ mô" sẽ dễ tiếp cận hơn nhiều khi **mã nguồn tầng dưới đã được tổ chức cấu trúc tốt (well-factored)**. Giả dụ bạn và các đồng nghiệp cứ phải hộc tốc tốn nhường ấy khoảng lượng lớn quỹ thời gian chỉ để phân tích thấu hiểu một mớ bòng bong code sau mỗi lúc mở file, làm sao có thể suy nghĩ về thiết kế tổng thể của dự án?
+Thảo luận về thiết kế tổng thể sẽ dễ hơn rất nhiều khi **code đã được tổ chức tốt**. Nếu mỗi lần mở file, bạn và đồng nghiệp đều phải mất thời gian giải mã đống code rối, thì làm sao nghĩ được về thiết kế tổng thể?
 
-Đó chính là nguyên nhân tại sao **khâu refactoring liên tục luôn đóng một vai trò vô cùng quan trọng trong quy trình TDD**. Nếu chúng ta lơ là bỏ quên thất bại ở khâu giải quyết các vấn đề thiết kế cỏn con, chúng ta rồi sẽ phải đối mặt vất vả khó nhằn mỗi lúc muốn vẽ lên mô hình tổng quan của hệ thống đồ sộ đang phải quản.
+Đó là lý do **refactoring liên tục đóng vai trò quan trọng trong TDD**. Nếu bỏ qua các vấn đề thiết kế nhỏ, bạn sẽ rất khó hình dung được bức tranh toàn cảnh của hệ thống.
 
-Trớ trêu thay, những bộ source code được cấu trúc tồi tệ sẽ sẽ xuống cấp theo cấp số nhân khi những kỹ sư tiếp tục nhồi nhét sự rườm rà (complexity) lên trên một khối móng nền lung lay dễ đổ.
+Code có cấu trúc kém sẽ xuống cấp theo cấp số nhân khi các kỹ sư tiếp tục thêm tính năng phức tạp lên một nền tảng không vững.
 
 ## Khởi đầu danh sách kiểm tra trong tâm trí (mental-checklist)
 
@@ -99,9 +99,9 @@ Việc này không chỉ cải thiện tính dễ đọc (readability) của cod
 
 Một lập trình viên có thể áp dụng DRY đi quá xa, tạo ra những lớp trừu tượng phức tạp khó hiểu chỉ để tiết kiệm vài dòng code, thay vì ý tưởng *thực sự* của DRY là đặt một _ý niệm_ ở một nơi duy nhất. Việc giảm số lượng dòng code thường chỉ là hiệu ứng phụ của DRY, **chứ đó không phải là mục tiêu thực tế**.
 
-Nên đúng vậy, DRY có thể bị áp dụng sai, nhưng chiều hướng ngược lại là từ chối việc DRY bất cứ thứ gì cũng tồi tệ không kém. Code bị lặp lại thêm vào sự nhiễu loạn và làm tăng các chi phí bảo trì. Việc từ chối tập hợp những khái niệm có liên quan vào cùng một chỗ chỉ vì sợ dùng sai DRY sẽ gây ra những vấn đề *khác biệt*.
+Đúng, DRY có thể bị áp dụng sai, nhưng ngược lại — từ chối DRY mọi thứ — cũng tệ không kém. Code lặp lại tạo thêm nhiễu và tăng chi phí bảo trì. Không gom những khái niệm liên quan lại với nhau chỉ vì sợ dùng sai DRY sẽ gây ra những vấn đề *khác*.
 
-Nên thay vì cực đoan ở cả hai phía "phải DRY mọi thứ" hoặc "DRY là tồi tệ", hãy suy nghĩ về đoạn code trước mắt bạn. Cái gì đang bị lặp lại? Nó có cần thiết phải như vậy không? Nếu bạn đóng gói đoạn code lặp lại đó vào một phương thức (method), danh sách tham số (parameter list) trông có hợp lý không? Đoạn code mới có tự giải thích được chính nó và đóng gói được "ý niệm" (idea) một cách rõ ràng không?
+Thay vì cực đoan — "phải DRY mọi thứ" hay "DRY là tệ" — hãy nhìn vào code trước mắt. Cái gì đang lặp lại? Có cần thiết không? Nếu gom vào một method, danh sách tham số có hợp lý không? Code mới có tự giải thích được ý nghĩa không?
 
 Chín phần mười trường hợp, bạn có thể nhìn vào danh sách tham số của một hàm, và nếu nó trông rối rắm khó hiểu, thì rất có thể đó là một cách áp dụng DRY tồi.
 
@@ -166,7 +166,7 @@ Nếu bạn sành sỏi cách sử dụng IDE của mình, bạn có thể thự
 
 Hãy bao bọc các thao tác trên vào trong những methods/functions cấu trúc private thông qua công cụ refactor extract method (`command+option+m`).
 
-Đoạn code bên dưới chứa đựng một vài thủ tục nhiễu loạn nhàm chán xoay quanh quá trình khởi tạo chuỗi JSON string rồi gộp quy đổi nó thành kiểu `io.Reader` nhằm chuẩn bị được gửi đi thông qua một HTTP request dạng `POST`.
+Đoạn code bên dưới có một số chi tiết rườm rà: tạo chuỗi JSON, chuyển thành `io.Reader`, rồi gửi qua HTTP `POST`.
 
 ```go
 func (ws *WidgetService) CreateWidget(name string) error {
@@ -226,11 +226,11 @@ Các private functions và methods rất tuyệt vời; chúng cho phép bạn g
 
 #### Nhưng bây giờ tôi không biết nó hoạt động như thế nào!
 
-Một sự phản đối chung đối với việc refactoring kiểu này, vốn yêu thích các functions và methods nhỏ bé được cấu thành từ những cái khác, đó là nó có thể gây khó khăn cho việc hiểu cách code hoạt động. Lời đáp trả thẳng thắn của tôi cho việc này là:
+Một phản đối phổ biến với cách refactoring này — chia thành nhiều function/method nhỏ — là nó có thể khó theo dõi luồng code. Câu trả lời thẳng thắn của tôi là:
 
 > Bạn đã học cách điều hướng codebases bằng công cụ của mình một cách hiệu quả chưa?
 
-Một cách rất có chủ ý, với tư cách là người _viết_ `CreateWidget`, tôi không muốn quá trình tạo ra một chuỗi string cụ thể trở thành một nhân vật thiết yếu trong mạch truyện của method này. Nó làm phân tâm người đọc, và là một sự nhiễu loạn không liên quan 99% thời gian.
+Với tư cách người viết `CreateWidget`, tôi cố ý không muốn việc tạo chuỗi JSON chiếm spotlight trong method này. Nó gây phân tâm và 99% thời gian không phải thứ người đọc cần quan tâm.
 
 Tuy nhiên, nếu ai đó _thực sự_ quan tâm, bạn chỉ cần nhấn `command+b` (hoặc phím tắt "điều hướng đến ký hiệu" (navigate to symbol) của bạn) trên `createWidgetPayload`... và đọc nó. Nhấn `command+left-arrow` để quay lại.
 

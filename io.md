@@ -1,10 +1,10 @@
-# IO và sắp xếp (sorting)
+# IO và sorting
 
 **[Tất cả mã nguồn của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/io)**
 
 [Trong chương trước](json.md), chúng ta đã tiếp tục lặp lại ứng dụng của mình bằng cách thêm một điểm cuối (endpoint) mới `/league`. Trong quá trình đó, chúng ta đã tìm hiểu về cách xử lý JSON, nhúng các kiểu (embedding types) và định tuyến (routing).
 
-Chủ sở hữu sản phẩm của chúng ta hơi lo lắng vì phần mềm bị mất điểm số khi máy chủ được khởi động lại. Điều này là do việc triển khai kho lưu trữ của chúng ta đang ở trong bộ nhớ (in-memory). Cô ấy cũng không hài lòng khi chúng ta không hiểu rằng endpoint `/league` nên trả về những người chơi được sắp xếp theo số trận thắng!
+Product owner lo lắng vì điểm số bị mất khi khởi động lại server — do store đang lưu trong bộ nhớ (in-memory). Cô ấy cũng muốn endpoint `/league` trả về người chơi được sắp xếp theo số trận thắng!
 
 ## Mã nguồn cho đến nay
 

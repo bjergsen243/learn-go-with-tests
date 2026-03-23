@@ -1,10 +1,10 @@
-# JSON, định tuyến (routing) & nhúng (embedding)
+# JSON, routing & embedding
 
 **[Tất cả mã nguồn của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/json)**
 
 [Trong chương trước](http-server.md), chúng ta đã tạo một máy chủ web để lưu trữ số trận thắng của các người chơi.
 
-Chủ sở hữu sản phẩm của chúng ta có một yêu cầu mới: tạo một điểm cuối (endpoint) mới gọi là `/league`, trả về danh sách tất cả các người chơi đã được lưu trữ. Cô ấy muốn danh sách này được trả về dưới dạng JSON.
+Product owner có yêu cầu mới: tạo endpoint `/league` trả về danh sách tất cả người chơi đã lưu, dưới dạng JSON.
 
 ## Đây là mã nguồn chúng ta đã có cho đến giờ
 

@@ -1,4 +1,4 @@
-# Các kiểu lỗi (Error types)
+# Các kiểu lỗi
 
 **[Bạn có thể tìm thấy toàn bộ mã nguồn tại đây](https://github.com/quii/learn-go-with-tests/tree/main/q-and-a/error-types)**
 
@@ -61,15 +61,15 @@ Bài kiểm thử này tạo ra một máy chủ luôn trả về `StatusTeapot`
 
 ## Những vấn đề của cách kiểm thử này
 
-Cuốn sách này luôn cố gắng nhấn mạnh vào việc _lắng nghe các bài kiểm thử của bạn (listen to your tests)_ và bài kiểm thử này mang lại cảm giác không tốt:
+Cuốn sách này luôn nhấn mạnh việc _lắng nghe test_ và bài test này cho cảm giác không ổn:
 
 - Chúng ta đang xây dựng cùng một chuỗi ký tự như mã nguồn thực tế (production code) để kiểm thử nó.
 - Nó gây khó chịu khi đọc và viết.
 - Liệu chuỗi thông điệp lỗi chính xác có phải là điều chúng ta _thực sự quan tâm_ không?
 
-Điều này nói lên điều gì? Trải nghiệm (ergonomics) của bài kiểm thử sẽ phản ánh lên một phần mã khác đang cố gắng sử dụng mã của chúng ta.
+Điều này nói lên gì? Trải nghiệm viết test phản ánh trải nghiệm của người dùng code của bạn.
 
-Người dùng mã của chúng ta sẽ phản ứng thế nào với các loại lỗi cụ thể mà chúng ta trả về? Điều tốt nhất họ có thể làm là xem xét chuỗi lỗi, việc này cực kỳ dễ sai sót và rất tệ khi viết.
+Người dùng code sẽ xử lý lỗi như thế nào? Tốt nhất họ chỉ có thể so sánh chuỗi lỗi — rất dễ sai và khó bảo trì.
 
 ## Những gì chúng ta nên làm
 

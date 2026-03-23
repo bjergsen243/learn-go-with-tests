@@ -1,6 +1,6 @@
-# Giới thiệu về Acceptance Tests (Kiểm thử chấp nhận)
+# Giới thiệu về Acceptance Tests
 
-Tại `$WORK`, chúng tôi đã gặp nhu cầu cần có tính năng "tắt an toàn" (graceful shutdown) cho các dịch vụ của mình. Graceful shutdown đảm bảo hệ thống của bạn hoàn thành công việc đang dở trước khi bị chấm dứt. Một ví dụ thực tế là khi ai đó cố gắng kết thúc cuộc gọi điện thoại một cách lịch sự trước khi chuyển sang cuộc họp tiếp theo, thay vì dập máy giữa chừng.
+Tại nơi làm việc, chúng tôi cần tính năng graceful shutdown cho các dịch vụ. Graceful shutdown đảm bảo hệ thống hoàn thành công việc đang dở trước khi tắt — giống như kết thúc cuộc gọi lịch sự trước khi chuyển sang cuộc họp tiếp theo, thay vì dập máy giữa chừng.
 
 Chương này sẽ giới thiệu về graceful shutdown trong bối cảnh của một máy chủ HTTP, và cách viết các acceptance test để giúp bạn tự tin vào hành vi của mã nguồn.
 
@@ -8,9 +8,9 @@ Sau khi đọc xong chương này, bạn sẽ biết cách chia sẻ các packag
 
 ## Vừa đủ thông tin về Kubernetes
 
-Chúng tôi chạy phần mềm trên [Kubernetes](https://kubernetes.io/) (K8s). K8s sẽ chấm dứt các pod (thực chất là phần mềm của chúng ta) vì nhiều lý do khác nhau, và một lý do phổ biến là khi chúng ta push mã mới để triển khai (deploy).
+Chúng tôi chạy phần mềm trên [Kubernetes](https://kubernetes.io/) (K8s). K8s sẽ tắt các pod (tức phần mềm của chúng ta) vì nhiều lý do, phổ biến nhất là khi deploy code mới.
 
-Chúng tôi đặt ra cho bản thân những tiêu chuẩn cao về [các chỉ số DORA](https://cloud.google.com/blog/products/devops-sre/using-the-four-keys-to-measure-your-devops-performance). Do đó, chúng tôi triển khai những cải tiến nhỏ, tăng dần lên môi trường production nhiều lần mỗi ngày.
+Chúng tôi đặt tiêu chuẩn cao về [các chỉ số DORA](https://cloud.google.com/blog/products/devops-sre/using-the-four-keys-to-measure-your-devops-performance), nên deploy lên production nhiều lần mỗi ngày.
 
 Khi K8s muốn chấm dứt một pod, nó khởi tạo một [chu kỳ chấm dứt (termination lifecycle)](https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-terminating-with-grace). Một phần trong đó là gửi tín hiệu `SIGTERM` tới phần mềm của chúng ta. Đây là cách K8s thông báo với chương trình rằng:
 

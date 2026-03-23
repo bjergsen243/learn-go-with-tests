@@ -1,4 +1,4 @@
-# Toán học (Mathematics)
+# Toán học
 
 **[Tất cả code của chương này được lưu tại đây](https://github.com/quii/learn-go-with-tests/tree/main/math)**
 
@@ -46,13 +46,11 @@ Vậy những gì chúng ta sẽ làm là tái cấu trúc lại nội dung trê
 
 ## Một Acceptance Test
 
-Trước khi đi quá sâu, hãy nghĩ về một acceptance test (kiểm thử chấp nhận).
+Trước khi đi sâu, hãy nghĩ về acceptance test.
 
-Đợi đã, có thể bạn chưa biết acceptance test là gì. Hãy để tôi giải thích.
+Có thể bạn chưa biết acceptance test là gì. Đơn giản thế này: làm sao biết mình đã hoàn thành? TDD cho ta câu trả lời: khi test pass. Nhưng đôi khi — thực ra là hầu như luôn luôn — bạn nên viết một test cho biết khi nào *toàn bộ tính năng* đã hoàn thành. Không chỉ kiểm tra một hàm riêng lẻ, mà kiểm tra cả "feature" mà bạn đang xây dựng.
 
-Để tôi hỏi bạn: chiến thắng trông như thế nào? Làm thế nào chúng ta biết mình đã hoàn thành công việc? TDD cung cấp một cách tốt để biết khi nào bạn đã xong: khi bản kiểm thử vượt qua. Đôi khi thật tốt - thực tế là hầu như luôn luôn tốt - khi viết một bản kiểm thử cho bạn biết khi nào bạn đã viết xong toàn bộ tính năng có thể sử dụng được. Không chỉ là một bản kiểm thử cho biết một hàm cụ thể đang hoạt động theo cách bạn mong đợi, mà là một bản kiểm thử cho biết toàn bộ thứ mà bạn đang cố gắng đạt được - 'tính năng' (feature) - đã hoàn thành.
-
-Những bản kiểm thử này đôi khi được gọi là 'acceptance tests', đôi khi được gọi là 'feature tests'. Ý tưởng là bạn viết một bản kiểm thử ở cấp độ rất cao để mô tả những gì bạn đang cố gắng đạt được - ví dụ: một người dùng nhấp vào một nút trên trang web và họ thấy danh sách đầy đủ các Pokémon họ đã bắt được. Khi chúng ta đã viết bản kiểm thử đó, sau đó chúng ta có thể viết thêm các bản kiểm thử khác - unit tests - để xây dựng hướng tới một hệ thống hoạt động có thể vượt qua acceptance test. Vì vậy, đối với ví dụ của chúng ta, các bản kiểm thử này có thể là về việc hiển thị một trang web với một cái nút, kiểm thử các route handlers trên một web server, thực hiện truy vấn cơ sở dữ liệu, v.v. Tất cả những thứ này sẽ được thực hiện theo quy trình TDD, và tất cả chúng sẽ hướng tới việc làm cho bản acceptance test ban đầu vượt qua.
+Những test này gọi là "acceptance test" hay "feature test". Ý tưởng là viết test ở cấp cao mô tả mục tiêu cuối cùng — ví dụ: người dùng nhấn nút và thấy danh sách Pokémon đã bắt. Sau đó viết thêm các unit test để từng bước xây dựng hệ thống: hiển thị trang web, xử lý route, truy vấn database, v.v. Tất cả đều theo TDD, và tất cả đều hướng tới việc làm acceptance test pass.
 
 Giống như bức tranh *kinh điển* này của Nat Pryce và Steve Freeman:
 
